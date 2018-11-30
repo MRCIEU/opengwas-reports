@@ -1,34 +1,67 @@
 ---
-title: "Untitled"
+title: "Pipeline report"
 output:
   flexdashboard::flex_dashboard:
-    orientation: columns
+    orientation: rows
     vertical_layout: fill
 ---
 
 ```{r setup, include=FALSE}
-library(flexdashboard)
+library("flexdashboard")
+library("tidyverse")
+library("vcfR")
+library("jsonlite")
+```
+
+Column {data-width=450, .sidebar}
+-----------------------------------------------------------------------
+
+### Information {data-height=200}
+
+```{r}
+info <- tribble(
+  ~name, ~value,
+  "input_file1", "PLACEHOLDER",
+  "input_file2", "PLACEHOLDER",
+  "compile_time", format(Sys.time(), "%Y-%m-%d %H:%M"),
+  "build_version", "PLACEHOLDER",
+)
+
+info %>% knitr::kable()
+```
+
+### Metrics
+
+```{r}
+meta_metrics <- "data/harmonised.json" %>% read_json()
+
+count_metrics <- meta_metrics$counts
+
+count_metrics %>% enframe() %>%
+  mutate(value = value %>%
+           map_int( ~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
 ```
 
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### Chart A
+### Plot 1: placeholder
 
 ```{r}
 
 ```
 
-Column {data-width=350}
+Column {.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
-### Chart B
+
+### Plot 2: placeholder
 
 ```{r}
 
 ```
 
-### Chart C
+### Plot 3: placeholder
 
 ```{r}
 
