@@ -11,6 +11,18 @@ library("flexdashboard")
 library("tidyverse")
 library("vcfR")
 library("jsonlite")
+source("funcs/plots.R")
+```
+
+```{shell, include=FALSE}
+bcftools query -f '%CHROM\t%POS\t%ID\t%INFO/PVAL\n' data/harmonised.bcf > data/harmonised_query.tsv
+```
+
+```{r, include=FALSE}
+df <- read_tsv("data/harmonised_query.tsv", col_names = FALSE,
+               col_types = "cicd") %>%
+  set_names(c("CHROM", "POS", "ID", "PVAL")) %>%
+  mutate(CHROM = if_else(CHROM == "X", 23L, if_else(CHROM == "Y", 24L, as.integer(CHROM))))
 ```
 
 Column {data-width=450, .sidebar}
@@ -45,20 +57,20 @@ count_metrics %>% enframe() %>%
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### Plot 1: placeholder
+### Plot 1: Manhattan plot
 
 ```{r}
-
+df %>% plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL)
 ```
 
 Column {.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
 
-### Plot 2: placeholder
+### Plot 2: QQ plot
 
 ```{r}
-
+df %>% plot_qq(pval = PVAL)
 ```
 
 ### Plot 3: placeholder
