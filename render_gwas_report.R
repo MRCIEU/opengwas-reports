@@ -2,6 +2,7 @@ suppressPackageStartupMessages({
   library("tidyverse")
   library("glue")
   library("fs")
+  library("here")
   source("funcs/processing.R")
   source("funcs/plots.R")
 })
@@ -30,7 +31,7 @@ get_args <- function() {
 
 main <- function(gwas_id, input, metadata, show) {
   # Sanitise paths
-  gwas_dir <- path("gwas_input", gwas_id)
+  gwas_dir <- here(path("gwas_input", gwas_id))
   bcf_file <- path(gwas_dir, path_file(input))
   metadata <- path(gwas_dir, path_file(metadata))
   report_file <- glue("report_{gwas_id}.html")
