@@ -68,7 +68,7 @@ main <- function(gwas_id, input, metadata, show) {
   # Render Rmarkdown
   message(glue("{Sys.time()}\tStart rendering report..."))
   rmarkdown::render(
-    input = "template.Rmd",
+    input = "template/template.Rmd",
     output_format = "flexdashboard::flex_dashboard",
     output_file = report_file,
     output_dir = gwas_dir,

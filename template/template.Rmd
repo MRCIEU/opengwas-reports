@@ -15,14 +15,14 @@ params:
 library("tidyverse")
 library("fs")
 library("glue")
-source("funcs/processing.R")
-source("funcs/plots.R")
+source("../funcs/processing.R")
+source("../funcs/plots.R")
 message(glue("bcf_file: {params$bcf_file}"))
 message(glue("tsv_file: {params$tsv_file}"))
 message(glue("metadata: {params$metadata}"))
 ```
 
-```{r, include=FALSE}
+```{r load-data, include=FALSE}
 df <- read_tsv(params$tsv_file, col_names = FALSE,
                col_types = "cicd") %>%
   set_names(c("CHROM", "POS", "ID", "PVAL")) %>%
@@ -35,7 +35,7 @@ Row {data-width=450 .sidebar}
 
 ### Information {data-height=200}
 
-```{r}
+```{r render-info}
 info <- tribble(
   ~name, ~value,
   "gwas_id", params$gwas_id,
@@ -52,7 +52,7 @@ info %>% knitr::kable()
 
 #### Counts
 
-```{r}
+```{r render-metrics-counts}
 count_metrics <- meta_metrics$counts
 
 count_metrics %>% enframe() %>%
@@ -65,18 +65,18 @@ Column {data-width=650} {.tabset .tabset-fade}
 
 ### Plot 1: Manhattan plot
 
-```{r}
+```{r plot-manhattan}
 df %>% plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL)
 ```
 
 ### Plot 2: QQ plot
 
-```{r}
+```{r plot-qq}
 df %>% plot_qq(pval = PVAL)
 ```
 
 ### Plot 3: AF plot
 
-```{r}
+```{r plot-af}
 cat("PLACEHOLDER")
 ```
