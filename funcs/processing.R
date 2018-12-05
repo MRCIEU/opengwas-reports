@@ -1,5 +1,7 @@
 convert_bcf_to_tsv <- function(bcf_name, tsv_name) {
   #' Extract variables from the bcf file using `bcftools`
+  #' NOTE: You need to have `bcftools` in your PATH
+  #'
   #' - `bcf_name`, chr: string name of the input bcf file
   #' - `tsv_name`, chr: string name of the extracted tsv_file
 

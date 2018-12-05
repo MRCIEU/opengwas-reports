@@ -1,5 +1,7 @@
 plot_qq <- function(df, pval) {
-  #' Quantile-quantile plot
+  #' Quantile-quantile plot, log-transformed
+  #'
+  #' - `pval`: name (tidy symbol) of the p-value column
 
   # tidy eval
   pval <- enquo(pval)
@@ -17,6 +19,11 @@ plot_manhattan <- function(df, chr, bp, snp, p,
                            red_line = -log10(5e-08),
                            blue_line = -log10(5e-05)) {
   #' Manhattan plot
+  #'
+  #' - `chr`: name (tidy symbol) of the chromosome column
+  #' - `bp`: name (tidy symbol) of the base-pair column
+  #' - `snp`: name (tidy symbol) of the SNP column
+  #' - `p`: name (tidy symbol) of the p-value column
 
   # tidy eval
   chr <- enquo(chr)
@@ -51,10 +58,10 @@ plot_manhattan <- function(df, chr, bp, snp, p,
         geom_hline(yintercept = red_line, color = "red") +
         geom_hline(yintercept = blue_line, color = "blue") +
         scale_color_manual(values = rep(c("grey", "skyblue"), 22)) +
-        # custom X axis
+        # Custom X axis
         scale_x_continuous(label = axis_df[[quo_name(chr)]],
                            breaks = axis_df[["center"]]) +
-        # remove space between plot area and x axis
+        # Remove space between plot area and x axis
         scale_y_continuous(expand = c(0, 0)) +
         theme_bw() +
         theme(legend.position = "none",
