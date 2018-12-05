@@ -10,7 +10,8 @@ plot_qq <- function(df, pval) {
     {
       ggplot(.) +
         aes(sample = !!pval) +
-        stat_qq() + stat_qq_line()
+        stat_qq() + stat_qq_line() +
+        theme_minimal()
     }
 }
 
@@ -63,7 +64,7 @@ plot_manhattan <- function(df, chr, bp, snp, p,
                            breaks = axis_df[["center"]]) +
         # Remove space between plot area and x axis
         scale_y_continuous(expand = c(0, 0)) +
-        theme_bw() +
+        theme_minimal() +
         theme(legend.position = "none",
               panel.border = element_blank(),
               panel.grid.major.x = element_blank(),
