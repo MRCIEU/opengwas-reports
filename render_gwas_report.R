@@ -38,6 +38,7 @@ main <- function(gwas_id, input, metadata, show) {
   report_file <- glue("report_{gwas_id}.html")
   report_full_path <- path(gwas_dir, report_file)
   intermediates_dir <- path(gwas_dir, "intermediate")
+  rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
   temp_tsv <- path(intermediates_dir, "report_query.tsv")
   cat("Config:\n")
   print(t(t(
@@ -46,6 +47,7 @@ main <- function(gwas_id, input, metadata, show) {
       "metadata" = metadata,
       "report_full_path" = report_full_path,
       "intermediates_dir" = intermediates_dir,
+      "rmd_intermediates_dir" = rmd_intermediates_dir,
       "temp_tsv" = temp_tsv))))
 
   # Verify structure
@@ -74,7 +76,7 @@ main <- function(gwas_id, input, metadata, show) {
     output_format = "flexdashboard::flex_dashboard",
     output_file = report_file,
     output_dir = gwas_dir,
-    intermediates_dir = intermediates_dir,
+    intermediates_dir = rmd_intermediates_dir,
     params = list(gwas_id = gwas_id,
                   bcf_file = bcf_file,
                   tsv_file = temp_tsv,
