@@ -23,8 +23,9 @@ get_args <- function() {
     help = "metadata json file: [default %(default)s]")
   parser$add_argument(
     "-s", "--show",
-    action = "store_true", default = TRUE,
-    help = "If True, show the report after it is generated")
+    action = "store_true", default = FALSE,
+    help = paste0("If True, show the report after it is generated",
+                  " [default: %(default)s]"))
   args <- parser$parse_args()
   return(args)
 }
