@@ -17,3 +17,19 @@ translate_chrom_to_int <- function(chrom_series) {
   if_else(chrom_series == "X", 23L,
           if_else(chrom_series == "Y", 24L, as.integer(chrom_series)))
 }
+
+process_api_info <- function(gwas_id) {
+  #' Transform json data from API call to a suitable data frame
+  transform_cell <- function(cell) {
+    #' Cases:
+    #' NULL => NA
+    #' numeric => format it with delim
+    #' otherwise => characterise it
+    ifelse(is.null(cell), NA_character_,
+           ifelse(is.numeric(cell), format(cell, big.mark = ","),
+                  as.character(cell)))
+  }
+  api_call <- glue("http://apitest.mrbase.org/gwasinfo/{gwas_id}")
+  jsonlite::read_json(api_call) %>% first() %>% enframe() %>%
+    mutate(value = value %>% map_chr(transform_cell))
+}

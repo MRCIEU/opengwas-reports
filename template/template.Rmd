@@ -58,7 +58,14 @@ count_metrics <- meta_metrics$counts
 
 count_metrics %>% enframe() %>%
   mutate(value = value %>%
-           map_int( ~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
+           map_int(~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
+```
+
+### API information
+
+```{r render-metrics-api}
+params$gwas_id %>% process_api_info() %>%
+  knitr::kable()
 ```
 
 Column {data-width=650} {.tabset .tabset-fade}
