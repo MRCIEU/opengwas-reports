@@ -26,11 +26,11 @@ optional arguments:
 Suppose we have a GWAS QC run named `example` as the ID of this run,
 the harmonised bcf files named `harmonised.bcf` and `harmonised.bcf.csi`,
 and the metadata file named as `harmonised.json`.
-Create a file structure to `./gwas_input` as:
+Create a file structure to `./gwas-files` as:
 
 >     .
->     ├── gwas_input
->     │   └── example
+>     ├── gwas-files
+>     │   └── ${gwas_id}
 >     │       ├── harmonised.bcf
 >     │       ├── harmonised.bcf.csi
 >     │       ├── harmonised.json
@@ -39,14 +39,14 @@ Create a file structure to `./gwas_input` as:
 Build the report for this QC run as
 
 ```
- $ Rscript render_gwas_report.R --gwas_id example --input harmonised.bcf --metadata harmonised.json
+ $ Rscript render_gwas_report.R --gwas_id 2 --input harmonised.bcf --metadata harmonised.json
 ```
 
-If the build is successful, the report will be generated as `./gwas_input/${example}/report_${example}.html` with `example` as the `gwas_id`:
+If the build is successful, the report will be generated as `./gwas-files/${gwas_id}/report_${gwas_id}.html` with `gwas_id` being `{1, 2, 3, ...}`:
 
 >     .
->     ├── gwas_input
->     │   └── example
+>     ├── gwas-files
+>     │   └── ${gwas_id}
 >     │       ├── harmonised.bcf
 >     │       ├── harmonised.bcf.csi
 >     │       ├── harmonised.json

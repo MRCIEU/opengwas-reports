@@ -11,7 +11,7 @@ get_args <- function() {
   parser <- argparse::ArgumentParser()
   parser$add_argument(
     "--gwas_id",
-    type = "character", default = "example",
+    type = "integer", default = "2",
     help = "Directory with the associated gwas_id [default: %(default)s]")
   parser$add_argument(
     "--input",
@@ -32,7 +32,7 @@ get_args <- function() {
 
 main <- function(gwas_id, input, metadata, show) {
   # Sanitise paths
-  gwas_dir <- here(path("gwas_input", gwas_id))
+  gwas_dir <- here(path("gwas-files", gwas_id))
   bcf_file <- path(gwas_dir, path_file(input))
   metadata <- path(gwas_dir, path_file(metadata))
   report_file <- glue("report_{gwas_id}.html")
@@ -51,7 +51,7 @@ main <- function(gwas_id, input, metadata, show) {
       "temp_tsv" = temp_tsv))))
 
   # Verify structure
-  c(path("gwas_input", gwas_id),
+  c(path("gwas-files", gwas_id),
     bcf_file,
     sprintf("%s.csi", bcf_file),
     metadata) %>%
