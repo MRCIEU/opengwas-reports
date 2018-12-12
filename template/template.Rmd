@@ -80,7 +80,7 @@ df %>% plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL)
 ### Plot 2: QQ plot
 
 ```{r plot-qq}
-df %>% plot_qq(pval = PVAL)
+df %>% plot_qq_log(pval = PVAL)
 ```
 
 ### Plot 3: AF plot

@@ -1,18 +1,27 @@
-plot_qq <- function(df, pval) {
+plot_qq_log <- function(df, pval) {
   #' Quantile-quantile plot, log-transformed
+  #' adapted from qqman:qq
   #'
   #' - `pval`: name (tidy symbol) of the p-value column
 
   # tidy eval
   pval <- enquo(pval)
-  df %>%
-    mutate_at(vars(!!pval), function(x) -log10(x)) %>%
-    {
-      ggplot(.) +
-        aes(sample = !!pval) +
-        stat_qq() + stat_qq_line() +
-        theme_minimal()
-    }
+
+  pseries <- df %>%
+    filter(is.finite(!!pval), `<`(!!pval, 1), `>`(!!pval, 0)) %>%
+    pull(!!pval)
+  observed <- -log10(sort(pseries, decreasing = FALSE))
+  expected <- -log10(ppoints(length(pseries)))
+  xlab <- expression(Expected ~ ~-log[10](italic(p)))
+  ylab <- expression(Observed ~ ~-log[10](italic(p)))
+
+  ggplot() +
+    aes(x = expected, y = observed) +
+    geom_point(alpha = 0.2, color = "skyblue") +
+    geom_abline(slope = 1, color = "red") +
+    xlim(0, max(expected)) + ylim(0, max(observed)) +
+    xlab(xlab) + ylab(ylab) +
+    theme_minimal()
 }
 
 plot_manhattan <- function(df, chr, bp, snp, p,
