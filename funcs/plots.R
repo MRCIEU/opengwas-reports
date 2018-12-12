@@ -82,6 +82,21 @@ plot_manhattan <- function(df, chr, bp, snp, p,
 
 }
 
-plot_af <- function(df) {
-  # TODO
+plot_af <- function(df, af_main, af_ref, cut = 0.2) {
+  # tidy eval
+  af_main <- enquo(af_main)
+  af_ref <- enquo(af_ref)
+  title <- glue("AF plot with difference above {cut}")
+
+  df %>%
+    filter(abs(`-`(!!af_main, !!af_ref)) > cut) %>%
+    {
+      ggplot(.) +
+        aes(x = !!af_ref, y = !!af_main) +
+        geom_point(alpha = 0.2, color = "skyblue") +
+        geom_abline(slope = 1, color = "red") +
+        xlab("AF reference") + ylab("AF input") +
+        ggtitle(title) +
+        theme_minimal()
+    }
 }

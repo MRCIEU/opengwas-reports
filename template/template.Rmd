@@ -7,8 +7,10 @@ output:
 params:
   gwas_id: gwas_id
   bcf_file: bcf_file
-  tsv_file: tsv_file
+  main_df: main_df
+  report_metrics: report_metrics
   metadata: metadata
+  refdata: refdata
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -19,15 +21,12 @@ library("here")
 source(here("funcs/processing.R"))
 source(here("funcs/plots.R"))
 message(glue("bcf_file: {params$bcf_file}"))
-message(glue("tsv_file: {params$tsv_file}"))
 message(glue("metadata: {params$metadata}"))
+message(glue("refdata: {params$refdata}"))
 ```
 
 ```{r load-data, include=FALSE}
-df <- read_tsv(params$tsv_file, col_names = FALSE,
-               col_types = "cicd") %>%
-  set_names(c("CHROM", "POS", "ID", "PVAL")) %>%
-  mutate_at(vars(CHROM), translate_chrom_to_int)
+main_df <- params$main_df
 meta_metrics <- jsonlite::read_json(params$metadata)
 ```
 
@@ -42,6 +41,7 @@ info <- tribble(
   "gwas_id", params$gwas_id,
   "bcf_file", path_file(params$bcf_file),
   "metadata", path_file(params$metadata),
+  "refdata", path_file(params$refdata),
   "compile_time", format(Sys.time(), "%Y-%m-%d %H:%M %Z"),
   "build_version", "PLACEHOLDER",
 )
@@ -51,12 +51,16 @@ info %>% knitr::kable()
 
 ### MR-Base information
 
+Information retrieved from GWAS ID `r params$gwas_id`.
+
 ```{r render-metadata-api}
 params$gwas_id %>% process_api_info() %>%
   knitr::kable()
 ```
 
 ### Metadata
+
+Metrics from `r path_file(params$metadata)`.
 
 #### Counts
 
@@ -68,23 +72,32 @@ count_metrics %>% enframe() %>%
            map_int(~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
 ```
 
+### Report metrics
+
+Metrics computed from report module.
+
+```{r render-report-metrics}
+report_metrics %>%
+  knitr::kable(format.args = list(big.mark = ","))
+```
+
 Column {data-width=650} {.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
 ### Plot 1: Manhattan plot
 
 ```{r plot-manhattan}
-df %>% plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL)
+main_df %>% plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL)
 ```
 
 ### Plot 2: QQ plot
 
 ```{r plot-qq}
-df %>% plot_qq_log(pval = PVAL)
+main_df %>% plot_qq_log(pval = PVAL)
 ```
 
 ### Plot 3: AF plot
 
 ```{r plot-af}
-cat("PLACEHOLDER")
+main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
 ```
