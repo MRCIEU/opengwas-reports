@@ -34,7 +34,7 @@ meta_metrics <- jsonlite::read_json(params$metadata)
 Row {data-width=450 .sidebar}
 -----------------------------------------------------------------------
 
-### Information {data-height=200}
+### Report Information {data-height=200}
 
 ```{r render-info}
 info <- tribble(
@@ -51,16 +51,16 @@ info %>% knitr::kable()
 
 ### MR-Base information
 
-```{r render-metrics-api}
+```{r render-metadata-api}
 params$gwas_id %>% process_api_info() %>%
   knitr::kable()
 ```
 
-### Metrics
+### Metadata
 
 #### Counts
 
-```{r render-metrics-counts}
+```{r render-metadata-counts}
 count_metrics <- meta_metrics$counts
 
 count_metrics %>% enframe() %>%
