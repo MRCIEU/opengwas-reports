@@ -1,10 +1,12 @@
-process_bcf_file <- function(bcf_file, intermediates_dir, ref_file, reuse = TRUE) {
+process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
+                             reuse = TRUE, clean_intermediates = TRUE) {
   #' Extract variables from the bcf file using `bcftools`
   #' NOTE: You need to have `bcftools` in your PATH
   #'
   #' - `bcf_file`, chr: string name of the input bcf file
   #' - `tsv_file`, chr: string name of the extracted tsv_file
-  proc <- function(bcf_file, intermediates_dir, ref_file, tsv_file) {
+  proc <- function(bcf_file, intermediates_dir, ref_file, tsv_file,
+                   clean_intermediates = TRUE) {
     # Stage 1: Extract from input data
     stage1_tsv_file <- path(intermediates_dir, "report_query_stage1.tsv")
     stage1_cmd <- glue(
@@ -35,13 +37,22 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file, reuse = TRUE
       mutate_at(vars(CHROM), translate_chrom_to_int)
     message(glue("{Sys.time()}\tcaching to: {tsv_file}"))
     joined_df %>% write_tsv(tsv_file)
+    # Finally, clean up
+    if (clean_intermediates) {
+      message(glue("{Sys.time()}\tRemoving intermediates:",
+                   " {stage1_tsv_file}",
+                   " {stage2_tsv_file}"))
+      file_delete(stage1_tsv_file)
+      file_delete(stage2_tsv_file)
+    }
   }
 
   tsv_file <- path(intermediates_dir, "report_query_combined.tsv")
   if (file_exists(tsv_file) && reuse) {
     message(glue("{Sys.time()}\treusing file: {tsv_file}"))
   } else {
-    proc(bcf_file, intermediates_dir, ref_file, tsv_file)
+    proc(bcf_file, intermediates_dir, ref_file, tsv_file,
+         clean_intermediates = clean_intermediates)
   }
 
   read_tsv(tsv_file, col_types = "iicddd")
