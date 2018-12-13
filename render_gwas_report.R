@@ -44,7 +44,7 @@ main <- function(gwas_id, input, metadata, refdata, show, no_reuse) {
   gwas_dir <- here(path("gwas-files", gwas_id))
   bcf_file <- path(gwas_dir, path_file(input))
   metadata <- path(gwas_dir, path_file(metadata))
-  report_file <- glue("report_{gwas_id}.html")
+  report_file <- glue("report_{gwas_id}_{path_ext_remove(input)}.html")
   report_full_path <- path(gwas_dir, report_file)
   intermediates_dir <- path(gwas_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
