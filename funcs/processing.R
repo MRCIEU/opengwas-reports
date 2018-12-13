@@ -3,8 +3,12 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
   #' Extract variables from the bcf file using `bcftools`
   #' NOTE: You need to have `bcftools` in your PATH
   #'
-  #' - `bcf_file`, chr: string name of the input bcf file
-  #' - `tsv_file`, chr: string name of the extracted tsv_file
+  #' - `bcf_file`, chr: path to the input bcf file
+  #' - `ref_file`, chr: path to the reference bcf file
+  #' - `intermediates_dir`, chr: path to the intermediates directory
+  #' - `reuse`, lgl: if TRUE, reuse the already processed file
+  #' - `clean_intermediates`, lgl: if TRUE, clean up intermediate files
+  #'                               of the various stages
   proc <- function(bcf_file, intermediates_dir, ref_file, tsv_file,
                    clean_intermediates = TRUE) {
     # Stage 1: Extract from input data
