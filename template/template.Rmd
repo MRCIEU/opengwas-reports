@@ -33,7 +33,36 @@ meta_metrics <- jsonlite::read_json(params$metadata)
 Row {data-width=450 .sidebar}
 -----------------------------------------------------------------------
 
-### Report Information {data-height=200}
+### MR-Base trait information
+
+```{r get-api-info}
+api_data <- params$gwas_id %>% process_api_info()
+```
+
+Information retrieved from GWAS ID `r params$gwas_id`.
+
+Trait: **`r get_trait_name(api_data)`**.
+
+```{r render-metadata-api}
+api_data %>% knitr::kable()
+```
+
+### Metadata
+
+Metrics from `r path_file(params$metadata)`.
+
+#### Counts
+
+```{r render-metadata-counts}
+count_metrics <- meta_metrics$counts
+
+count_metrics %>% enframe() %>%
+  mutate(value = value %>%
+           map_int(~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
+
+```
+
+### Report information
 
 ```{r render-info}
 info <- tribble(
@@ -49,36 +78,14 @@ info <- tribble(
 info %>% knitr::kable()
 ```
 
-### MR-Base information
-
-Information retrieved from GWAS ID `r params$gwas_id`.
-
-```{r render-metadata-api}
-params$gwas_id %>% process_api_info() %>%
-  knitr::kable()
-```
-
-### Metadata
-
-Metrics from `r path_file(params$metadata)`.
-
-#### Counts
-
-```{r render-metadata-counts}
-count_metrics <- meta_metrics$counts
-
-count_metrics %>% enframe() %>%
-  mutate(value = value %>%
-           map_int(~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
-```
-
 ### Report metrics
 
 Metrics computed from report module.
 
 ```{r render-report-metrics}
 report_metrics %>%
-  knitr::kable(format.args = list(big.mark = ","))
+  knitr::kable(digits = 3,
+               format.args = list(big.mark = ","))
 ```
 
 Column {data-width=650} {.tabset .tabset-fade}
@@ -86,18 +93,18 @@ Column {data-width=650} {.tabset .tabset-fade}
 
 ### Plot 1: Manhattan plot
 
-```{r plot-manhattan}
+```{r plot-manhattan, fig.width = 10, fig.height = 6}
 main_df %>% plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL)
 ```
 
 ### Plot 2: QQ plot
 
-```{r plot-qq}
+```{r plot-qq, fig.width = 10, fig.height = 6}
 main_df %>% plot_qq_log(pval = PVAL)
 ```
 
 ### Plot 3: AF plot
 
-```{r plot-af}
+```{r plot-af, fig.width = 10, fig.height = 6}
 main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
 ```

@@ -64,7 +64,7 @@ plot_manhattan <- function(df, chr, bp, snp, p,
       ggplot(., aes(x = Chromosome, y = -log10(!!p))) +
         # Show all points
         geom_point(aes(color = as.factor(!!chr)),
-                   alpha = 0.8, size = 1.3) +
+                   alpha = 0.8, size = 0.8) +
         geom_hline(yintercept = red_line, color = "red") +
         geom_hline(yintercept = blue_line, color = "blue") +
         scale_color_manual(values = rep(c("grey", "skyblue"), 22)) +
