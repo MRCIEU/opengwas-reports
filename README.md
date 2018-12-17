@@ -2,6 +2,8 @@
 
 Pipeline report, metrics, and plots.
 
+A report example is available via RDSF: smb://rdsfcifs.acrc.bris.ac.uk/MRC-IEU-research/projects/IEU2/P4/013/working/data/results/
+
 ![dummy_example](./assets/dummy_example.png)
 
 # Usage
