@@ -82,21 +82,39 @@ plot_manhattan <- function(df, chr, bp, snp, p,
 
 }
 
-plot_af <- function(df, af_main, af_ref, cut = 0.2) {
+plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
+
+  maf <- function(af) {
+    #' Minus allele frequency
+    if_else(af > 0.5, 1 - af, af)
+  }
+
   # tidy eval
   af_main <- enquo(af_main)
   af_ref <- enquo(af_ref)
   title <- glue("AF plot with difference above {cut}")
 
   df %>%
+    # Filter out either missing
+    filter(!is.na(!!af_main), !is.na(!!af_ref)) %>%
+    # Remove monomophic snps
+    filter(`<`(!!af_main, 1), `>`(!!af_main, 0),
+           `<`(!!af_ref, 1), `>`(!!af_ref, 0)) %>%
+    # Minus allele frequency, and mark rare snps
+    mutate(maf_main = maf(!!af_main), maf_ref = maf(!!af_ref)) %>%
+    mutate(rare_snps = (maf_main <= maf_rarity |
+                          maf_ref <= maf_rarity)) %>%
     filter(abs(`-`(!!af_main, !!af_ref)) > cut) %>%
     {
       ggplot(.) +
-        aes(x = !!af_ref, y = !!af_main) +
-        geom_point(alpha = 0.2, color = "skyblue") +
+        aes(x = !!af_ref, y = !!af_main, color = rare_snps) +
+        geom_point(alpha = 0.2) +
         geom_abline(slope = 1, color = "red") +
-        xlab("AF reference") + ylab("AF input") +
+        scale_colour_manual(values = c("skyblue", "red"),
+                            name = glue("Rare SNPs (MAF <= {maf_rarity})")) +
+        xlab("AF reference") + ylab("AF gwas") +
         ggtitle(title) +
-        theme_minimal()
+        theme_minimal() +
+        theme(legend.position = "bottom")
     }
 }
