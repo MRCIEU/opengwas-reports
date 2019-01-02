@@ -1,9 +1,14 @@
 "Generate report for a GWAS pipeline.
-The following specs must be satisified:
 
-- gwas_id
+Populate the following file structure and specify required args:
 
-- input" -> DOC
+.
+├── gwas-files
+│   └── ${gwas_id}
+│       ├── harmonised.bcf
+│       ├── harmonised.bcf.csi
+│       └── harmonised.json
+" -> DOC
 suppressPackageStartupMessages({
   library("tidyverse")
   library("glue")

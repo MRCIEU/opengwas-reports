@@ -14,17 +14,30 @@ usage: render_gwas_report.R [-h] [--gwas_id GWAS_ID] [--input INPUT]
                             [--metadata METADATA] [--refdata REFDATA] [-s]
                             [-p]
 
+Generate report for a GWAS pipeline.
+
+Populate the following file structure and specify required args:
+
+.
+├── gwas-files
+│   └── ${gwas_id}
+│       ├── harmonised.bcf
+│       ├── harmonised.bcf.csi
+│       └── harmonised.json
+
 optional arguments:
   -h, --help           show this help message and exit
+  -s, --show           If True, show the report after it is generated
+                       [default: False]
+  -p, --no_reuse       If True, do not reuse any intermediate files [default:
+                       False]
+
+required named arguments:
   --gwas_id GWAS_ID    Directory with the associated gwas_id [default: 2]
   --input INPUT        Input bcf file, supply base filename [default:
                        harmonised.bcf]
   --metadata METADATA  metadata json file: [default harmonised.json]
   --refdata REFDATA    reference bcf file, supply filepath.
-  -s, --show           If True, show the report after it is generated
-                       [default: False]
-  -p, --no_reuse       If True, do not reuse any intermediate files [default:
-                       False]
 ```
 
 ## A dummy example:
@@ -43,8 +56,7 @@ Firstly population a directory structure to `./gwas-files`:
 >     │   └── 2
 >     │       ├── harmonised.bcf
 >     │       ├── harmonised.bcf.csi
->     │       ├── harmonised.json
->     │       └── report_2_harmonised.html
+>     │       └── harmonised.json
 
 Build the report for this QC run as
 
