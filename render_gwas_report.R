@@ -1,3 +1,9 @@
+"Generate report for a GWAS pipeline.
+The following specs must be satisified:
+
+- gwas_id
+
+- input" -> DOC
 suppressPackageStartupMessages({
   library("tidyverse")
   library("glue")
@@ -7,8 +13,13 @@ suppressPackageStartupMessages({
   source("funcs/plots.R")
 })
 
-get_args <- function() {
-  parser <- argparse::ArgumentParser()
+get_args <- function(doc) {
+  # Properly escape line ending
+  doc_fmt <- doc %>%
+    str_replace_all("\n", "\\\\n")
+  parser <- argparse::ArgumentParser(
+    description=doc_fmt,
+    formatter_class='argparse.RawDescriptionHelpFormatter')
   parser$add_argument(
     "--gwas_id",
     type = "integer", default = "2",
@@ -112,4 +123,4 @@ main <- function(gwas_id, input, metadata, refdata, show, no_reuse) {
 
 }
 
-do.call(main, get_args())
+do.call(main, get_args(DOC))
