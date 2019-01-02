@@ -19,23 +19,26 @@ get_args <- function(doc) {
     str_replace_all("\n", "\\\\n")
   parser <- argparse::ArgumentParser(
     description=doc_fmt,
-    formatter_class='argparse.RawDescriptionHelpFormatter')
-  parser$add_argument(
+    formatter_class="argparse.RawDescriptionHelpFormatter")
+  # Required args
+  required <- parser$add_argument_group("required named arguments")
+  required$add_argument(
     "--gwas_id",
     type = "integer", default = "2",
     help = "Directory with the associated gwas_id [default: %(default)s]")
-  parser$add_argument(
+  required$add_argument(
     "--input",
     type = "character", default = "harmonised.bcf",
     help = "Input bcf file, supply base filename [default: %(default)s]")
-  parser$add_argument(
+  required$add_argument(
     "--metadata",
     default = "harmonised.json", type = "character",
     help = "metadata json file: [default %(default)s]")
-  parser$add_argument(
+  required$add_argument(
     "--refdata",
     type = "character",
     help = "reference bcf file, supply filepath.")
+  # Optional args
   parser$add_argument(
     "-s", "--show",
     action = "store_true", default = FALSE,
