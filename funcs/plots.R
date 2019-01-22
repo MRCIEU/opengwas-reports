@@ -118,3 +118,33 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
         theme(legend.position = "bottom")
     }
 }
+
+plot_pz <- function(df, beta, se, pval) {
+
+  get_pval <- function(beta, se) {
+    2 * pnorm(-abs(beta / se))
+  }
+
+  beta <- enquo(beta)
+  se <- enquo(se)
+  pval <- enquo(pval)
+
+  df <- df %>%
+    mutate(pval_ztest = get_pval(!!beta, !!se)) %>%
+    mutate(neg_log_10_p = -log10(!!pval),
+           neg_log_10_p_ztest = -log10(pval_ztest)) %>%
+    filter(is.finite(neg_log_10_p),
+           is.finite(neg_log_10_p_ztest))
+
+  xlab <- expression(~-log[10](P_ztest))
+  ylab <- expression(~-log[10](P))
+
+  df %>% {
+    ggplot(.) +
+      aes(x = neg_log_10_p_ztest, y = neg_log_10_p) +
+      geom_point(alpha = 0.2, color = "skyblue") +
+      geom_abline(slope = 1, color = "red") +
+      xlab(xlab) + ylab(ylab) +
+      theme_minimal()
+  }
+}
