@@ -81,6 +81,7 @@ main <- function(gwas_id, input, metadata, refdata, show, no_reuse) {
   c(path("gwas-files", gwas_id),
     bcf_file,
     sprintf("%s.csi", bcf_file),
+    refdata,
     metadata) %>%
     walk(function(path) {
       if (!file_exists(path)) {
