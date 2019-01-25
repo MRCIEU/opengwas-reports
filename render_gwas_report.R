@@ -85,15 +85,22 @@ main <- function(gwas_id, input, metadata, refdata,
       "rmd_intermediates_dir" = rmd_intermediates_dir))))
 
   # Verify structure
-  c(path("gwas-files", gwas_id),
-    bcf_file,
-    sprintf("%s.csi", bcf_file),
-    refdata,
-    metadata) %>%
-    walk(function(path) {
-      if (!file_exists(path)) {
-        stop(glue("File or directory not exists: {path}"))
-        quit("no")
+  list(list(path = path("gwas-files", gwas_id), how = "fail"),
+       list(path = bcf_file, how = "fail"),
+       list(path = sprintf("%s.csi", bcf_file), how = "fail"),
+       list(path = refdata, how = "fail"),
+       list(path = metadata, how = "warning")) %>% purrr::transpose() %>%
+    pwalk(function(path, how = c("fail", "warning")) {
+      how = match.arg(how)
+      if (how == "fail") {
+        if (!file_exists(path)) {
+          stop(glue("File or directory not exists: {path}"))
+          quit("no")
+        }
+      } else {
+        if (!file_exists(path)) {
+          warning(glue("File or directory not exists: {path}"))
+        }
       }
     })
   # Create intermediates_dir

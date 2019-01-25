@@ -27,7 +27,11 @@ message(glue("refdata: {params$refdata}"))
 
 ```{r load-data, include=FALSE}
 main_df <- params$main_df
-meta_metrics <- jsonlite::read_json(params$metadata)
+if (file_exists(params$metadata)) {
+  meta_metrics <- jsonlite::read_json(params$metadata)
+} else {
+  meta_metrics <- NULL
+}
 ```
 
 Row {data-width=450 .sidebar}
@@ -54,12 +58,15 @@ Metrics from `r path_file(params$metadata)`.
 #### Counts
 
 ```{r render-metadata-counts}
-count_metrics <- meta_metrics$counts
+if (!is.null(meta_metrics)) {
+  count_metrics <- meta_metrics$counts
 
-count_metrics %>% enframe() %>%
-  mutate(value = value %>%
-           map_int(~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
-
+  count_metrics %>% enframe() %>%
+    mutate(value = value %>%
+             map_int(~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
+} else {
+  cat("Metadata file missing")
+}
 ```
 
 ### Report information
