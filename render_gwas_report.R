@@ -29,7 +29,7 @@ get_args <- function(doc) {
   required <- parser$add_argument_group("required named arguments")
   required$add_argument(
     "--gwas_id",
-    type = "integer", default = "2",
+    type = "character", default = "2",
     help = "Directory with the associated gwas_id [default: %(default)s]")
   required$add_argument(
     "--input",
