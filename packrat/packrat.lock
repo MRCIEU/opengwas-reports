@@ -22,8 +22,15 @@ Package: Hmisc
 Source: CRAN
 Version: 4.2-0
 Hash: 785fae3e102162232f1c8934b9f7725b
-Requires: Formula, acepack, base64enc, data.table, ggplot2, gridExtra,
-    gtable, htmlTable, htmltools, latticeExtra, viridis
+Requires: Formula, acepack, base64enc, cluster, data.table, ggplot2,
+    gridExtra, gtable, htmlTable, htmltools, lattice, latticeExtra,
+    nnet, rpart, viridis
+
+Package: Matrix
+Source: CRAN
+Version: 1.2-15
+Hash: d1bdb46e08828615f3182e2e0375f86a
+Requires: lattice
 
 Package: R6
 Source: CRAN
@@ -81,7 +88,8 @@ Package: broom
 Source: CRAN
 Version: 0.5.0
 Hash: 9f383b5f4632f82878222399b5fa7bbd
-Requires: backports, dplyr, purrr, reshape2, stringr, tibble, tidyr
+Requires: backports, dplyr, nlme, purrr, reshape2, stringr, tibble,
+    tidyr
 
 Package: calibrate
 Source: CRAN
@@ -116,6 +124,11 @@ Package: clipr
 Source: CRAN
 Version: 0.4.1
 Hash: caf20ae357bfa2ed50e0e7db267f69ce
+
+Package: cluster
+Source: CRAN
+Version: 2.0.7-1
+Hash: ef254b1adf031cf24cafa0c055fdee6c
 
 Package: colorspace
 Source: CRAN
@@ -293,11 +306,16 @@ Version: 0.7.5
 Hash: 46d61526aa5163d70905211e0f1b5639
 Requires: BH, Rcpp, rlang
 
+Package: lattice
+Source: CRAN
+Version: 0.20-38
+Hash: 45211081d39bb6d5a89fd789105901aa
+
 Package: latticeExtra
 Source: CRAN
 Version: 0.6-28
 Hash: efdf3a10a129129f7b8f4ae5a0d7ec3d
-Requires: RColorBrewer
+Requires: RColorBrewer, lattice
 
 Package: lazyeval
 Source: CRAN
@@ -337,6 +355,17 @@ Source: CRAN
 Version: 0.5.0
 Hash: 38d0efee9bb99bef143bde41c4ce715c
 Requires: colorspace
+
+Package: nlme
+Source: CRAN
+Version: 3.1-137
+Hash: 6166071071587a867cbe534e84fc5c0c
+Requires: lattice
+
+Package: nnet
+Source: CRAN
+Version: 7.3-12
+Hash: 42c83a1f063b40fd8bb6ad68ed528aa5
 
 Package: openssl
 Source: CRAN
@@ -444,6 +473,11 @@ Version: 1.10
 Hash: 02f1aac33000c63986c6b5585e36e7ae
 Requires: base64enc, evaluate, htmltools, jsonlite, knitr, mime,
     rprojroot, stringr, tinytex, yaml
+
+Package: rpart
+Source: CRAN
+Version: 4.1-13
+Hash: 1d1f155d009e010e7d6634a90a87cead
 
 Package: rprojroot
 Source: CRAN
