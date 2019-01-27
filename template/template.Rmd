@@ -3,7 +3,7 @@ title: "MR-Base GWAS Pipeline Report"
 output:
   flexdashboard::flex_dashboard:
     orientation: rows
-    vertical_scroll: fill
+    vertical_scroll: scroll
 params:
   gwas_id: gwas_id
   bcf_file: bcf_file
@@ -34,8 +34,8 @@ if (file_exists(params$metadata)) {
 }
 ```
 
-Row {data-width=450 .sidebar}
------------------------------------------------------------------------
+Sidebar {data-width=450 .sidebar}
+=======================================================================
 
 ### MR-Base trait information
 
@@ -95,7 +95,10 @@ report_metrics %>%
                format.args = list(big.mark = ","))
 ```
 
-Column {data-width=650} {.tabset .tabset-fade}
+Plots
+=====
+
+Plots {data-width=650} {.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
 ### Plot 1: Manhattan plot
@@ -120,4 +123,16 @@ main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
 
 ```{r plot-pz, fig.width = 10, fig.height = 6}
 main_df %>% plot_pz(beta = BETA, se = SE, pval = PVAL)
+```
+
+Details
+=====
+
+Details {data-height=1080} {.tabset .tabset-fade}
+-------------------------------------------------
+
+### Hmisc describe
+
+```{r hmisc-describe}
+main_df %>% Hmisc::describe()
 ```
