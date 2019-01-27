@@ -128,11 +128,13 @@ main_df %>% plot_pz(beta = BETA, se = SE, pval = PVAL)
 Details
 =====
 
-Details {data-height=1080} {.tabset .tabset-fade}
+Details {.tabset .tabset-fade}
 -------------------------------------------------
 
 ### Hmisc describe
 
+<span class=".flowing-content-shim">
 ```{r hmisc-describe}
 main_df %>% Hmisc::describe()
 ```
+</span>
