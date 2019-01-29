@@ -119,20 +119,16 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
     }
 }
 
-plot_pz <- function(df, beta, se, pval) {
-
-  get_pval <- function(beta, se) {
-    2 * pnorm(-abs(beta / se))
-  }
+plot_pz <- function(df, beta, se, pval, pval_ztest) {
 
   beta <- enquo(beta)
   se <- enquo(se)
   pval <- enquo(pval)
+  pval_ztest <- enquo(pval_ztest)
 
   df <- df %>%
-    mutate(pval_ztest = get_pval(!!beta, !!se)) %>%
     mutate(neg_log_10_p = -log10(!!pval),
-           neg_log_10_p_ztest = -log10(pval_ztest)) %>%
+           neg_log_10_p_ztest = -log10(!!pval_ztest)) %>%
     filter(is.finite(neg_log_10_p),
            is.finite(neg_log_10_p_ztest))
 
