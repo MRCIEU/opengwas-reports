@@ -74,7 +74,11 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
     get_pval <- function(beta, se) {
       2 * pnorm(-abs(beta / se))
     }
-    df %>% mutate(PVAL_ztest = get_pval(BETA, SE))
+    df %>% mutate(PVAL_ztest = get_pval(BETA, SE)) %>%
+      select(CHROM, POS, ID,
+             BETA, SE,
+             PVAL, PVAL_ztest,
+             AF, AF_reference)
   }
 
   tsv_file <- path(intermediates_dir, "report_query_combined.tsv")
