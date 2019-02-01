@@ -95,7 +95,7 @@ report_metrics %>%
                format.args = list(big.mark = ","))
 ```
 
-Plots
+Summary
 =====
 
 Plots {data-width=650} {.tabset .tabset-fade}
@@ -125,7 +125,7 @@ main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
 main_df %>% plot_pz(beta = BETA, se = SE, pval = PVAL, pval_ztest = PVAL_ztest)
 ```
 
-Details
+Diagnostics
 =====
 
 Details {.tabset .tabset-fade}
@@ -138,3 +138,13 @@ Details {.tabset .tabset-fade}
 main_df %>% Hmisc::describe()
 ```
 </span>
+
+### Head and tail
+
+```{r df-head}
+main_df %>% head(n=10) %>% knitr::kable()
+```
+
+```{r df-tail}
+main_df %>% tail(n=10) %>% knitr::kable()
+```
