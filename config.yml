@@ -1,0 +1,4 @@
+default:
+  # Endpoint to fetch gwas info
+  # TODO: Update url when api is released
+  api_gwasinfo: http://apitest.mrbase.org/gwasinfo/

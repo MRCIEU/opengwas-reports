@@ -106,9 +106,12 @@ process_api_info <- function(gwas_id) {
            ifelse(is.numeric(cell), format(cell, big.mark = ","),
                   as.character(cell)))
   }
-  # TODO: Update url when api is released
-  api_call <- glue("http://apitest.mrbase.org/gwasinfo/{gwas_id}")
-  jsonlite::read_json(api_call) %>% first() %>% enframe() %>%
+  api_url <- paste0(config::get("api_gwasinfo"), gwas_id)
+  # Read api, or returns an empty list
+  read_api <- purrr::possibly(
+    function(api_url) jsonlite::read_json(api_url),
+    otherwise = list())
+  read_api(api_url) %>% first() %>% enframe() %>%
     mutate(value = value %>% map_chr(transform_cell))
 }
 
