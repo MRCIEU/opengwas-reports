@@ -18,12 +18,10 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
     stage1_tsv_header <- c("CHROM", "POS", "ID",
                            "BETA", "SE",
                            "PVAL", "AF")
-    stage1_tsv_col_types <- "cicdddd"
     stage2_bcf_header <- paste("%CHROM", "%POS", "%ID",
                                "%INFO/AF",
                                sep = "\t")
     stage2_tsv_header <- c("CHROM", "POS", "ID", "AF_reference")
-    stage2_tsv_col_types <- "cicd"
     # Stage 1: Extract from input data
     stage1_tsv_file <- path(intermediates_dir, "report_query_stage1.tsv")
     stage1_cmd <- glue(
@@ -45,13 +43,15 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
     message(glue("{Sys.time()}\tcmd: {stage2_cmd}"))
     system(stage2_cmd)
     # Stage3: Join
-    stage1_df <- read_tsv(stage1_tsv_file, col_names = FALSE,
-                          col_types = stage1_tsv_col_types,
-                          na = c("", "NA", ".")) %>%
+    stage1_df <- data.table::fread(
+      stage1_tsv_file, header = FALSE, sep = "\t",
+      na.strings = c("", "NA", "."),
+      verbose = TRUE) %>%
       set_names(stage1_tsv_header)
-    stage2_df <- read_tsv(stage2_tsv_file, col_names = FALSE,
-                          col_types = stage2_tsv_col_types,
-                          na = c("", "NA", ".")) %>%
+    stage2_df <- data.table::fread(
+      stage2_tsv_file, header = FALSE, sep = "\t",
+      na.strings = c("", "NA", "."),
+      verbose = TRUE) %>%
       set_names(stage2_tsv_header)
     joined_df <- stage1_df %>%
       left_join(stage2_df, by = c("CHROM", "POS", "ID")) %>%
@@ -89,7 +89,7 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
          clean_intermediates = clean_intermediates)
   }
 
-  read_tsv(tsv_file)
+  data.table::fread(tsv_file, sep = "\t")
 }
 
 translate_chrom_to_int <- function(chrom_series) {
