@@ -54,18 +54,12 @@ get_args <- function(doc) {
     action = "store_true", default = FALSE,
     help = paste0("If True, do not reuse any intermediate files",
                   " [default: %(default)s]"))
-  parser$add_argument(
-    "-c", "--clean_intermediate_data",
-    action = "store_true", default = FALSE,
-    help = paste0("If True, clean up intermediate csv files",
-                  " (only applicable when --no_reuse)",
-                  " [default: %(default)s]"))
   args <- parser$parse_args()
   return(args)
 }
 
 main <- function(gwas_id, input, metadata, refdata,
-                 show, no_reuse, clean_intermediate_data) {
+                 show, no_reuse) {
   # Sanitise paths
   gwas_dir <- here(path("gwas-files", gwas_id))
   bcf_file <- path(gwas_dir, path_file(input))
@@ -110,8 +104,7 @@ main <- function(gwas_id, input, metadata, refdata,
   message(glue("{Sys.time()}\tProcessing {bcf_file}..."))
   main_df <- process_bcf_file(
     bcf_file = bcf_file, intermediates_dir = intermediates_dir,
-    ref_file = refdata,
-    reuse = !no_reuse, clean_intermediates = clean_intermediate_data)
+    ref_file = refdata, reuse = !no_reuse)
   message(glue("{Sys.time()}\tExtraction success!"))
 
   # Compute metrics from report routine

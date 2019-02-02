@@ -1,5 +1,5 @@
 process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
-                             reuse = TRUE, clean_intermediates = TRUE) {
+                             reuse = TRUE) {
   #' Extract variables from the bcf file using `bcftools`
   #' NOTE: You need to have `bcftools` in your PATH
   #'
@@ -26,32 +26,24 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
     stage1_tsv_file <- path(intermediates_dir, "report_query_stage1.tsv")
     stage1_cmd <- glue(
       "bcftools norm -m -any {bcf_file}",
-      "|",
-      "bcftools query",
-      " -f '{stage1_bcf_header}\n'",
-      " > {stage1_tsv_file}")
+      " | ",
+      "bcftools query -f '{stage1_bcf_header}\n'")
     message(glue("{Sys.time()}\tcmd: {stage1_cmd}"))
-    system(stage1_cmd)
     # Stage 2: Extract from reference data
     stage2_tsv_file <- path(intermediates_dir, "report_query_stage2.tsv")
     stage2_cmd <- glue(
       "bcftools norm -m -any {ref_file}",
-      "|",
-      "bcftools query",
-      " -f '{stage2_bcf_header}\n'",
-      " > {stage2_tsv_file}")
+      " | ",
+      "bcftools query -f '{stage2_bcf_header}\n'")
     message(glue("{Sys.time()}\tcmd: {stage2_cmd}"))
-    system(stage2_cmd)
     # Stage3: Join
     stage1_df <- data.table::fread(
-      stage1_tsv_file, header = FALSE, sep = "\t",
-      na.strings = c("", "NA", "."),
-      verbose = TRUE) %>%
+      cmd = stage1_cmd, header = FALSE, sep = "\t",
+      na.strings = c("", "NA", ".")) %>%
       set_names(stage1_tsv_header)
     stage2_df <- data.table::fread(
-      stage2_tsv_file, header = FALSE, sep = "\t",
-      na.strings = c("", "NA", "."),
-      verbose = TRUE) %>%
+      cmd = stage2_cmd, header = FALSE, sep = "\t",
+      na.strings = c("", "NA", ".")) %>%
       set_names(stage2_tsv_header)
     joined_df <- stage1_df %>%
       left_join(stage2_df, by = c("CHROM", "POS", "ID")) %>%
@@ -59,16 +51,8 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
     message(glue("{Sys.time()}\tcaching to: {tsv_file}"))
     joined_df %>%
       post_proc() %>%
-      write_tsv(tsv_file)
-    # Finally, clean up
-    if (clean_intermediates) {
-      message(glue("{Sys.time()}\tRemoving intermediates:",
-                   " {stage1_tsv_file}",
-                   " {stage2_tsv_file}"))
-      file_delete(stage1_tsv_file)
-      file_delete(stage2_tsv_file)
+      data.table::fwrite(tsv_file)
     }
-  }
   post_proc <- function(df) {
     #' Post processing, things like calculate ztest PVAL
     get_pval <- function(beta, se) {
@@ -81,7 +65,7 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
              AF, AF_reference)
   }
 
-  tsv_file <- path(intermediates_dir, "report_query_combined.tsv")
+  tsv_file <- path(intermediates_dir, "report_df.tsv")
   if (file_exists(tsv_file) && reuse) {
     message(glue("{Sys.time()}\treusing file: {tsv_file}"))
   } else {
