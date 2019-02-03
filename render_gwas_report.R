@@ -38,11 +38,13 @@ get_args <- function(doc) {
     "--input",
     type = "character", default = "harmonised.bcf",
     help = "Input bcf file, supply base filename [default: %(default)s]")
-  # Optional args
-  parser$add_argument(
+  # Config args
+  config <- parser$add_argument_group("Override config.yml")
+  config$add_argument(
     "--refdata",
     type = "character",
     help = "reference data (sqlite db), supply filepath.")
+  # Optional args
   parser$add_argument(
     "--show",
     action = "store_true", default = FALSE,
