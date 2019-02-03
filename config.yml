@@ -1,4 +1,10 @@
 default:
+  # api_gwasinfo
   # Endpoint to fetch gwas info
   # TODO: Update url when api is released
   api_gwasinfo: http://apitest.mrbase.org/gwasinfo/
+  # refdata:
+  # Reference dataset to calculate allele frequency,
+  # if it is not present, use prepare_refdata.R to generate it
+  # from bcf.
+  refdata: ref_data/1kg_v3_nomult.db

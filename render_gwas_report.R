@@ -38,11 +38,11 @@ get_args <- function(doc) {
     "--input",
     type = "character", default = "harmonised.bcf",
     help = "Input bcf file, supply base filename [default: %(default)s]")
-  required$add_argument(
+  # Optional args
+  parser$add_argument(
     "--refdata",
     type = "character",
     help = "reference data (sqlite db), supply filepath.")
-  # Optional args
   parser$add_argument(
     "--show",
     action = "store_true", default = FALSE,
@@ -62,12 +62,15 @@ get_args <- function(doc) {
   return(args)
 }
 
-main <- function(gwas_id, input, refdata,
+main <- function(gwas_id, input, refdata = NULL,
                  show = FALSE, no_reuse = FALSE, no_mrbase_api = FALSE) {
   # Setup logging
   basicConfig()
   glue("logs/render_gwas_report_{gwas_id}_{Sys.Date()}.log") %>%
     addHandler(writeToFile, file = .)
+  # Config
+  if (is.null(refdata))
+    refdata <- config::get("refdata")
   # Sanitise paths
   gwas_dir <- here(path("gwas-files", gwas_id))
   bcf_file <- path(gwas_dir, path_file(input))
