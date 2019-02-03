@@ -21,7 +21,6 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
     "bcftools norm -m -any {bcf_file}",
     " | ",
     "bcftools query -f '{stage1_bcf_header}\n'")
-  loginfo(glue("cmd: {stage1_cmd}"))
   stage1_df <- data.table::fread(
     cmd = stage1_cmd, header = FALSE, sep = "\t",
     na.strings = c("", "NA", "."),

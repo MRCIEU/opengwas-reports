@@ -89,7 +89,7 @@ main <- function(gwas_id, input, refdata,
     "qc_file: {qc_file}",
     "report_full_path: {report_full_path}",
     "intermediates_dir: {intermediates_dir}",
-    "rmd_intermediates_dir: {rmd_intermediates_di}",
+    "rmd_intermediates_dir: {rmd_intermediates_dir}",
     "reuse: {reuse}",
     sep = "\n"))
 

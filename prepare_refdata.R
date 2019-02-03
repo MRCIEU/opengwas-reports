@@ -5,8 +5,8 @@ suppressPackageStartupMessages({
   library("glue")
   library("fs")
   library("here")
-  source("funcs/processing.R")
   library("logging")
+  source("funcs/utils.R")
 })
 
 get_args <- function(doc) {
