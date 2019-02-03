@@ -4,10 +4,10 @@ Pre-requisites:
 Populate the following file structure and specify required args:
 
 .
-├── gwas-files
+├── ${gwas_parent}
 │   └── ${gwas_id}
-│       ├── harmonised.bcf
-│       └── harmonised.bcf.csi
+│       ├── ${input.bcf}
+│       └── ${input.bcf}.csi
 " -> DOC
 suppressPackageStartupMessages({
   library("tidyverse")
@@ -41,6 +41,10 @@ get_args <- function(doc) {
   # Config args
   config <- parser$add_argument_group("Override config.yml")
   config$add_argument(
+    "--gwas_parent",
+    type = "character",
+    help = "parent directory to store gwas_id directories.")
+  config$add_argument(
     "--refdata",
     type = "character",
     help = "reference data (sqlite db), supply filepath.")
@@ -64,7 +68,7 @@ get_args <- function(doc) {
   return(args)
 }
 
-main <- function(gwas_id, input, refdata = NULL,
+main <- function(gwas_id, input, refdata = NULL, gwas_parent = "gwas-files",
                  show = FALSE, no_reuse = FALSE, no_mrbase_api = FALSE) {
   # Setup logging
   basicConfig()
@@ -73,8 +77,10 @@ main <- function(gwas_id, input, refdata = NULL,
   # Config
   if (is.null(refdata))
     refdata <- config::get("refdata")
+  if (is.null(gwas_parent))
+    gwas_parent <- config::get("gwas_parent")
   # Sanitise paths
-  gwas_dir <- here(path("gwas-files", gwas_id))
+  gwas_dir <- path(gwas_parent, gwas_id)
   bcf_file <- path(gwas_dir, path_file(input))
   report_file <- glue("report_{gwas_id}_{path_ext_remove(input)}.html")
   report_full_path <- path(gwas_dir, report_file)
@@ -99,7 +105,7 @@ main <- function(gwas_id, input, refdata = NULL,
     sep = "\n"))
 
   # Verify structure
-  list(list(path = path("gwas-files", gwas_id), how = "fail"),
+  list(list(path = gwas_dir, how = "fail"),
        list(path = bcf_file, how = "fail"),
        list(path = sprintf("%s.csi", bcf_file), how = "fail"),
        list(path = refdata, how = "fail")) %>% purrr::transpose() %>%
