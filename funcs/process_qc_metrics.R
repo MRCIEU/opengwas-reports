@@ -4,7 +4,7 @@ process_qc_metrics <- function(df, output_file) {
     af_correlation = qc__af_cor(df),
     inflation_factor = qc__lambda(df)
   )
-  message(glue("Write qc_metics to {output_file}"))
+  loginfo(glue("Write qc_metics to {output_file}"))
   qc_metrics %>% map(jsonlite::unbox) %>%
     jsonlite::write_json(output_file)
   invisible()

@@ -21,7 +21,7 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
     "bcftools norm -m -any {bcf_file}",
     " | ",
     "bcftools query -f '{stage1_bcf_header}\n'")
-  message(glue("{Sys.time()}\tcmd: {stage1_cmd}"))
+  loginfo(glue("cmd: {stage1_cmd}"))
   stage1_df <- data.table::fread(
     cmd = stage1_cmd, header = FALSE, sep = "\t",
     na.strings = c("", "NA", "."),
@@ -40,7 +40,7 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
     left_join(stage2_df, by = c("CHROM", "POS", "ID")) %>%
     mutate_at(vars(CHROM), translate_chrom_to_int)
   DBI::dbDisconnect(conn = conn)
-  message(glue("{Sys.time()}\tcaching to: {tsv_file}"))
+  loginfo(glue("caching to: {tsv_file}"))
   # Step 3: Write
   joined_df %>%
     bcf_post_proc() %>%

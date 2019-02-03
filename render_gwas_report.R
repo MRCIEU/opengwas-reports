@@ -14,6 +14,7 @@ suppressPackageStartupMessages({
   library("glue")
   library("fs")
   library("here")
+  library("logging")
   source("funcs/utils.R")
   source("funcs/process_bcf_file.R")
   source("funcs/process_qc_metrics.R")
@@ -63,6 +64,10 @@ get_args <- function(doc) {
 
 main <- function(gwas_id, input, refdata,
                  show = FALSE, no_reuse = FALSE, no_mrbase_api = FALSE) {
+  # Setup logging
+  basicConfig()
+  glue("logs/render_gwas_report_{gwas_id}_{Sys.Date()}.log") %>%
+    addHandler(writeToFile, file = .)
   # Sanitise paths
   gwas_dir <- here(path("gwas-files", gwas_id))
   bcf_file <- path(gwas_dir, path_file(input))
@@ -75,17 +80,18 @@ main <- function(gwas_id, input, refdata,
   intermediates_dir <- path(gwas_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
   reuse = !no_reuse
-  cat("Config:\n")
-  print(t(t(
-    c("gwas_id" = gwas_id,
-      "bcf_file" = bcf_file,
-      "refdata" = refdata,
-      "metadata_file" = metadata_file,
-      "qc_file" = qc_file,
-      "report_full_path" = report_full_path,
-      "intermediates_dir" = intermediates_dir,
-      "rmd_intermediates_dir" = rmd_intermediates_dir,
-      "reuse" = reuse))))
+  loginfo("Config:")
+  loginfo(glue(
+    "gwas_id: {gwas_id}",
+    "bcf_file: {bcf_file}",
+    "refdata: {refdata}",
+    "metadata_file: {metadata_file}",
+    "qc_file: {qc_file}",
+    "report_full_path: {report_full_path}",
+    "intermediates_dir: {intermediates_dir}",
+    "rmd_intermediates_dir: {rmd_intermediates_di}",
+    "reuse: {reuse}",
+    sep = "\n"))
 
   # Verify structure
   list(list(path = path("gwas-files", gwas_id), how = "fail"),
@@ -124,7 +130,7 @@ main <- function(gwas_id, input, refdata,
       reuse = reuse)
 
   # Render Rmarkdown
-  message(glue("{Sys.time()}\tStart rendering report..."))
+  loginfo("Start rendering report...")
   rmarkdown::render(
     input = "template/template.Rmd",
     output_format = "flexdashboard::flex_dashboard",
@@ -141,14 +147,14 @@ main <- function(gwas_id, input, refdata,
 
   if (file_exists(report_full_path)) {
     if (!show) {
-      message(glue(
-        "{Sys.time()}\tSuccess!! (～o￣▽￣)～[]\n",
+      loginfo(glue(
+        "Success!! (～o￣▽￣)～[]\n",
         "Report available at {report_full_path}."))
     } else {
       browseURL(report_full_path)
     }
   } else {
-    message(glue("{Sys.time()}\tFailure!! (ToT)"))
+    logerror("Failure!! (ToT)")
   }
 
 }

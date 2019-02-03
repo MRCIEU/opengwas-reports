@@ -6,6 +6,7 @@ suppressPackageStartupMessages({
   library("fs")
   library("here")
   source("funcs/processing.R")
+  library("logging")
 })
 
 get_args <- function(doc) {
@@ -31,25 +32,29 @@ get_args <- function(doc) {
 }
 
 prepare_refdata <- function(bcf_file, db_path, bcf_header) {
+  basicConfig()
+  glue("logs/prepare_refdata_{Sys.Date()}.log") %>%
+    addHandler(writeToFile, file = .)
+
   cmd <- glue(
     "bcftools norm -m -any {bcf_file}",
     " | ",
     "bcftools query -f '{bcf_header}\n'")
   header <- c("CHROM", "POS", "ID", "AF_reference")
-  message(glue("Reading {bcf_file}"))
+  loginfo(glue("Reading {bcf_file}"))
   bcf_df <- data.table::fread(
     cmd = cmd, header = FALSE, sep = "\t",
     na.strings = c("", "NA", "."), showProgress = TRUE) %>%
     set_names(header) %>%
     mutate_at(vars(CHROM, ID), as.character)
 
-  message(glue("Writing to {db_path}"))
+  loginfo(glue("Writing to {db_path}"))
   conn <- DBI::dbConnect(RSQLite::SQLite(),
                          dbname = db_path)
   bcf_df %>% DBI::dbWriteTable(conn = conn,
                                name = "REFDATA",
                                value = ., overwrite = TRUE)
-  message(glue("Finish writing to {db_path}"))
+  loginfo(glue("Finish writing to {db_path}"))
   DBI::dbDisconnect(conn = conn)
   invisible()
 }
