@@ -8,9 +8,10 @@ params:
   gwas_id: gwas_id
   bcf_file: bcf_file
   main_df: main_df
-  report_metrics: report_metrics
-  metadata: metadata
-  refdata: refdata
+  qc_file: qc_file
+  metadata_file: metadata_file
+  refdata_file: refdata_file
+  no_mrbase_api: no_mrbase_api
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -18,20 +19,21 @@ library("tidyverse")
 library("fs")
 library("glue")
 library("here")
+source(here("funcs/utils.R"))
 source(here("funcs/process_report.R"))
 source(here("funcs/plots.R"))
-message(glue("bcf_file: {params$bcf_file}"))
-message(glue("metadata: {params$metadata}"))
-message(glue("refdata: {params$refdata}"))
 ```
 
 ```{r load-data, include=FALSE}
 main_df <- params$main_df
-if (file_exists(params$metadata)) {
-  meta_metrics <- jsonlite::read_json(params$metadata)
+if (!no_mrbase_api) {
+  api_data <- params$gwas_id %>% process_api_info()
 } else {
-  meta_metrics <- NULL
+  api_data <- NULL
 }
+trait_name <- get_trait_name(api_data, no_mrbase_api)
+metadata <- jsonlite::read_json(params$metadata_file)
+qc_metrics <- jsonlite::read_json(params$qc_file)
 ```
 
 Sidebar {data-width=450 .sidebar}
@@ -39,33 +41,11 @@ Sidebar {data-width=450 .sidebar}
 
 ### MR-Base trait information
 
-```{r get-api-info}
-api_data <- params$gwas_id %>% process_api_info()
-```
-
-Information retrieved from GWAS ID `r params$gwas_id`.
-
-Trait: **`r get_trait_name(api_data)`**.
+Trait: **`r trait_name`**.
 
 ```{r render-metadata-api}
-api_data %>% knitr::kable()
-```
-
-### Metadata
-
-Metrics from `r path_file(params$metadata)`.
-
-#### Counts
-
-```{r render-metadata-counts}
-if (!is.null(meta_metrics)) {
-  count_metrics <- meta_metrics$counts
-
-  count_metrics %>% enframe() %>%
-    mutate(value = value %>%
-             map_int(~ .)) %>% knitr::kable(format.args = list(big.mark = ","))
-} else {
-  cat("Metadata file missing")
+if (!no_mrbase_api) {
+  api_data %>% knitr::kable()
 }
 ```
 
@@ -76,8 +56,9 @@ info <- tribble(
   ~name, ~value,
   "gwas_id", params$gwas_id,
   "bcf_file", path_file(params$bcf_file),
-  "metadata", path_file(params$metadata),
-  "refdata", path_file(params$refdata),
+  "qc_file", path_file(params$qc_file),
+  "metadata", path_file(params$metadata_file),
+  "refdata", path_file(params$refdata_file),
   "compile_time", format(Sys.time(), "%Y-%m-%d %H:%M %Z"),
   "build_version", "PLACEHOLDER",
 )
@@ -85,45 +66,52 @@ info <- tribble(
 info %>% knitr::kable()
 ```
 
-### Report metrics
-
-Metrics computed from report module.
-
-```{r render-report-metrics}
-report_metrics %>%
-  knitr::kable(digits = 3,
-               format.args = list(big.mark = ","))
-```
-
 Summary
 =====
 
-Plots {data-width=650} {.tabset .tabset-fade}
+Summary {data-width=650} {.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
-### Plot 1: Manhattan plot
+### Manhattan plot
 
 ```{r plot-manhattan, fig.width = 10, fig.height = 6}
 main_df %>% plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL)
 ```
 
-### Plot 2: QQ plot
+### QQ plot
 
 ```{r plot-qq, fig.width = 10, fig.height = 6}
 main_df %>% plot_qq_log(pval = PVAL)
 ```
 
-### Plot 3: AF plot
+### AF plot
 
 ```{r plot-af, fig.width = 10, fig.height = 6}
 main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
 ```
 
-### Plot 4: P-Z plot
+### P-Z plot
 
 ```{r plot-pz, fig.width = 10, fig.height = 6}
 main_df %>% plot_pz(beta = BETA, se = SE, pval = PVAL, pval_ztest = PVAL_ztest)
 ```
+
+### Metadata
+
+<span class=".flowing-content-shim">
+```{r display-metadata}
+metadata_file %>% read_file() %>% jsonlite::prettify()
+```
+</span>
+
+QC metrics
+====
+
+<span class=".flowing-content-shim">
+```{r render-qc-metrics}
+qc_file %>% read_file() %>% jsonlite::prettify()
+```
+</span>
 
 Diagnostics
 =====

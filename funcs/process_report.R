@@ -18,8 +18,12 @@ process_api_info <- function(gwas_id) {
     mutate(value = value %>% map_chr(transform_cell))
 }
 
-get_trait_name <- function(api_data) {
+get_trait_name <- function(api_data, no_mrbase_api) {
   #' Retrieve trait name from api data
-  api_data %>% filter(name == "trait") %>%
-    pull(value)
+  if (!no_mrbase_api) {
+    res <- api_data %>% filter(name == "trait") %>%
+      pull(value)
+  } else {
+    res <- "NULL"
+  }
 }

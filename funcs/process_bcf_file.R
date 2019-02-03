@@ -1,5 +1,4 @@
-process_bcf_file <- function(bcf_file, intermediates_dir, ref_db,
-                             reuse = TRUE) {
+process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
   #' Extract variables from the bcf file using `bcftools`
   #' NOTE: You need to have `bcftools` in your PATH
   #'
@@ -10,19 +9,6 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_db,
   #' - `clean_intermediates`, lgl: if TRUE, clean up intermediate files
   #'                               of the various stages
 
-  tsv_file <- path(intermediates_dir, "report_df.tsv")
-  if (file_exists(tsv_file) && reuse) {
-    message(glue("{Sys.time()}\treusing file: {tsv_file}"))
-  } else {
-    bcf_proc(bcf_file, intermediates_dir, ref_file, tsv_file,
-             clean_intermediates = clean_intermediates)
-  }
-
-  data.table::fread(tsv_file, sep = "\t")
-}
-
-bcf_proc <- function(bcf_file, intermediates_dir, ref_file, tsv_file,
-                     clean_intermediates = TRUE) {
   stage1_bcf_header <- paste("%CHROM", "%POS", "%ID",
                              "%INFO/B", "%INFO/SE",
                              "%INFO/PVAL", "%INFO/AF",

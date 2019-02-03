@@ -1,13 +1,13 @@
 "Generate report for a GWAS pipeline.
 
+Pre-requisites:
 Populate the following file structure and specify required args:
 
 .
 ├── gwas-files
 │   └── ${gwas_id}
 │       ├── harmonised.bcf
-│       ├── harmonised.bcf.csi
-│       └── harmonised.json
+│       └── harmonised.bcf.csi
 " -> DOC
 suppressPackageStartupMessages({
   library("tidyverse")
@@ -17,6 +17,7 @@ suppressPackageStartupMessages({
   source("funcs/utils.R")
   source("funcs/process_bcf_file.R")
   source("funcs/process_qc_metrics.R")
+  source("funcs/process_metadata.R")
 })
 
 get_args <- function(doc) {
@@ -42,36 +43,49 @@ get_args <- function(doc) {
     help = "reference data (sqlite db), supply filepath.")
   # Optional args
   parser$add_argument(
-    "-s", "--show",
+    "--show",
     action = "store_true", default = FALSE,
     help = paste0("If True, show the report after it is generated",
                   " [default: %(default)s]"))
   parser$add_argument(
-    "-p", "--no_reuse",
+    "--no_reuse",
     action = "store_true", default = FALSE,
     help = paste0("If True, do not reuse any intermediate files",
+                  " [default: %(default)s]"))
+  parser$add_argument(
+    "--no_mrbase_api",
+    action = "store_true", default = FALSE,
+    help = paste0("If True, do not request metadata from mrbase",
                   " [default: %(default)s]"))
   args <- parser$parse_args()
   return(args)
 }
 
 main <- function(gwas_id, input, refdata,
-                 show, no_reuse) {
+                 show = FALSE, no_reuse = FALSE, no_mrbase_api = FALSE) {
   # Sanitise paths
   gwas_dir <- here(path("gwas-files", gwas_id))
   bcf_file <- path(gwas_dir, path_file(input))
   report_file <- glue("report_{gwas_id}_{path_ext_remove(input)}.html")
   report_full_path <- path(gwas_dir, report_file)
+  metadata_file <- path(
+    gwas_dir, glue("metadata_{path_ext_remove(input)}.json"))
+  qc_file <- path(
+    gwas_dir, glue("qc_{path_ext_remove(input)}.json"))
   intermediates_dir <- path(gwas_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
+  reuse = !no_reuse
   cat("Config:\n")
   print(t(t(
     c("gwas_id" = gwas_id,
       "bcf_file" = bcf_file,
       "refdata" = refdata,
+      "metadata_file" = metadata_file,
+      "qc_file" = qc_file,
       "report_full_path" = report_full_path,
       "intermediates_dir" = intermediates_dir,
-      "rmd_intermediates_dir" = rmd_intermediates_dir))))
+      "rmd_intermediates_dir" = rmd_intermediates_dir,
+      "reuse" = reuse))))
 
   # Verify structure
   list(list(path = path("gwas-files", gwas_id), how = "fail"),
@@ -83,14 +97,31 @@ main <- function(gwas_id, input, refdata,
   dir_create(intermediates_dir)
 
   # Extract columns from bcf file
-  message(glue("{Sys.time()}\tProcessing {bcf_file}..."))
-  main_df <- process_bcf_file(
-    bcf_file = bcf_file, intermediates_dir = intermediates_dir,
-    ref_db = refdata, reuse = !no_reuse)
-  message(glue("{Sys.time()}\tExtraction success!"))
+  main_df_file <- path(intermediates_dir, "report_df.tsv")
+  main_df_file %>%
+    reuse_or_process(
+      func = process_bcf_file,
+      args = list(bcf_file = bcf_file,
+                  intermediates_dir = intermediates_dir,
+                  ref_db = refdata,
+                  tsv_file = main_df_file),
+      reuse = reuse)
+  main_df <- data.table::fread(main_df_file, sep = "\t")
 
-  # Compute metrics from report routine
-  report_metrics <- process_qc_metrics(df = main_df)
+  # Process metadata
+  metadata_file %>%
+    reuse_or_process(
+      func = process_metadata,
+      args = list(bcf_file = bcf_file,
+                  output_file = metadata_file),
+      reuse = reuse)
+
+  # Compute metrics
+  qc_file %>%
+    reuse_or_process(
+      func = process_qc_metrics,
+      args = list(df = main_df, output_file = qc_file),
+      reuse = reuse)
 
   # Render Rmarkdown
   message(glue("{Sys.time()}\tStart rendering report..."))
@@ -103,9 +134,10 @@ main <- function(gwas_id, input, refdata,
     params = list(gwas_id = gwas_id,
                   bcf_file = bcf_file,
                   main_df = main_df,
-                  report_metrics = report_metrics,
-                  metadata = metadata,
-                  refdata = refdata))
+                  qc_file = qc_file,
+                  metadata_file = metadata_file,
+                  refdata_file = refdata,
+                  no_mrbase_api = no_mrbase_api))
 
   if (file_exists(report_full_path)) {
     if (!show) {
