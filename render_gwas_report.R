@@ -15,7 +15,6 @@ suppressPackageStartupMessages({
   library("fs")
   library("here")
   source("funcs/processing.R")
-  source("funcs/plots.R")
 })
 
 get_args <- function(doc) {
@@ -42,7 +41,7 @@ get_args <- function(doc) {
   required$add_argument(
     "--refdata",
     type = "character",
-    help = "reference bcf file, supply filepath.")
+    help = "reference data (sqlite db), supply filepath.")
   # Optional args
   parser$add_argument(
     "-s", "--show",
@@ -104,7 +103,7 @@ main <- function(gwas_id, input, metadata, refdata,
   message(glue("{Sys.time()}\tProcessing {bcf_file}..."))
   main_df <- process_bcf_file(
     bcf_file = bcf_file, intermediates_dir = intermediates_dir,
-    ref_file = refdata, reuse = !no_reuse)
+    ref_db = refdata, reuse = !no_reuse)
   message(glue("{Sys.time()}\tExtraction success!"))
 
   # Compute metrics from report routine

@@ -1,10 +1,10 @@
-process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
+process_bcf_file <- function(bcf_file, intermediates_dir, ref_db,
                              reuse = TRUE) {
   #' Extract variables from the bcf file using `bcftools`
   #' NOTE: You need to have `bcftools` in your PATH
   #'
   #' - `bcf_file`, chr: path to the input bcf file
-  #' - `ref_file`, chr: path to the reference bcf file
+  #' - `ref_db`, chr: path to the reference db
   #' - `intermediates_dir`, chr: path to the intermediates directory
   #' - `reuse`, lgl: if TRUE, reuse the already processed file
   #' - `clean_intermediates`, lgl: if TRUE, clean up intermediate files
@@ -18,41 +18,37 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_file,
     stage1_tsv_header <- c("CHROM", "POS", "ID",
                            "BETA", "SE",
                            "PVAL", "AF")
-    stage2_bcf_header <- paste("%CHROM", "%POS", "%ID",
-                               "%INFO/AF",
-                               sep = "\t")
-    stage2_tsv_header <- c("CHROM", "POS", "ID", "AF_reference")
-    # Stage 1: Extract from input data
-    stage1_tsv_file <- path(intermediates_dir, "report_query_stage1.tsv")
+    # Step 1: Extract from input data
     stage1_cmd <- glue(
       "bcftools norm -m -any {bcf_file}",
       " | ",
       "bcftools query -f '{stage1_bcf_header}\n'")
     message(glue("{Sys.time()}\tcmd: {stage1_cmd}"))
-    # Stage 2: Extract from reference data
-    stage2_tsv_file <- path(intermediates_dir, "report_query_stage2.tsv")
-    stage2_cmd <- glue(
-      "bcftools norm -m -any {ref_file}",
-      " | ",
-      "bcftools query -f '{stage2_bcf_header}\n'")
-    message(glue("{Sys.time()}\tcmd: {stage2_cmd}"))
-    # Stage3: Join
     stage1_df <- data.table::fread(
       cmd = stage1_cmd, header = FALSE, sep = "\t",
-      na.strings = c("", "NA", ".")) %>%
-      set_names(stage1_tsv_header)
-    stage2_df <- data.table::fread(
-      cmd = stage2_cmd, header = FALSE, sep = "\t",
-      na.strings = c("", "NA", ".")) %>%
-      set_names(stage2_tsv_header)
+      na.strings = c("", "NA", "."),
+      showProgress = TRUE) %>%
+      set_names(stage1_tsv_header) %>%
+      mutate_at(vars(CHROM, ID), as.character)
+    # Step 2: Join
+    conn <- DBI::dbConnect(RSQLite::SQLite(),
+                           dbname = ref_db)
+    rsid <- unique(stage1_df$ID)
+    stage2_df <- conn %>% tbl("REFDATA") %>%
+      select(CHROM, POS, ID, AF_reference) %>%
+      filter(ID %in% rsid) %>%
+      collect()
     joined_df <- stage1_df %>%
       left_join(stage2_df, by = c("CHROM", "POS", "ID")) %>%
       mutate_at(vars(CHROM), translate_chrom_to_int)
+    DBI::dbDisconnect(conn = conn)
     message(glue("{Sys.time()}\tcaching to: {tsv_file}"))
+    # Step 3: Write
     joined_df %>%
       post_proc() %>%
-      data.table::fwrite(tsv_file)
-    }
+      data.table::fwrite(tsv_file, sep = "\t")
+    gc()
+  }
   post_proc <- function(df) {
     #' Post processing, things like calculate ztest PVAL
     get_pval <- function(beta, se) {
