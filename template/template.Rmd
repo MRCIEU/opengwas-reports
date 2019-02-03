@@ -60,7 +60,7 @@ info <- tribble(
   "metadata", path_file(params$metadata_file),
   "refdata", path_file(params$refdata_file),
   "compile_time", format(Sys.time(), "%Y-%m-%d %H:%M %Z"),
-  "build_version", "PLACEHOLDER",
+  "build_version", get_build_version(),
 )
 
 info %>% knitr::kable()

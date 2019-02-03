@@ -27,5 +27,10 @@ reuse_or_process <- function(path, func, args, reuse = FALSE) {
 }
 
 get_build_version <- function() {
-  # TODO: get build version in the format of "<branch>-<hash>-<date>"
+  #' get build version in the format of "<branch>-<hash>-<date>"
+  branch <- system("git branch | grep \\* | cut -d ' ' -f2", intern = TRUE)
+  commit <- system("git rev-parse --verify --short HEAD", intern = TRUE)
+  date <- system(glue('git show -s --format=%ci {commit}'), intern = TRUE) %>%
+    lubridate::as_date()
+  glue("{branch}-{commit}-{date}")
 }
