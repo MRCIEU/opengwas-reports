@@ -14,7 +14,9 @@ suppressPackageStartupMessages({
   library("glue")
   library("fs")
   library("here")
-  source("funcs/processing.R")
+  source("funcs/utils.R")
+  source("funcs/process_bcf_file.R")
+  source("funcs/process_qc_metrics.R")
 })
 
 get_args <- function(doc) {
@@ -35,10 +37,6 @@ get_args <- function(doc) {
     type = "character", default = "harmonised.bcf",
     help = "Input bcf file, supply base filename [default: %(default)s]")
   required$add_argument(
-    "--metadata",
-    default = "harmonised.json", type = "character",
-    help = "metadata json file: [default %(default)s]")
-  required$add_argument(
     "--refdata",
     type = "character",
     help = "reference data (sqlite db), supply filepath.")
@@ -57,12 +55,11 @@ get_args <- function(doc) {
   return(args)
 }
 
-main <- function(gwas_id, input, metadata, refdata,
+main <- function(gwas_id, input, refdata,
                  show, no_reuse) {
   # Sanitise paths
   gwas_dir <- here(path("gwas-files", gwas_id))
   bcf_file <- path(gwas_dir, path_file(input))
-  metadata <- path(gwas_dir, path_file(metadata))
   report_file <- glue("report_{gwas_id}_{path_ext_remove(input)}.html")
   report_full_path <- path(gwas_dir, report_file)
   intermediates_dir <- path(gwas_dir, "intermediate")
@@ -71,7 +68,6 @@ main <- function(gwas_id, input, metadata, refdata,
   print(t(t(
     c("gwas_id" = gwas_id,
       "bcf_file" = bcf_file,
-      "metadata" = metadata,
       "refdata" = refdata,
       "report_full_path" = report_full_path,
       "intermediates_dir" = intermediates_dir,
@@ -81,21 +77,8 @@ main <- function(gwas_id, input, metadata, refdata,
   list(list(path = path("gwas-files", gwas_id), how = "fail"),
        list(path = bcf_file, how = "fail"),
        list(path = sprintf("%s.csi", bcf_file), how = "fail"),
-       list(path = refdata, how = "fail"),
-       list(path = metadata, how = "warning")) %>% purrr::transpose() %>%
-    pwalk(function(path, how = c("fail", "warning")) {
-      how = match.arg(how)
-      if (how == "fail") {
-        if (!file_exists(path)) {
-          stop(glue("File or directory not exists: {path}"))
-          quit("no")
-        }
-      } else {
-        if (!file_exists(path)) {
-          warning(glue("File or directory not exists: {path}"))
-        }
-      }
-    })
+       list(path = refdata, how = "fail")) %>% purrr::transpose() %>%
+    pwalk(verify_path)
   # Create intermediates_dir
   dir_create(intermediates_dir)
 
@@ -107,7 +90,7 @@ main <- function(gwas_id, input, metadata, refdata,
   message(glue("{Sys.time()}\tExtraction success!"))
 
   # Compute metrics from report routine
-  report_metrics <- process_report_metrics(df = main_df)
+  report_metrics <- process_qc_metrics(df = main_df)
 
   # Render Rmarkdown
   message(glue("{Sys.time()}\tStart rendering report..."))
