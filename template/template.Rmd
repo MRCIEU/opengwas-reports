@@ -11,7 +11,6 @@ params:
   qc_file: qc_file
   metadata_file: metadata_file
   refdata_file: refdata_file
-  no_mrbase_api: no_mrbase_api
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -26,12 +25,12 @@ source(here("funcs/plots.R"))
 
 ```{r load-data, include=FALSE}
 main_df <- params$main_df
-if (!no_mrbase_api) {
+if (!is.null(gwas_id)) {
   api_data <- params$gwas_id %>% process_api_info()
 } else {
   api_data <- NULL
 }
-trait_name <- get_trait_name(api_data, no_mrbase_api)
+trait_name <- get_trait_name(api_data)
 metadata <- jsonlite::read_json(params$metadata_file)
 qc_metrics <- jsonlite::read_json(params$qc_file)
 ```
@@ -44,7 +43,7 @@ Sidebar {data-width=450 .sidebar}
 Trait: **`r trait_name`**.
 
 ```{r render-metadata-api}
-if (!no_mrbase_api) {
+if (!is.null(api_data)) {
   api_data %>% knitr::kable()
 }
 ```

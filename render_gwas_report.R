@@ -1,13 +1,4 @@
 "Generate report for a GWAS pipeline.
-
-Pre-requisites:
-Populate the following file structure and specify required args:
-
-.
-├── ${gwas_parent}
-│   └── ${gwas_id}
-│       ├── ${input.bcf}
-│       └── ${input.bcf}.csi
 " -> DOC
 suppressPackageStartupMessages({
   library("tidyverse")
@@ -31,24 +22,20 @@ get_args <- function(doc) {
   # Required args
   required <- parser$add_argument_group("required named arguments")
   required$add_argument(
-    "--gwas_id",
-    type = "character", default = "2",
-    help = "Directory with the associated gwas_id [default: %(default)s]")
-  required$add_argument(
     "--input",
-    type = "character", default = "harmonised.bcf",
-    help = "Input bcf file, supply base filename [default: %(default)s]")
+    type = "character", default = "gwas-files/2/data.bcf",
+    help = "Input bcf file, path/to/file [default: %(default)s]")
   # Config args
   config <- parser$add_argument_group("Override config.yml")
-  config$add_argument(
-    "--gwas_parent",
-    type = "character",
-    help = "parent directory to store gwas_id directories.")
   config$add_argument(
     "--refdata",
     type = "character",
     help = "reference data (sqlite db), supply filepath.")
   # Optional args
+  config$add_argument(
+    "--output_dir",
+    type = "character",
+    help = "Directory to store outputs, by default is the same to input.")
   parser$add_argument(
     "--show",
     action = "store_true", default = FALSE,
@@ -59,59 +46,53 @@ get_args <- function(doc) {
     action = "store_true", default = FALSE,
     help = paste0("If True, do not reuse any intermediate files",
                   " [default: %(default)s]"))
-  parser$add_argument(
-    "--no_mrbase_api",
-    action = "store_true", default = FALSE,
-    help = paste0("If True, do not request metadata from mrbase",
-                  " [default: %(default)s]"))
   args <- parser$parse_args()
   return(args)
 }
 
-main <- function(gwas_id, input, refdata = NULL, gwas_parent = "gwas-files",
-                 show = FALSE, no_reuse = FALSE, no_mrbase_api = FALSE) {
+main <- function(input, refdata = NULL, output_dir = NULL,
+                 show = FALSE, no_reuse = FALSE) {
   # Setup logging
   basicConfig()
-  glue("logs/render_gwas_report_{gwas_id}_{Sys.Date()}.log") %>%
+  glue("logs/render_gwas_report_{Sys.Date()}.log") %>%
     addHandler(writeToFile, file = .)
   # Config
   if (is.null(refdata))
     refdata <- config::get("refdata")
-  if (is.null(gwas_parent))
-    gwas_parent <- path_abs(config::get("gwas_parent"))
   # Sanitise paths
-  gwas_dir <- path(gwas_parent, gwas_id)
-  bcf_file <- path(gwas_dir, path_file(input))
-  report_file <- glue("report_{gwas_id}_{path_ext_remove(input)}.html")
-  report_full_path <- path(gwas_dir, report_file)
-  metadata_file <- path(
-    gwas_dir, glue("metadata_{path_ext_remove(input)}.json"))
-  qc_file <- path(
-    gwas_dir, glue("qc_{path_ext_remove(input)}.json"))
-  intermediates_dir <- path(gwas_dir, "intermediate")
+  input <- path_abs(input)
+  input_base <- path_ext_remove(path_file(input))
+  if (is.null(output_dir))
+    output_dir <- path_dir(input)
+  bcf_file <- input
+  report_file <- glue("report_{input_base}.html")
+  report_full_path <- path(output_dir, report_file)
+  metadata_file <- path(output_dir, glue("metadata_{input_base}.json"))
+  qc_file <- path(output_dir, glue("qc_{input_base}.json"))
+  intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
   reuse = !no_reuse
   loginfo("Config:")
-  loginfo(glue(
-    "gwas_id: {gwas_id}",
-    "bcf_file: {bcf_file}",
-    "refdata: {refdata}",
-    "metadata_file: {metadata_file}",
-    "qc_file: {qc_file}",
-    "report_full_path: {report_full_path}",
-    "intermediates_dir: {intermediates_dir}",
-    "rmd_intermediates_dir: {rmd_intermediates_dir}",
-    "reuse: {reuse}",
-    sep = "\n"))
+  loginfo(glue("
+    input: {input}
+    output_dir: {output_dir}
+    bcf_file: {bcf_file}
+    refdata: {refdata}
+    metadata_file: {metadata_file}
+    qc_file: {qc_file}
+    report_full_path: {report_full_path}
+    intermediates_dir: {intermediates_dir}
+    rmd_intermediates_dir: {rmd_intermediates_dir}
+    reuse: {reuse}
+  "))
 
   # Verify structure
-  list(list(path = gwas_dir, how = "fail"),
-       list(path = bcf_file, how = "fail"),
+  list(list(path = bcf_file, how = "fail"),
        list(path = sprintf("%s.csi", bcf_file), how = "fail"),
        list(path = refdata, how = "fail")) %>% purrr::transpose() %>%
     pwalk(verify_path)
   # Create intermediates_dir
-  dir_create(intermediates_dir)
+  c(output_dir, intermediates_dir) %>% walk(dir_create)
 
   # Extract columns from bcf file
   main_df_file <- path(intermediates_dir, "report_df.tsv")
@@ -133,6 +114,9 @@ main <- function(gwas_id, input, refdata = NULL, gwas_parent = "gwas-files",
                   output_file = metadata_file),
       reuse = reuse)
 
+  # Get gwas_id
+  gwas_id <- get_gwas_id(metadata_file)
+
   # Compute metrics
   qc_file %>%
     reuse_or_process(
@@ -146,15 +130,14 @@ main <- function(gwas_id, input, refdata = NULL, gwas_parent = "gwas-files",
     input = "template/template.Rmd",
     output_format = "flexdashboard::flex_dashboard",
     output_file = report_file,
-    output_dir = gwas_dir,
+    output_dir = output_dir,
     intermediates_dir = rmd_intermediates_dir,
     params = list(gwas_id = gwas_id,
                   bcf_file = bcf_file,
                   main_df = main_df,
                   qc_file = qc_file,
                   metadata_file = metadata_file,
-                  refdata_file = refdata,
-                  no_mrbase_api = no_mrbase_api))
+                  refdata_file = refdata))
 
   if (file_exists(report_full_path)) {
     if (!show) {

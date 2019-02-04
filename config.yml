@@ -8,6 +8,3 @@ default:
   # if it is not present, use prepare_refdata.R to generate it
   # from bcf.
   refdata: ref_data/1kg_v3_nomult.db
-  # gwas_dir:
-  # The parent directory to store {gwas_dir}/{gwas_id}/{input}
-  gwas_parent: gwas-files

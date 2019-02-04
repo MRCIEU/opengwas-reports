@@ -14,3 +14,9 @@ process_metadata <- function(bcf_file, output_file) {
   metadata %>% jsonlite::write_json(output_file)
   invisible()
 }
+
+get_gwas_id <- function(metadata_file) {
+  metadata <- jsonlite::read_json(metadata_file)
+  gwas_id <- metadata[["gwas.id"]]
+  return(gwas_id)
+}
