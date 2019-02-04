@@ -78,7 +78,7 @@ main <- function(gwas_id, input, refdata = NULL, gwas_parent = "gwas-files",
   if (is.null(refdata))
     refdata <- config::get("refdata")
   if (is.null(gwas_parent))
-    gwas_parent <- config::get("gwas_parent")
+    gwas_parent <- path_abs(config::get("gwas_parent"))
   # Sanitise paths
   gwas_dir <- path(gwas_parent, gwas_id)
   bcf_file <- path(gwas_dir, path_file(input))
