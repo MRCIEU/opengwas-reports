@@ -93,7 +93,7 @@ main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
 ### P-Z plot
 
 ```{r plot-pz, fig.width = 10, fig.height = 6}
-main_df %>% plot_pz(beta = BETA, se = SE, pval = PVAL, pval_ztest = PVAL_ztest)
+main_df %>% plot_pz(beta = EFFECT, se = SE, pval = PVAL, pval_ztest = PVAL_ztest)
 ```
 
 ### Metadata
