@@ -1,4 +1,4 @@
-plot_qq_log <- function(df, pval) {
+plot_qq_log <- function(df, pval, is_neg_log10 = FALSE) {
   #' Quantile-quantile plot, log-transformed
   #' adapted from qqman:qq
   #'
@@ -8,8 +8,8 @@ plot_qq_log <- function(df, pval) {
   pval <- enquo(pval)
 
   pseries <- df %>%
-    filter(is.finite(!!pval), `<`(!!pval, 1), `>`(!!pval, 0)) %>%
-    pull(!!pval)
+    filter(is.finite(!!pval)) %>% pull(!!pval) %>%
+    restore_from_log(is_log = is_neg_log10)
   observed <- -log10(sort(pseries, decreasing = FALSE))
   expected <- -log10(ppoints(length(pseries)))
   xlab <- expression(Expected ~ ~-log[10](italic(p)))
@@ -27,7 +27,8 @@ plot_qq_log <- function(df, pval) {
 plot_manhattan <- function(df, chr, bp, snp, p,
                            p_threshold = 0.1,
                            red_line = -log10(5e-08),
-                           blue_line = -log10(5e-05)) {
+                           blue_line = -log10(5e-05),
+                           is_neg_log10 = FALSE) {
   #' Manhattan plot
   #'
   #' - `chr`: name (tidy symbol) of the chromosome column
@@ -54,14 +55,23 @@ plot_manhattan <- function(df, chr, bp, snp, p,
     # Add a cumulative position of each SNP
     arrange(!!chr, !!bp) %>%
     mutate(Chromosome = !!bp + tot) %>%
-    filter(!!p < p_threshold)
+    mutate(pval = neg_log10(!!p, is_neg_log10 = is_neg_log10)) %>%
+    (function(df) {
+       if (is_neg_log10) {
+         df %>% filter(10^(-pval) < p_threshold)
+       } else {
+         df %>% filter(pval < p_threshold)
+       }
+    })()
 
   axis_df <- df_manhattan %>% group_by(!!chr) %>%
     summarise(center = (max(Chromosome) + min(Chromosome)) / 2)
+  xlab <- expression(Chromosome)
+  ylab <- expression(~-log[10](italic(p)))
 
   df_manhattan %>%
     {
-      ggplot(., aes(x = Chromosome, y = -log10(!!p))) +
+      ggplot(., aes(x = Chromosome, y = pval)) +
         # Show all points
         geom_point(aes(color = as.factor(!!chr)),
                    alpha = 0.8, size = 0.8) +
@@ -73,6 +83,7 @@ plot_manhattan <- function(df, chr, bp, snp, p,
                            breaks = axis_df[["center"]]) +
         # Remove space between plot area and x axis
         scale_y_continuous(expand = c(0, 0)) +
+        xlab(xlab) + ylab(ylab) +
         theme_minimal() +
         theme(legend.position = "none",
               panel.border = element_blank(),
@@ -119,7 +130,8 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
     }
 }
 
-plot_pz <- function(df, beta, se, pval, pval_ztest) {
+plot_pz <- function(df, beta, se, pval, pval_ztest,
+                    is_neg_log10 = FALSE) {
 
   beta <- enquo(beta)
   se <- enquo(se)
@@ -127,8 +139,10 @@ plot_pz <- function(df, beta, se, pval, pval_ztest) {
   pval_ztest <- enquo(pval_ztest)
 
   df <- df %>%
-    mutate(neg_log_10_p = -log10(!!pval),
-           neg_log_10_p_ztest = -log10(!!pval_ztest)) %>%
+    mutate(neg_log_10_p = neg_log10(!!pval,
+                                    is_neg_log10 = is_neg_log10),
+           neg_log_10_p_ztest = neg_log10(!!pval_ztest,
+                                          is_neg_log10 = is_neg_log10)) %>%
     filter(is.finite(neg_log_10_p),
            is.finite(neg_log_10_p_ztest))
 

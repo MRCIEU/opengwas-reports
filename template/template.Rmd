@@ -75,13 +75,15 @@ Summary {data-width=650} {.tabset .tabset-fade}
 ### Manhattan plot
 
 ```{r plot-manhattan, fig.width = 10, fig.height = 6}
-main_df %>% plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL)
+main_df %>%
+  plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
+                 is_neg_log10 = TRUE)
 ```
 
 ### QQ plot
 
 ```{r plot-qq, fig.width = 10, fig.height = 6}
-main_df %>% plot_qq_log(pval = PVAL)
+main_df %>% plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE)
 ```
 
 ### AF plot
@@ -93,7 +95,10 @@ main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
 ### P-Z plot
 
 ```{r plot-pz, fig.width = 10, fig.height = 6}
-main_df %>% plot_pz(beta = EFFECT, se = SE, pval = PVAL, pval_ztest = PVAL_ztest)
+main_df %>%
+  plot_pz(beta = EFFECT, se = SE,
+          pval = L10PVAL, pval_ztest = L10PVAL_ztest,
+          is_neg_log10 = TRUE)
 ```
 
 ### Metadata

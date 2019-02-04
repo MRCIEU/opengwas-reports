@@ -34,3 +34,22 @@ get_build_version <- function() {
     lubridate::as_date()
   glue("{branch}-{commit}-{date}")
 }
+
+neg_log10 <- function(pval, is_neg_log10 = FALSE) {
+  #' If not `is_neg_log10`, transform by -log10(pval),
+  #' otherwise return as is.
+  if (!is_neg_log10) {
+    res <- -log10(pval)
+  } else {
+    res <- pval
+  }
+  res
+}
+
+restore_from_log <- function(pval, is_log = FALSE,
+                             func = function(x) 10^(-x)) {
+  #' If `is_log`, restore from log transformed value, by `func`
+  if (is_log)
+    pval <- 10^(-pval)
+  pval
+}

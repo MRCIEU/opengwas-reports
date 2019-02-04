@@ -11,11 +11,11 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
 
   stage1_bcf_header <- paste("%CHROM", "%POS", "%ID",
                              "%INFO/EFFECT", "%INFO/SE",
-                             "%INFO/PVAL", "%INFO/AF",
+                             "%INFO/L10PVAL", "%INFO/AF",
                              sep = "\t")
   stage1_tsv_header <- c("CHROM", "POS", "ID",
                          "EFFECT", "SE",
-                         "PVAL", "AF")
+                         "L10PVAL", "AF")
   # Step 1: Extract from input data
   stage1_cmd <- glue(
     "bcftools norm -m -any {bcf_file} | ",
@@ -51,10 +51,11 @@ bcf_post_proc <- function(df) {
   get_pval <- function(beta, se) {
     2 * pnorm(-abs(beta / se))
   }
-  df %>% mutate(PVAL_ztest = get_pval(EFFECT, SE)) %>%
+  df %>% mutate(L10PVAL_ztest =
+                get_pval(EFFECT, SE) %>% neg_log10()) %>%
     select(CHROM, POS, ID,
            EFFECT, SE,
-           PVAL, PVAL_ztest,
+           L10PVAL, L10PVAL_ztest,
            AF, AF_reference)
 }
 
