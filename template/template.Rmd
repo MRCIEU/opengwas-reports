@@ -140,3 +140,13 @@ main_df %>% head(n=10) %>% knitr::kable()
 ```{r df-tail}
 main_df %>% tail(n=10) %>% knitr::kable()
 ```
+
+### bcf preview
+
+<span class=".flowing-content-shim">
+```{r bcf-preview}
+preview <- system(glue("bcftools view -H {bcf_file} | head -n 50"),
+                  intern = TRUE)
+cat(preview, sep = "\n")
+```
+</span>
