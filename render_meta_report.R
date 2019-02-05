@@ -44,8 +44,7 @@ get_args <- function(doc) {
 }
 
 main <- function(input_dir,
-                 meta_report_dir = NULL,
-                 show = FALSE, no_reuse) {
+                 show = FALSE, no_reuse = FALSE) {
   # Config
   # if (is.null(meta_report_dir)) {
   #   meta_report_dir <- path(config::get("meta_report_dir"))
@@ -54,75 +53,86 @@ main <- function(input_dir,
   input_dir <- path_abs(input_dir)
   output_dir <- path(glue("{input_dir}-meta"))
   intermediates_dir <- path(output_dir, "intermediate")
+  rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
+  metadata_file <- path(output_dir, "metadata.csv")
+  qc_metrics_file <- path(output_dir, "qc_metrics.csv")
+  report_file <- path(output_dir, "meta_report.html")
   # Setup logging
   basicConfig()
   glue("logs/render_meta_report_{Sys.Date()}.log") %>%
     addHandler(writeToFile, file = .)
-  loginfo("Config:")
-  loginfo(glue("
+  loginfo(glue("Config:
   "))
 
   # Verify structure
-  list(list(path = bcf_file, how = "fail"),
-       list(path = sprintf("%s.csi", bcf_file), how = "fail"),
-       list(path = refdata, how = "fail")) %>% purrr::transpose() %>%
+  list(list(path = input_dir, how = "fail")) %>% purrr::transpose() %>%
     pwalk(verify_path)
   c(output_dir, intermediates_dir) %>% walk(dir_create)
 
-  # Process
-  # Obtain the list of directories that have
-  # metadata.json and qc_metrics.json
-  studies_full_path <- input_dir %>% dir_ls() %>%
-    # Only directories that contains "metadata.json" and "qc_metrics.json"
-    keep(function(dir) {
-      file_exists(path(dir, "metadata.json")) &&
-        file_exists(path(dir, "qc_metrics.json"))
-    })
-  studies_base <- studies_full_path %>% path_file()
-  metadata <- studies_full_path %>% path(., "metadata.json") %>%
-    map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
-    mutate_all(simplify2array) %>%
-    mutate(ID = studies_base)
-  qc_metrics <- studies_full_path %>% path(., "qc_metrics.json") %>%
-    map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
-    mutate_all(simplify2array) %>%
-    mutate(ID = studies_base)
+  # Process metadata and qc_metrics
+  if (no_reuse ||
+        !(file_exists(metadata_file) && file_exists(qc_metrics_file))) {
+    # Obtain the list of directories that have
+    # metadata.json and qc_metrics.json
+    studies_full_path <- input_dir %>% dir_ls() %>%
+      # Only directories that contains "metadata.json" and "qc_metrics.json"
+      keep(function(dir) {
+        file_exists(path(dir, "metadata.json")) &&
+          file_exists(path(dir, "qc_metrics.json"))
+      })
+    studies_base <- studies_full_path %>% path_file()
+    metadata <- studies_full_path %>% path(., "metadata.json") %>%
+      map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
+      mutate_all(simplify2array) %>%
+      mutate(ID = studies_base)
+    qc_metrics <- studies_full_path %>% path(., "qc_metrics.json") %>%
+      map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
+      mutate_all(simplify2array) %>%
+      mutate(ID = studies_base)
+    # Remove list columns that could not be written as a tabular file
+    non_list_cols <- metadata %>%
+      summarise_all(negate(~ "list" %in% class(.))) %>%
+      t() %>% t() %>% which() %>% `[`(names(metadata), .)
+    metadata %>% select(one_of(non_list_cols)) %>%
+      write_csv(metadata_file)
+    qc_metrics %>% write_csv(qc_metrics_file)
+  } else {
+    metadata <- read_csv(metadata_file)
+    qc_metrics <- read_csv(qc_metrics_file)
+  }
 
-  # Gather necessary metadata into a tibble
-
-  # Gather qc_metrics into a tibble
-
+  qc_metrics <- qc_metrics %>%
+    left_join(metadata %>%
+                select(ID, sample_size = counts.total_variants) %>%
+                mutate_at(vars(sample_size), as.integer))
 
   # Render Rmarkdown
-  if (!no_render) {
-    loginfo("Start rendering report...")
-    rmarkdown::render(
-      input = "template/template_meta.Rmd",
-      output_format = "flexdashboard::flex_dashboard",
-      output_file = report_file,
-      output_dir = output_dir,
-      intermediates_dir = rmd_intermediates_dir,
-      params = list(gwas_id = gwas_id,
-                    bcf_file = bcf_file,
-                    main_df = main_df,
-                    qc_file = qc_file,
-                    metadata_file = metadata_file,
-                    refdata_file = refdata))
+  loginfo("Start rendering report...")
+  rmarkdown::render(
+    input = "template/template_meta.Rmd",
+    output_format = "flexdashboard::flex_dashboard",
+    output_file = report_file,
+    output_dir = output_dir,
+    intermediates_dir = rmd_intermediates_dir,
+    params = list(qc_metrics = qc_metrics,
+                  metadata = metadata,
+                  input_dir = input_dir,
+                  output_dir = output_dir,
+                  metadata_file = metadata_file,
+                  qc_metrics_file = qc_metrics_file))
 
-    if (file_exists(report_full_path)) {
-      if (!show) {
-        loginfo(glue(
-          "Success!! (～o￣▽￣)～[]\n",
-          "Report available at {report_full_path}."))
-      } else {
-        browseURL(report_full_path)
-      }
+  if (file_exists(report_file)) {
+    if (!show) {
+      loginfo(glue(
+        "Success!! (～o￣▽￣)～[]\n",
+        "Report available at {report_full_path}."))
     } else {
-      logerror("Failure!! (ToT)")
+      browseURL(report_full_path)
     }
+  } else {
+    logerror("Failure!! (ToT)")
   }
 
 }
 
 do.call(main, get_args(DOC))
-

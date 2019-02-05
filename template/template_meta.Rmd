@@ -1,17 +1,17 @@
 ---
-title: "MR-Base GWAS Pipeline Report"
+title: "MR-Base GWAS Meta Report"
 output:
   flexdashboard::flex_dashboard:
-    theme: united
+    theme: journal
     orientation: rows
     vertical_scroll: scroll
 params:
-  gwas_id: gwas_id
-  bcf_file: bcf_file
-  main_df: main_df
-  qc_file: qc_file
+  qc_metrics: qc_metrics
+  metadata: metadata
+  input_dir: input_dir
+  output_dir: output_dir
   metadata_file: metadata_file
-  refdata_file: refdata_file
+  qc_metrics_file: qc_metrics_file
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -20,33 +20,20 @@ library("fs")
 library("glue")
 library("here")
 source(here("funcs/utils.R"))
-source(here("funcs/process_report.R"))
 source(here("funcs/meta_plots.R"))
-```
-
-```{r load-data, include=FALSE}
-main_df <- params$main_df
-if (!is.null(gwas_id)) {
-  api_data <- params$gwas_id %>% process_api_info()
-} else {
-  api_data <- NULL
-}
-trait_name <- get_trait_name(api_data)
-metadata <- jsonlite::read_json(params$metadata_file)
-qc_metrics <- jsonlite::read_json(params$qc_file)
 ```
 
 Sidebar {data-width=450 .sidebar}
 =======================================================================
 
-### MR-Base trait information
+### Meta metrics
 
-Trait: **`r trait_name`**.
-
-```{r render-metadata-api}
-if (!is.null(api_data)) {
-  api_data %>% knitr::kable()
-}
+```{r meta-metrics}
+meta_metrics <- tribble(
+  ~name, ~value,
+  "num_studies", NA,
+  "num_valid_studies", nrow(qc_metrics),
+)
 ```
 
 ### Report information
@@ -54,11 +41,10 @@ if (!is.null(api_data)) {
 ```{r render-info}
 info <- tribble(
   ~name, ~value,
-  "gwas_id", params$gwas_id,
-  "bcf_file", path_file(params$bcf_file),
-  "qc_file", path_file(params$qc_file),
-  "metadata", path_file(params$metadata_file),
-  "refdata", path_file(params$refdata_file),
+  "input_dir", params$input_dir,
+  "output_dir", params$output_dir,
+  "qc_metrics_file", path_file(params$qc_metrics_file),
+  "metadata_file", path_file(params$metadata_file),
   "compile_time", format(Sys.time(), "%Y-%m-%d %H:%M %Z"),
   "build_version", get_build_version(),
 )
@@ -66,88 +52,70 @@ info <- tribble(
 info %>% knitr::kable()
 ```
 
-Summary
-=====
-
-Summary {data-width=650} {.tabset .tabset-fade}
------------------------------------------------------------------------
-
-### Manhattan plot
-
-```{r plot-manhattan, fig.width = 10, fig.height = 6}
-main_df %>%
-  plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
-                 is_neg_log10 = TRUE)
-```
-
-### QQ plot
-
-```{r plot-qq, fig.width = 10, fig.height = 6}
-main_df %>% plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE)
-```
-
-### AF plot
-
-```{r plot-af, fig.width = 10, fig.height = 6}
-main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
-```
-
-### P-Z plot
-
-```{r plot-pz, fig.width = 10, fig.height = 6}
-main_df %>%
-  plot_pz(beta = EFFECT, se = SE,
-          pval = L10PVAL, pval_ztest = L10PVAL_ztest,
-          is_neg_log10 = TRUE)
-```
-
-### Metadata
-
-<span class=".flowing-content-shim">
-```{r display-metadata}
-metadata_file %>% read_file() %>% jsonlite::prettify()
-```
-</span>
-
 QC metrics
 ====
 
-<span class=".flowing-content-shim">
-```{r render-qc-metrics}
-qc_file %>% read_file() %>% jsonlite::prettify()
+QC metrics {.tabset .tabset-fade}
+-------------------------------------------------
+
+### Allele frequency correlation
+
+```{r plot_af_corr}
+params$qc_metrics %>% plot_scatter(x = sample_size, y = af_correlation)
 ```
-</span>
+
+### Inflation factor
+
+```{r plot_inflation_factor}
+params$qc_metrics %>% plot_scatter(x = sample_size, y = inflation_factor)
+```
+
+Flags
+====
+
+QC metrics {.tabset .tabset-fade}
+-------------------------------------------------
+
+### Allele frequency correlation
+
+Studies with `af_correlation < 0.7`
+
+```{r flag_af_corr}
+params$qc_metrics %>% select(ID, af_correlation) %>%
+  filter(af_correlation < 0.7) %>%
+  arrange(af_correlation) %>%
+  knitr::kable()
+```
+
+### Inflation factor
+
+Studies with `inflation_factor > 1.2`
+
+```{r flag_inflation_factor}
+params$qc_metrics %>% select(ID, inflation_factor) %>%
+  filter(inflation_factor > 1.2) %>%
+  arrange(desc(inflation_factor)) %>%
+  knitr::kable()
+```
 
 Diagnostics
 =====
 
-Details {.tabset .tabset-fade}
+Diagnostics {.tabset .tabset-fade}
 -------------------------------------------------
 
-### Hmisc describe
+### Metadata
 
 <span class=".flowing-content-shim">
-```{r hmisc-describe}
-main_df %>% Hmisc::describe()
+```{r hmisc-metadata}
+params$metadata %>% Hmisc::describe()
 ```
 </span>
 
-### Head and tail
-
-```{r df-head}
-main_df %>% head(n=10) %>% knitr::kable()
-```
-
-```{r df-tail}
-main_df %>% tail(n=10) %>% knitr::kable()
-```
-
-### bcf preview
+### QC metrics
 
 <span class=".flowing-content-shim">
-```{r bcf-preview}
-preview <- system(glue("bcftools view -H {bcf_file} | head -n 50"),
-                  intern = TRUE)
-cat(preview, sep = "\n")
+```{r hmisc-qc-metrics}
+params$qc_metrics %>% Hmisc::describe()
 ```
 </span>
