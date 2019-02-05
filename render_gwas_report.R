@@ -57,18 +57,24 @@ get_args <- function(doc) {
 
 main <- function(input, refdata = NULL, output_dir = NULL,
                  show = FALSE, no_reuse = FALSE, no_render = FALSE) {
-  # Setup logging
-  basicConfig()
-  glue("logs/render_gwas_report_{Sys.Date()}.log") %>%
-    addHandler(writeToFile, file = .)
   # Config
   if (is.null(refdata))
     refdata <- config::get("refdata")
   # Sanitise paths
   input <- path_abs(input)
   input_base <- path_ext_remove(path_file(input))
-  if (is.null(output_dir))
+  input_parent_base <- path_file(path_dir(input))
+  if (is.null(output_dir)) {
     output_dir <- path_dir(input)
+  } else {
+    # When `--output_dir` is specified, append the parent directory
+    # of input to it
+    output_dir <- path(output_dir, input_parent_base)
+  }
+  # Setup logging
+  basicConfig()
+  glue("logs/render_gwas_report_{input_parent_base}_{Sys.Date()}.log") %>%
+    addHandler(writeToFile, file = .)
   bcf_file <- input
   report_file <- glue("report_{input_base}.html")
   report_full_path <- path(output_dir, report_file)
