@@ -51,12 +51,19 @@ get_args <- function(doc) {
     action = "store_true", default = FALSE,
     help = paste0("If True, only do processing and not rmarkdown report",
                   " [default: %(default)s]"))
+  parser$add_argument(
+    "--update_qc_metrics",
+    action = "store_true", default = FALSE,
+    help = paste0("If True, reuse intermediate files (if found),",
+                  " and update qc_metrics",
+                  " [default: %(default)s]"))
   args <- parser$parse_args()
   return(args)
 }
 
 main <- function(input, refdata = NULL, output_dir = NULL,
-                 show = FALSE, no_reuse = FALSE, no_render = FALSE) {
+                 show = FALSE, no_reuse = FALSE, no_render = FALSE,
+                 update_qc_metrics = FALSE) {
   # Config
   if (is.null(refdata))
     refdata <- config::get("refdata")
@@ -133,7 +140,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
     reuse_or_process(
       func = process_qc_metrics,
       args = list(df = main_df, output_file = qc_file),
-      reuse = reuse)
+      reuse = !update_qc_metrics)
 
   # Render Rmarkdown
   if (!no_render) {
