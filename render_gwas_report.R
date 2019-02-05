@@ -83,10 +83,10 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   glue("logs/render_gwas_report_{input_parent_base}_{Sys.Date()}.log") %>%
     addHandler(writeToFile, file = .)
   bcf_file <- input
-  report_file <- glue("report_{input_base}.html")
+  report_file <- glue("report.html")
   report_full_path <- path(output_dir, report_file)
-  metadata_file <- path(output_dir, glue("metadata_{input_base}.json"))
-  qc_file <- path(output_dir, glue("qc_{input_base}.json"))
+  metadata_file <- path(output_dir, glue("metadata.json"))
+  qc_file <- path(output_dir, glue("qc_metrics.json"))
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
   reuse = !no_reuse
