@@ -1,3 +1,4 @@
 *.html
 packrat/lib*/
 /TODO*
+/test_scripts
