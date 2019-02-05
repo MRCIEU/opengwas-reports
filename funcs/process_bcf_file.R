@@ -12,10 +12,11 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
   stage1_bcf_header <- paste("%CHROM", "%POS", "%ID",
                              "%INFO/EFFECT", "%INFO/SE",
                              "%INFO/L10PVAL", "%INFO/AF",
+                             "%INFO/N",
                              sep = "\t")
   stage1_tsv_header <- c("CHROM", "POS", "ID",
                          "EFFECT", "SE",
-                         "L10PVAL", "AF")
+                         "L10PVAL", "AF", "N")
   # Step 1: Extract from input data
   stage1_cmd <- glue(
     "bcftools norm -m -any {bcf_file} | ",
@@ -56,7 +57,8 @@ bcf_post_proc <- function(df) {
     select(CHROM, POS, ID,
            EFFECT, SE,
            L10PVAL, L10PVAL_ztest,
-           AF, AF_reference)
+           AF, AF_reference,
+           N)
 }
 
 translate_chrom_to_int <- function(chrom_series) {
