@@ -46,12 +46,17 @@ get_args <- function(doc) {
     action = "store_true", default = FALSE,
     help = paste0("If True, do not reuse any intermediate files",
                   " [default: %(default)s]"))
+  parser$add_argument(
+    "--no_render",
+    action = "store_true", default = FALSE,
+    help = paste0("If True, only do processing and not rmarkdown report",
+                  " [default: %(default)s]"))
   args <- parser$parse_args()
   return(args)
 }
 
 main <- function(input, refdata = NULL, output_dir = NULL,
-                 show = FALSE, no_reuse = FALSE) {
+                 show = FALSE, no_reuse = FALSE, no_render = FALSE) {
   # Setup logging
   basicConfig()
   glue("logs/render_gwas_report_{Sys.Date()}.log") %>%
@@ -125,30 +130,32 @@ main <- function(input, refdata = NULL, output_dir = NULL,
       reuse = reuse)
 
   # Render Rmarkdown
-  loginfo("Start rendering report...")
-  rmarkdown::render(
-    input = "template/template.Rmd",
-    output_format = "flexdashboard::flex_dashboard",
-    output_file = report_file,
-    output_dir = output_dir,
-    intermediates_dir = rmd_intermediates_dir,
-    params = list(gwas_id = gwas_id,
-                  bcf_file = bcf_file,
-                  main_df = main_df,
-                  qc_file = qc_file,
-                  metadata_file = metadata_file,
-                  refdata_file = refdata))
+  if (!no_render) {
+    loginfo("Start rendering report...")
+    rmarkdown::render(
+      input = "template/template.Rmd",
+      output_format = "flexdashboard::flex_dashboard",
+      output_file = report_file,
+      output_dir = output_dir,
+      intermediates_dir = rmd_intermediates_dir,
+      params = list(gwas_id = gwas_id,
+                    bcf_file = bcf_file,
+                    main_df = main_df,
+                    qc_file = qc_file,
+                    metadata_file = metadata_file,
+                    refdata_file = refdata))
 
-  if (file_exists(report_full_path)) {
-    if (!show) {
-      loginfo(glue(
-        "Success!! (～o￣▽￣)～[]\n",
-        "Report available at {report_full_path}."))
+    if (file_exists(report_full_path)) {
+      if (!show) {
+        loginfo(glue(
+          "Success!! (～o￣▽￣)～[]\n",
+          "Report available at {report_full_path}."))
+      } else {
+        browseURL(report_full_path)
+      }
     } else {
-      browseURL(report_full_path)
+      logerror("Failure!! (ToT)")
     }
-  } else {
-    logerror("Failure!! (ToT)")
   }
 
 }
