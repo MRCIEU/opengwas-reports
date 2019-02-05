@@ -20,9 +20,9 @@ get_args <- function(doc) {
     description=doc_fmt,
     formatter_class="argparse.RawDescriptionHelpFormatter")
   # Required args
-  required <- parser$add_argument_group("required named arguments")
+  required <- parser$add_argument_group("required arguments")
   required$add_argument(
-    "--input",
+    "input", nargs = 1,
     type = "character", default = "gwas-files/2/data.bcf",
     help = "Input bcf file, path/to/file [default: %(default)s]")
   # Config args
