@@ -15,7 +15,7 @@ params:
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
-options(width = 120)
+options(width = 100)
 library("tidyverse")
 library("fs")
 library("glue")
