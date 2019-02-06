@@ -11,7 +11,7 @@ process_qc_metrics <- function(df, output_file) {
 }
 
 qc__af_cor <- function(df) {
-  cor(df$AF, df$AF_reference, use = "pairwise.complete.obs")
+  cor(df$AF, df$AF_reference, use = "na.or.complete")
 }
 
 qc__lambda <- function(df, pval, is_neg_log10 = FALSE) {
