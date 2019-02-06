@@ -1,4 +1,30 @@
+read_bcf_file <- function(bcf_file, ref_file) {
+  ref_header <- paste("CHROM", "POS", "ID", "AF_REF:=AF",
+                      sep = ",")
+  bcf_header <- paste("%CHROM", "%POS", "%ID",
+                      "%INFO/EFFECT", "%INFO/SE", "%INFO/L10PVAL",
+                      "%INFO/AF", "%INFO/N", "%INFO/AF_REF",
+                      sep = "\t")
+  col_names <- c("CHROM", "POS", "ID",
+                 "EFFECT", "SE", "L10PVAL",
+                 "AF", "N", "AF_reference")
+  cmd <- glue(
+    "bcftools annotate -a {ref_file} -c '{ref_header}' {bcf_file} | ",
+    "bcftools norm -m- | ",
+    "bcftools query -f '{bcf_header}\n'"
+  )
+  df <- data.table::fread(cmd = cmd, header = FALSE, sep = "\t",
+                          na.strings = c("", "NA", "."),
+                          showProgress = TRUE) %>%
+    set_names(col_names) %>%
+    mutate_at(vars(CHROM, ID), as.character) %>%
+    mutate_at(vars(CHROM), translate_chrom_to_int) %>%
+    bcf_post_proc()
+  df
+}
+
 process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
+  #' NOTE: deprecated
   #' Extract variables from the bcf file using `bcftools`
   #' NOTE: You need to have `bcftools` in your PATH
   #'

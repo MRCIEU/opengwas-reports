@@ -4,10 +4,8 @@ default:
   # TODO: Update url when api is released
   api_gwasinfo: http://apitest.mrbase.org/gwasinfo/
   # refdata:
-  # Reference dataset to calculate allele frequency,
-  # if it is not present, use prepare_refdata.R to generate it
-  # from bcf.
-  refdata: ref_data/1kg_v3_nomult.db
+  # Reference dataset to calculate allele frequency.
+  refdata: ref_data/1kg_v3_nomult.bcf
   # meta_report_dir:
   # Name of the (sub)directory to store meta results
   meta_report_dir: meta

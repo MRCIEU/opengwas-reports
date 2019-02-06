@@ -30,7 +30,7 @@ get_args <- function(doc) {
   config$add_argument(
     "--refdata",
     type = "character",
-    help = "reference data (sqlite db), supply filepath.")
+    help = "reference bcf data, supply filepath.")
   # Optional args
   config$add_argument(
     "--output_dir",
@@ -113,16 +113,17 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   c(output_dir, intermediates_dir) %>% walk(dir_create)
 
   # Extract columns from bcf file
-  main_df_file <- path(intermediates_dir, "report_df.tsv")
-  main_df_file %>%
-    reuse_or_process(
-      func = process_bcf_file,
-      args = list(bcf_file = bcf_file,
-                  intermediates_dir = intermediates_dir,
-                  ref_db = refdata,
-                  tsv_file = main_df_file),
-      reuse = reuse)
-  main_df <- data.table::fread(main_df_file, sep = "\t")
+  # main_df_file <- path(intermediates_dir, "report_df.tsv")
+  # main_df_file %>%
+  #   reuse_or_process(
+  #     func = process_bcf_file,
+  #     args = list(bcf_file = bcf_file,
+  #                 intermediates_dir = intermediates_dir,
+  #                 ref_db = refdata,
+  #                 tsv_file = main_df_file),
+  #     reuse = reuse)
+  # main_df <- data.table::fread(main_df_file, sep = "\t")
+  main_df <- read_bcf_file(bcf_file = input, ref_file = refdata)
 
   # Process metadata
   metadata_file %>%
