@@ -96,10 +96,9 @@ main <- function(input_dir,
     metadata %>% select(one_of(non_list_cols)) %>%
       write_csv(metadata_file)
     qc_metrics %>% write_csv(qc_metrics_file)
-  } else {
-    metadata <- read_csv(metadata_file)
-    qc_metrics <- read_csv(qc_metrics_file)
   }
+  metadata <- read_csv(metadata_file)
+  qc_metrics <- read_csv(qc_metrics_file)
 
   qc_metrics <- qc_metrics %>%
     left_join(metadata %>%
@@ -127,7 +126,7 @@ main <- function(input_dir,
         "Success!! (～o￣▽￣)～[]\n",
         "Report available at {report_full_path}."))
     } else {
-      browseURL(report_full_path)
+      browseURL(report_file)
     }
   } else {
     logerror("Failure!! (ToT)")

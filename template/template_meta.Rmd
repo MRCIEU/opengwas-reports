@@ -15,6 +15,7 @@ params:
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
+options(width = 120)
 library("tidyverse")
 library("fs")
 library("glue")
@@ -34,6 +35,8 @@ meta_metrics <- tribble(
   "num_studies", NA,
   "num_valid_studies", nrow(qc_metrics),
 )
+
+meta_metrics %>% knitr::kable()
 ```
 
 ### Report information
@@ -78,11 +81,11 @@ QC metrics {.tabset .tabset-fade}
 
 ### Allele frequency correlation
 
-Studies with `af_correlation < 0.7`
+Studies with `abs(af_correlation) < 0.7`
 
 ```{r flag_af_corr}
 params$qc_metrics %>% select(ID, af_correlation) %>%
-  filter(af_correlation < 0.7) %>%
+  filter(abs(af_correlation) < 0.7) %>%
   arrange(af_correlation) %>%
   knitr::kable()
 ```
@@ -104,18 +107,38 @@ Diagnostics
 Diagnostics {.tabset .tabset-fade}
 -------------------------------------------------
 
-### Metadata
+### Metadata: describe
 
 <span class=".flowing-content-shim">
 ```{r hmisc-metadata}
-params$metadata %>% Hmisc::describe()
+params$metadata %>% glimpse()
 ```
 </span>
 
-### QC metrics
+### Metadata: head and tails
+
+```{r head-metadata}
+params$metadata %>% head(n=10) %>% knitr::kable()
+```
+
+```{r tail-metadata}
+params$metadata %>% tail(n=10) %>% knitr::kable()
+```
+
+### QC metrics: describe
 
 <span class=".flowing-content-shim">
 ```{r hmisc-qc-metrics}
-params$qc_metrics %>% Hmisc::describe()
+params$qc_metrics %>% glimpse()
 ```
 </span>
+
+### QC metrics: head and tails
+
+```{r head-qc-metrics}
+params$qc_metrics %>% head(n=10) %>% knitr::kable()
+```
+
+```{r tail-qc-metrics}
+params$qc_metrics %>% tail(n=10) %>% knitr::kable()
+```
