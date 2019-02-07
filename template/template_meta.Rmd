@@ -6,6 +6,7 @@ output:
     orientation: rows
     vertical_scroll: scroll
 params:
+  meta_metrics: meta_metrics
   qc_metrics: qc_metrics
   metadata: metadata
   input_dir: input_dir
@@ -30,11 +31,9 @@ Sidebar {data-width=450 .sidebar}
 ### Meta metrics
 
 ```{r meta-metrics}
-meta_metrics <- tribble(
-  ~name, ~value,
-  "num_studies", NA,
-  "num_valid_studies", nrow(qc_metrics),
-)
+meta_metrics <- params$meta_metrics %>%
+  `[[`("metrics") %>% enframe() %>%
+  mutate_at(vars(value), flatten_dbl)
 
 meta_metrics %>% knitr::kable()
 ```
@@ -46,6 +45,7 @@ info <- tribble(
   ~name, ~value,
   "input_dir", params$input_dir,
   "output_dir", params$output_dir,
+  "meta_metrics_file", path_file(params$meta_metrics_file),
   "qc_metrics_file", path_file(params$qc_metrics_file),
   "metadata_file", path_file(params$metadata_file),
   "compile_time", format(Sys.time(), "%Y-%m-%d %H:%M %Z"),

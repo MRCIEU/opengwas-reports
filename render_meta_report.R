@@ -54,6 +54,7 @@ main <- function(input_dir,
   output_dir <- path(glue("{input_dir}-meta"))
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
+  meta_metrics_file <- path(output_dir, "meta_metrics.json")
   metadata_file <- path(output_dir, "metadata.csv")
   qc_metrics_file <- path(output_dir, "qc_metrics.csv")
   report_file <- path(output_dir, "meta_report.html")
@@ -71,32 +72,55 @@ main <- function(input_dir,
 
   # Process metadata and qc_metrics
   if (no_reuse ||
-        !(file_exists(metadata_file) && file_exists(qc_metrics_file))) {
-    # Obtain the list of directories that have
-    # metadata.json and qc_metrics.json
-    studies_full_path <- input_dir %>% dir_ls() %>%
-      # Only directories that contains "metadata.json" and "qc_metrics.json"
+      c(metadata_file, qc_metrics_file, meta_metrics_file) %>%
+        map(file_exists) %>% reduce(`&&`)) {
+
+    # meta_metadata
+    all_studies <- input_dir %>% dir_ls()
+    valid_studies <- all_studies %>%
+      # Only directories that contains
+      # "metadata.json" and "qc_metrics.json"
       keep(function(dir) {
         file_exists(path(dir, "metadata.json")) &&
           file_exists(path(dir, "qc_metrics.json"))
       })
-    studies_base <- studies_full_path %>% path_file()
-    metadata <- studies_full_path %>% path(., "metadata.json") %>%
+    valid_studies_id <- valid_studies %>% path_file() %>%
+      as.character()
+    invalid_studies_id <- all_studies %>% path_file() %>%
+      setdiff(valid_studies_id)
+    meta_metrics <- list(
+      ID = list(
+        valid_studies_id = valid_studies_id,
+        invalid_studies_id = invalid_studies_id
+      ),
+      metrics = list(
+        num_all_studies = length(all_studies),
+        num_valid_studies = length(valid_studies)
+      )
+    )
+    meta_metrics %>%
+      jsonlite::write_json(meta_metrics_file, auto_unbox = TRUE)
+
+    # metadata
+    metadata <- valid_studies %>% path(., "metadata.json") %>%
       map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
       mutate_all(simplify2array) %>%
-      mutate(ID = studies_base)
-    qc_metrics <- studies_full_path %>% path(., "qc_metrics.json") %>%
-      map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
-      mutate_all(simplify2array) %>%
-      mutate(ID = studies_base)
+      mutate(ID = valid_studies_id)
     # Remove list columns that could not be written as a tabular file
     non_list_cols <- metadata %>%
       summarise_all(negate(~ "list" %in% class(.))) %>%
       t() %>% t() %>% which() %>% `[`(names(metadata), .)
     metadata %>% select(one_of(non_list_cols)) %>%
       write_csv(metadata_file)
+
+    # qc_metrics
+    qc_metrics <- valid_studies %>% path(., "qc_metrics.json") %>%
+      map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
+      mutate_all(simplify2array) %>%
+      mutate(ID = valid_studies_id)
     qc_metrics %>% write_csv(qc_metrics_file)
   }
+  meta_metrics <- jsonlite::read_json(meta_metrics_file)
   metadata <- read_csv(metadata_file)
   qc_metrics <- read_csv(qc_metrics_file)
 
@@ -113,10 +137,12 @@ main <- function(input_dir,
     output_file = report_file,
     output_dir = output_dir,
     intermediates_dir = rmd_intermediates_dir,
-    params = list(qc_metrics = qc_metrics,
+    params = list(meta_metrics = meta_metrics,
+                  qc_metrics = qc_metrics,
                   metadata = metadata,
                   input_dir = input_dir,
                   output_dir = output_dir,
+                  meta_metrics_file = meta_metrics_file,
                   metadata_file = metadata_file,
                   qc_metrics_file = qc_metrics_file))
 
