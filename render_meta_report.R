@@ -73,7 +73,7 @@ main <- function(input_dir,
   # Process metadata and qc_metrics
   if (no_reuse ||
       c(metadata_file, qc_metrics_file, meta_metrics_file) %>%
-        map(file_exists) %>% reduce(`&&`)) {
+        map(negate(file_exists)) %>% reduce(`||`)) {
 
     # meta_metadata
     all_studies <- input_dir %>% dir_ls()
