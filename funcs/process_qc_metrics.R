@@ -16,12 +16,8 @@ qc__af_cor <- function(df) {
 
 qc__lambda <- function(df, pval, is_neg_log10 = FALSE) {
   calc_inflation_factor <- function(pval) {
-    # Genomic inflation factor
-    # - https://www.biostars.org/p/43328/
-    # - https://en.wikipedia.org/wiki/Population_stratification
-    # z_score <- qnorm(pval / 2)
-    # lambda <- median(z_score^2) / qchisq(0.5, 1)
-    lambda = median(qchisq(pval, df=1, low=FALSE)) / qchisq(0.5, 1, low=FALSE)
+    lambda = (median(qchisq(pval, df = 1, low = FALSE))
+      / qchisq(0.5, 1, low = FALSE))
     return(lambda)
   }
   pval = enquo(pval)
