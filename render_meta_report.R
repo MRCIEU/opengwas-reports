@@ -124,7 +124,7 @@ main <- function(input_dir,
     if (!show) {
       loginfo(glue(
         "Success!! (～o￣▽￣)～[]\n",
-        "Report available at {report_full_path}."))
+        "Report available at {report_file}."))
     } else {
       browseURL(report_file)
     }
