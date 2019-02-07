@@ -138,8 +138,8 @@ Details {.tabset .tabset-fade}
 ### Summary stats
 
 <span class=".flowing-content-shim">
-```{r skimr}
-main_df %>% skimr::skim()
+```{r skimr, results="asis"}
+main_df %>% skimr::skim() %>% skimr::kable()
 ```
 </span>
 

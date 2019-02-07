@@ -119,8 +119,8 @@ params$metadata %>% glimpse()
 ### Metadata: describe
 
 <span class=".flowing-content-shim">
-```{r skimr-metadata}
-params$metadata %>% skimr::skim()
+```{r skimr-metadata, results="asis"}
+params$metadata %>% skimr::skim() %>% skimr::kable()
 ```
 </span>
 
@@ -145,8 +145,8 @@ params$qc_metrics %>% glimpse()
 ### QC metrics: describe
 
 <span class=".flowing-content-shim">
-```{r skimr-qc-metrics}
-params$qc_metrics %>% skimr::skim()
+```{r skimr-qc-metrics, results="asis"}
+params$qc_metrics %>% skimr::skim() %>% skimr::kable()
 ```
 </span>
 
