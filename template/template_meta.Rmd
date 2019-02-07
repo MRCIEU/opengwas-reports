@@ -11,6 +11,7 @@ params:
   metadata: metadata
   input_dir: input_dir
   output_dir: output_dir
+  meta_metrics_file: meta_metrics_file
   metadata_file: metadata_file
   qc_metrics_file: qc_metrics_file
 ---
@@ -107,11 +108,19 @@ Diagnostics
 Diagnostics {.tabset .tabset-fade}
 -------------------------------------------------
 
+### Metadata: glimpse
+
+<span class=".flowing-content-shim">
+```{r glimpse-metadata}
+params$metadata %>% glimpse()
+```
+</span>
+
 ### Metadata: describe
 
 <span class=".flowing-content-shim">
-```{r hmisc-metadata}
-params$metadata %>% glimpse()
+```{r skimr-metadata}
+params$metadata %>% skimr::skim()
 ```
 </span>
 
@@ -125,11 +134,19 @@ params$metadata %>% head(n=10) %>% knitr::kable()
 params$metadata %>% tail(n=10) %>% knitr::kable()
 ```
 
+### QC metrics: glimpse
+
+<span class=".flowing-content-shim">
+```{r glimpse-qc-metrics}
+params$qc_metrics %>% glimpse()
+```
+</span>
+
 ### QC metrics: describe
 
 <span class=".flowing-content-shim">
-```{r hmisc-qc-metrics}
-params$qc_metrics %>% glimpse()
+```{r skimr-qc-metrics}
+params$qc_metrics %>% skimr::skim()
 ```
 </span>
 
