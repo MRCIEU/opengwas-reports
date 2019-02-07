@@ -30,16 +30,16 @@ qc__lambda <- function(df, pval, is_neg_log10 = FALSE) {
 }
 
 mac<-function(n,maf) {
-  mac <- 2*N*MAF 
+  mac <- 2*N*MAF
   return(mac)
 }
 
-se_n<-function(n,maf,se,beta)
-  n_rep_sqrt= sqrt(n) #square root of reported max sample size 
+se_n<-function(n,maf,se,beta) {
+  n_rep_sqrt= sqrt(n) #square root of reported max sample size
   med_se = median(se) #median observed standard error in GWAS
   sd_Y = 1  # we assume variance is 1
   var_x = 2*maf*(1-maf) # genotypic variance
-  C = median(1/sqrt(var_x)) #calculate C constant 
+  C = median(1/sqrt(var_x)) #calculate C constant
   n_est_sqrt = (C*sd_Y)/med_se #estimate square root of sample size from the summary data
   n_est= n_est_sqrt^2 #estimate sample size from the summary data
   sd_Y_est1 = (N_rep_sqrt*med_se)/C #estimate variance for Y from summary data using method 1
@@ -50,12 +50,12 @@ se_n<-function(n,maf,se,beta)
   estimated_sd<-estimated_sd[!is.na(estimated_sd)]
   sd_Y_est2 = median(estimated_sd) #estimate variance for Y from summary data using method 2
   #return results:
-  return(list(n_est,n_est_sqrt,sd_y_est1,sd_y_est2)
+  return(list(n_est,n_est_sqrt,sd_y_est1,sd_y_est2))
 }
 
 sum_r2<-function(beta,se,maf,n,sd_y_rep,sd_y_est1,sd_y_est2){
 # Calculate sum of r2 statistics using different assumptions about the variance and diffeerent methods
-  var1=1 
+  var1=1
   var2=sd_y_rep^2 #variance reported in the study table
   var2=sd_y_est1^2  #variance estimated using method 1 in se_n function
   var3=sd_y_est2^2 # #variance estimated using method 2 in se_n function
@@ -86,11 +86,10 @@ count_mono<-function(maf){
 
 
 count_miss<-function(pval,beta,se,maf,effect_allele,other_allele){
-  lapply
-  (
+  count.miss<-lapply(
     c(pval,beta,se,maf,effect_allele,other_allele),
-    FUN=function(x) 
-    count.miss<-length(which(Res[,x]=="" | is.na(Res[,x])))    
+    FUN=function(x)
+      length(which(Res[,x]=="" | is.na(Res[,x])))
   )
   return(count.miss)
 }
@@ -108,7 +107,7 @@ count_ns<-function(effect_allele,other_allele,pval,se,beta,maf){
   count4<-length(which(se<=0 | se=="Infinity" | se=="Inf" | se=="infinity" | se=="inf"))
   count5<-length(which(maf<0 | maf>1))
   count6<-length(which(!is.numeric(beta)))
-  count.ns<-sum(count1,count2,count3,count4,count5,count6) 
+  count.ns<-sum(count1,count2,count3,count4,count5,count6)
   return(count.ns)
 }
 
