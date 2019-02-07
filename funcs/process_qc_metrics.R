@@ -5,8 +5,8 @@ process_qc_metrics <- function(df, output_file) {
     inflation_factor = qc__lambda(df, pval = L10PVAL, is_neg_log10 = TRUE)
   )
   loginfo(glue("Write qc_metics to {output_file}"))
-  qc_metrics %>% map(jsonlite::unbox) %>%
-    jsonlite::write_json(output_file)
+  qc_metrics %>%
+    jsonlite::write_json(output_file, auto_unbox = TRUE)
   invisible()
 }
 
