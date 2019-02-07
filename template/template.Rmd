@@ -123,11 +123,11 @@ Diagnostics
 Details {.tabset .tabset-fade}
 -------------------------------------------------
 
-### Hmisc describe
+### Summary stats
 
 <span class=".flowing-content-shim">
-```{r hmisc-describe}
-main_df %>% Hmisc::describe()
+```{r skimr}
+main_df %>% skimr::skim()
 ```
 </span>
 
