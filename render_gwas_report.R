@@ -83,8 +83,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   glue("logs/render_gwas_report_{input_parent_base}_{Sys.Date()}.log") %>%
     addHandler(writeToFile, file = .)
   bcf_file <- input
-  report_file <- glue("report.html")
-  report_full_path <- path(output_dir, report_file)
+  report_file <- path(output_dir, "report.html")
   metadata_file <- path(output_dir, glue("metadata.json"))
   qc_file <- path(output_dir, glue("qc_metrics.json"))
   intermediates_dir <- path(output_dir, "intermediate")
@@ -98,7 +97,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
     refdata: {refdata}
     metadata_file: {metadata_file}
     qc_file: {qc_file}
-    report_full_path: {report_full_path}
+    report_file: {report_file}
     intermediates_dir: {intermediates_dir}
     rmd_intermediates_dir: {rmd_intermediates_dir}
     reuse: {reuse}
@@ -159,13 +158,13 @@ main <- function(input, refdata = NULL, output_dir = NULL,
                     metadata_file = metadata_file,
                     refdata_file = refdata))
 
-    if (file_exists(report_full_path)) {
+    if (file_exists(report_file)) {
       if (!show) {
         loginfo(glue(
           "Success!! (～o￣▽￣)～[]\n",
-          "Report available at {report_full_path}."))
+          "Report available at {report_file}."))
       } else {
-        browseURL(report_full_path)
+        browseURL(report_file)
       }
     } else {
       logerror("Failure!! (ToT)")
