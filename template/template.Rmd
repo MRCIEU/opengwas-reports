@@ -21,6 +21,7 @@ library("here")
 source(here("funcs/utils.R"))
 source(here("funcs/process_report.R"))
 source(here("funcs/plots.R"))
+set.seed(config::get("sample_seed"))
 ```
 
 ```{r load-data, include=FALSE}
@@ -33,6 +34,11 @@ if (!is.null(gwas_id)) {
 trait_name <- get_trait_name(api_data)
 metadata <- jsonlite::read_json(params$metadata_file)
 qc_metrics <- jsonlite::read_json(params$qc_file)
+
+plot_sample <- config::get("plot_sample")
+n_sample <- min(
+  config::get("plot_max_snps"),
+  config::get("plot_max_frac") * nrow(main_df))
 ```
 
 Sidebar {data-width=450 .sidebar}
@@ -76,25 +82,31 @@ Summary {data-width=650} {.tabset .tabset-fade}
 ```{r plot-manhattan, fig.width = 10, fig.height = 6}
 main_df %>%
   plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
+                 p_threshold = config::get("p_threshold"),
                  is_neg_log10 = TRUE)
 ```
 
 ### QQ plot
 
 ```{r plot-qq, fig.width = 10, fig.height = 6}
-main_df %>% plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE)
+main_df %>%
+  { if (plot_sample) { sample_n(., n_sample) } else { . } } %>%
+  plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE)
 ```
 
 ### AF plot
 
 ```{r plot-af, fig.width = 10, fig.height = 6}
-main_df %>% plot_af(af_main = AF, af_ref = AF_reference)
+main_df %>%
+  { if (plot_sample) { sample_n(., n_sample) } else { . } } %>%
+  plot_af(af_main = AF, af_ref = AF_reference)
 ```
 
 ### P-Z plot
 
 ```{r plot-pz, fig.width = 10, fig.height = 6}
 main_df %>%
+  { if (plot_sample) { sample_n(., n_sample) } else { . } } %>%
   plot_pz(beta = EFFECT, se = SE,
           pval = L10PVAL, pval_ztest = L10PVAL_ztest,
           is_neg_log10 = TRUE)

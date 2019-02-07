@@ -9,3 +9,14 @@ default:
   # meta_report_dir:
   # Name of the (sub)directory to store meta results
   meta_report_dir: meta
+  # p_threshold:
+  # p-value threshold for Manhattan Plot
+  p_threshold: 0.001
+  # plot_sample:
+  plot_sample: False
+  # Select a smaller sample to generate plots faster
+  sample_seed: 127001
+  # plot_max_snps:
+  plot_max_snps: 25000
+  # plot_max_frac:
+  plot_max_frac: 0.1

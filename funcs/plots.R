@@ -10,18 +10,21 @@ plot_qq_log <- function(df, pval, is_neg_log10 = FALSE) {
   pseries <- df %>%
     filter(is.finite(!!pval)) %>% pull(!!pval) %>%
     restore_from_log(is_log = is_neg_log10)
-  observed <- -log10(sort(pseries, decreasing = FALSE))
-  expected <- -log10(ppoints(length(pseries)))
+  plot_df <- tibble(
+    observed = -log10(sort(pseries, decreasing = FALSE)),
+    expected = -log10(ppoints(length(pseries)))
+  )
   xlab <- expression(Expected ~ ~-log[10](italic(p)))
   ylab <- expression(Observed ~ ~-log[10](italic(p)))
 
-  ggplot() +
-    aes(x = expected, y = observed) +
-    geom_point(alpha = 0.2, color = "skyblue") +
-    geom_abline(slope = 1, color = "red") +
-    xlim(0, max(expected)) + ylim(0, max(observed)) +
-    xlab(xlab) + ylab(ylab) +
-    theme_minimal()
+  plot_df %>% {
+    ggplot(., aes(x = expected, y = observed)) +
+      geom_point(alpha = 0.5, color = "skyblue") +
+      geom_abline(slope = 1, color = "red") +
+      xlim(0, max(.$expected)) + ylim(0, max(.$observed)) +
+      xlab(xlab) + ylab(ylab) +
+      theme_minimal()
+  }
 }
 
 plot_manhattan <- function(df, chr, bp, snp, p,
@@ -90,7 +93,6 @@ plot_manhattan <- function(df, chr, bp, snp, p,
               panel.grid.major.x = element_blank(),
               panel.grid.minor.x = element_blank())
     }
-
 }
 
 plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
@@ -119,7 +121,7 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
     {
       ggplot(.) +
         aes(x = !!af_ref, y = !!af_main, color = rare_snps) +
-        geom_point(alpha = 0.2) +
+        geom_point(alpha = 0.5) +
         geom_abline(slope = 1, color = "red") +
         scale_colour_manual(values = c("skyblue", "red"),
                             name = glue("Rare SNPs (MAF <= {maf_rarity})")) +
@@ -152,7 +154,7 @@ plot_pz <- function(df, beta, se, pval, pval_ztest,
   df %>% {
     ggplot(.) +
       aes(x = neg_log_10_p_ztest, y = neg_log_10_p) +
-      geom_point(alpha = 0.2, color = "skyblue") +
+      geom_point(alpha = 0.5, color = "skyblue") +
       geom_abline(slope = 1, color = "red") +
       xlab(xlab) + ylab(ylab) +
       theme_minimal()
