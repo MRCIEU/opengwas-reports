@@ -115,17 +115,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   # Create intermediates_dir
   c(output_dir, intermediates_dir) %>% walk(dir_create)
 
-  # Extract columns from bcf file
-  # main_df_file <- path(intermediates_dir, "report_df.tsv")
-  # main_df_file %>%
-  #   reuse_or_process(
-  #     func = process_bcf_file,
-  #     args = list(bcf_file = bcf_file,
-  #                 intermediates_dir = intermediates_dir,
-  #                 ref_db = refdata,
-  #                 tsv_file = main_df_file),
-  #     reuse = reuse)
-  # main_df <- data.table::fread(main_df_file, sep = "\t")
+  # bcf data
   main_df <- read_bcf_file(bcf_file = input, ref_file = refdata)
 
   # Process metadata
