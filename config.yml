@@ -22,3 +22,4 @@ default:
   plot_max_frac: 0.1
   # clump_file
   clump_file: clump.txt
+  ldsc_file: ldsc.txt.log

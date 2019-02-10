@@ -6,6 +6,7 @@ output:
     vertical_scroll: scroll
 params:
   gwas_id: gwas_id
+  output_dir: output_dir
   bcf_file: bcf_file
   main_df: main_df
   qc_file: qc_file
@@ -110,6 +111,14 @@ main_df %>%
 <span class=".flowing-content-shim">
 ```{r display-metadata}
 metadata_file %>% read_file() %>% jsonlite::prettify()
+```
+</span>
+
+### LDSC
+
+<span class=".flowing-content-shim">
+```{r display-ldsc}
+display_ldsc(output_dir)
 ```
 </span>
 
