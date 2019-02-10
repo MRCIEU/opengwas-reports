@@ -8,7 +8,8 @@ suppressPackageStartupMessages({
   library("fs")
   library("here")
   library("logging")
-  source("funcs/utils.R")
+  source(here("funcs/utils.R"))
+  source(here("funcs/meta_plots.R"))
 })
 
 get_args <- function(doc) {

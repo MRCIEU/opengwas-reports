@@ -14,13 +14,6 @@ params:
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
-library("tidyverse")
-library("fs")
-library("glue")
-library("here")
-source(here("funcs/utils.R"))
-source(here("funcs/process_report.R"))
-source(here("funcs/plots.R"))
 set.seed(config::get("sample_seed"))
 ```
 

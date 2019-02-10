@@ -18,12 +18,6 @@ params:
 
 ```{r setup, include=FALSE, message=FALSE}
 options(width = 100)
-library("tidyverse")
-library("fs")
-library("glue")
-library("here")
-source(here("funcs/utils.R"))
-source(here("funcs/meta_plots.R"))
 ```
 
 Sidebar {data-width=450 .sidebar}

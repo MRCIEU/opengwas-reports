@@ -8,10 +8,12 @@ suppressPackageStartupMessages({
   library("fs")
   library("here")
   library("logging")
-  source("funcs/utils.R")
-  source("funcs/process_bcf_file.R")
-  source("funcs/process_qc_metrics.R")
-  source("funcs/process_metadata.R")
+  source(here("funcs/utils.R"))
+  source(here("funcs/process_bcf_file.R"))
+  source(here("funcs/process_qc_metrics.R"))
+  source(here("funcs/process_metadata.R"))
+  source(here("funcs/process_report.R"))
+  source(here("funcs/plots.R"))
 })
 
 get_args <- function(doc) {
