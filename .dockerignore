@@ -1,0 +1,6 @@
+*.html
+packrat/lib*/
+packrat/src
+/logs
+/gwas-files
+/ref_data

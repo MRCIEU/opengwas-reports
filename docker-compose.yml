@@ -1,0 +1,10 @@
+version: "3.7"
+services:
+  report:
+    container_name: mrbase-report
+    build:
+      context: .
+      dockerfile: ./env/Dockerfile
+    volumes:
+      - ./gwas-files:/home/mrbase-report/gwas-files
+      - ./ref_data:/home/mrbase-report/ref_data
