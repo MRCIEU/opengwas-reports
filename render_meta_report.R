@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 "Generate report for a GWAS pipeline.
 " -> DOC
 suppressPackageStartupMessages({
