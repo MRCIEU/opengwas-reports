@@ -133,7 +133,8 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   qc_file %>%
     reuse_or_process(
       func = process_qc_metrics,
-      args = list(df = main_df, output_file = qc_file),
+      args = list(df = main_df, output_file = qc_file,
+                  output_dir = output_dir),
       reuse = !update_qc_metrics)
 
   # Render Rmarkdown

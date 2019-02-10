@@ -20,3 +20,5 @@ default:
   plot_max_snps: 25000
   # plot_max_frac:
   plot_max_frac: 0.1
+  # clump_file
+  clump_file: clump.txt

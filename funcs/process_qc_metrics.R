@@ -1,8 +1,9 @@
-process_qc_metrics <- function(df, output_file) {
+process_qc_metrics <- function(df, output_file, output_dir) {
 
   qc_metrics <- list(
     af_correlation = qc__af_cor(df),
-    inflation_factor = qc__lambda(df, pval = L10PVAL, is_neg_log10 = TRUE)
+    inflation_factor = qc__lambda(df, pval = L10PVAL, is_neg_log10 = TRUE),
+    clumped_hits = qc__clumped_hits(output_dir)
   )
   loginfo(glue("Write qc_metics to {output_file}"))
   qc_metrics %>%
@@ -23,6 +24,20 @@ qc__lambda <- function(df, pval, is_neg_log10 = FALSE) {
   pval = enquo(pval)
   p_value <- df %>% pull(!!pval) %>% restore_from_log(is_log = is_neg_log10)
   calc_inflation_factor(p_value)
+}
+
+qc__clumped_hits <- function(output_dir) {
+  #' Calculate number of rows in `output_dir`/clump.txt (if found),
+  #' otherwise return NA
+  clump_file <- path(output_dir, config::get("clump_file"))
+  if (file_exists(clump_file)) {
+    res <- glue("wc -l {clump_file} | sed -e 's/ .*//'") %>%
+      system(intern = TRUE) %>%
+      as.integer()
+  } else {
+    res <- NA_integer_
+  }
+  res
 }
 
 mac<-function(n,maf) {
