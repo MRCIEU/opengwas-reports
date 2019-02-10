@@ -163,7 +163,7 @@ docker run --name mrbase-report \
 
 ## GWAS report
 
-Place studies sub-directories under `gwas-files`, and place refdata under `refdata`. Then run
+Place studies sub-directories under `gwas-files`, and place refdata under `ref_data`. Then run
 
 ```
 # input=gwas-files/2/data.bcf
