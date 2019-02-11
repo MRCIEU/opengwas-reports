@@ -135,7 +135,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
       func = process_qc_metrics,
       args = list(df = main_df, output_file = qc_file,
                   output_dir = output_dir),
-      reuse = !update_qc_metrics)
+      reuse = (!update_qc_metrics || !no_reuse))
 
   # Render Rmarkdown
   if (!no_render) {
