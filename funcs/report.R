@@ -31,7 +31,7 @@ get_trait_name <- function(api_data) {
 display_ldsc <- function(output_dir) {
   ldsc_file <- path(output_dir, config::get("ldsc_file"))
   if (file_exists(ldsc_file)) {
-    ldsc <- ldsc_file %>% read_file
+    ldsc <- ldsc_file %>% read_file()
     cat(ldsc, sep = "\n")
   } else {
     cat(glue("{ldsc_file} is not found."), "\n")
