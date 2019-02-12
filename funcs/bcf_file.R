@@ -20,7 +20,7 @@ read_bcf_file <- function(bcf_file, ref_file) {
     mutate_at(vars(CHROM, ID), as.character) %>%
     mutate_at(vars(CHROM), translate_chrom_to_int) %>%
     bcf_post_proc()
-  df
+  df %>% as_tibble()
 }
 
 process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
