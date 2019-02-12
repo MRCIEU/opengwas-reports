@@ -31,8 +31,9 @@ qc__clumped_hits <- function(output_dir) {
   #' otherwise return NA
   clump_file <- path(output_dir, config::get("clump_file"))
   if (file_exists(clump_file)) {
-    res <- glue("wc -l {clump_file} | sed -e 's/ .*//'") %>%
+    res <- glue("wc -l {clump_file}") %>%
       system(intern = TRUE) %>%
+      str_extract("\\d+") %>%
       as.integer()
   } else {
     res <- NA_integer_
