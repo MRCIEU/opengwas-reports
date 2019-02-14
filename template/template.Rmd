@@ -12,6 +12,7 @@ params:
   qc_file: qc_file
   metadata_file: metadata_file
   refdata_file: refdata_file
+  plot_files: plot_files
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -73,38 +74,19 @@ Summary {data-width=650} {.tabset .tabset-fade}
 
 ### Manhattan plot
 
-```{r plot-manhattan, fig.width = 10, fig.height = 6}
-main_df %>%
-  plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
-                 p_threshold = config::get("p_threshold"),
-                 is_neg_log10 = TRUE)
-```
+![manhattan_plot](`r params$plot_files$manhattan_plot`)
 
 ### QQ plot
 
-```{r plot-qq, fig.width = 10, fig.height = 6}
-main_df %>%
-  { if (plot_sample) { sample_n(., n_sample) } else { . } } %>%
-  plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE)
-```
+![qq_plot](`r params$plot_files$qq_plot`)
 
 ### AF plot
 
-```{r plot-af, fig.width = 10, fig.height = 6}
-main_df %>%
-  { if (plot_sample) { sample_n(., n_sample) } else { . } } %>%
-  plot_af(af_main = AF, af_ref = AF_reference)
-```
+![af_plot](`r params$plot_files$af_plot`)
 
 ### P-Z plot
 
-```{r plot-pz, fig.width = 10, fig.height = 6}
-main_df %>%
-  { if (plot_sample) { sample_n(., n_sample) } else { . } } %>%
-  plot_pz(beta = EFFECT, se = SE,
-          pval = L10PVAL, pval_ztest = L10PVAL_ztest,
-          is_neg_log10 = TRUE)
-```
+![pz_plot](`r params$plot_files$pz_plot`)
 
 ### Metadata
 

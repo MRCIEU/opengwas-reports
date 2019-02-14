@@ -8,6 +8,7 @@ suppressPackageStartupMessages({
   library("fs")
   library("here")
   library("logging")
+  library("parallel")
   source(here("funcs/utils.R"))
   source(here("funcs/bcf_file.R"))
   source(here("funcs/qc_metrics.R"))
@@ -65,6 +66,53 @@ get_args <- function(doc) {
   return(args)
 }
 
+deploy_rendering <- function(main_df, output_dir) {
+  #' Deploy rendering of plots, returning a list of (funcs, args)
+  width = 10
+  height = 6
+  list(
+    manhattan_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "manhattan_plot.png")
+        main_df %>%
+          plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
+                         p_threshold = config::get("p_threshold"),
+                         is_neg_log10 = TRUE) %>%
+          ggsave(filename = filename, width = width, height = height)
+        filename
+      },
+      args = list(main_df = main_df)),
+    qq_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "qq_plot.png")
+        main_df %>%
+          plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE) %>%
+          ggsave(filename = filename, width = width, height = height)
+        filename
+      },
+      args = list(main_df = main_df)),
+    af_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "af_plot.png")
+        main_df %>%
+          plot_af(af_main = AF, af_ref = AF_reference) %>%
+          ggsave(filename = filename, width = width, height = height)
+        filename
+      },
+      args = list(main_df = main_df)),
+    pz_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "pz_plot.png")
+        main_df %>%
+          plot_pz(beta = EFFECT, se = SE,
+                  pval = L10PVAL, pval_ztest = L10PVAL_ztest,
+                  is_neg_log10 = TRUE) %>%
+          ggsave(filename = filename, width = width, height = height)
+        filename
+      },
+      args = list(main_df = main_df)))
+}
+
 main <- function(input, refdata = NULL, output_dir = NULL,
                  show = FALSE, no_reuse = FALSE, no_render = FALSE,
                  update_qc_metrics = FALSE) {
@@ -92,6 +140,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   qc_file <- path(output_dir, glue("qc_metrics.json"))
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
+  n_cores = 4
   reuse = !no_reuse
   loginfo("Config:")
   loginfo(glue("
@@ -104,6 +153,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
     report_file: {report_file}
     intermediates_dir: {intermediates_dir}
     rmd_intermediates_dir: {rmd_intermediates_dir}
+    n_cores: {n_cores}
     reuse: {reuse}
   "))
 
@@ -139,6 +189,12 @@ main <- function(input, refdata = NULL, output_dir = NULL,
 
   # Render Rmarkdown
   if (!no_render) {
+    loginfo("Start rendering plots...")
+    plot_files <- mclapply(
+      X = deploy_rendering(main_df = main_df, output_dir = intermediates_dir),
+      FUN = function(x) do.call(what = x$what, args = x$args),
+      mc.cores = n_cores)
+    loginfo(plot_files)
     loginfo("Start rendering report...")
     rmarkdown::render(
       input = "template/template.Rmd",
@@ -152,7 +208,8 @@ main <- function(input, refdata = NULL, output_dir = NULL,
                     main_df = main_df,
                     qc_file = qc_file,
                     metadata_file = metadata_file,
-                    refdata_file = refdata))
+                    refdata_file = refdata,
+                    plot_files = plot_files))
 
     if (file_exists(report_file)) {
       if (!show) {
