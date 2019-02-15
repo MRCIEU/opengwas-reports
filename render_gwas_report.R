@@ -52,20 +52,9 @@ get_args <- function(doc) {
     help = paste0("If True, show the report after it is generated",
                   " [default: %(default)s]"))
   parser$add_argument(
-    "--no_reuse",
-    action = "store_true", default = FALSE,
-    help = paste0("If True, do not reuse any intermediate files",
-                  " [default: %(default)s]"))
-  parser$add_argument(
     "--no_render",
     action = "store_true", default = FALSE,
     help = paste0("If True, only do processing and not rmarkdown report",
-                  " [default: %(default)s]"))
-  parser$add_argument(
-    "--update_qc_metrics",
-    action = "store_true", default = FALSE,
-    help = paste0("If True, reuse intermediate files (if found),",
-                  " and update qc_metrics",
                   " [default: %(default)s]"))
   args <- parser$parse_args()
   return(args)
@@ -119,8 +108,8 @@ deploy_plotting <- function(main_df, output_dir) {
 }
 
 main <- function(input, refdata = NULL, output_dir = NULL,
-                 show = FALSE, no_reuse = FALSE, no_render = FALSE,
-                 update_qc_metrics = FALSE, n_cores = NULL) {
+                 show = FALSE, no_render = FALSE,
+                 n_cores = NULL) {
   # Config
   if (is.null(refdata))
     refdata <- config::get("refdata")
@@ -146,7 +135,6 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
   n_cores <- if (is.null(n_cores)) {config::get("n_cores")} else {n_cores}
-  reuse = !no_reuse
   loginfo("Config:")
   loginfo(glue("
     input: {input}
@@ -159,7 +147,6 @@ main <- function(input, refdata = NULL, output_dir = NULL,
     intermediates_dir: {intermediates_dir}
     rmd_intermediates_dir: {rmd_intermediates_dir}
     n_cores: {n_cores}
-    reuse: {reuse}
   "))
 
   # Verify structure
@@ -174,23 +161,14 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   main_df <- read_bcf_file(bcf_file = input, ref_file = refdata)
 
   # Process metadata
-  metadata_file %>%
-    reuse_or_process(
-      func = process_metadata,
-      args = list(bcf_file = bcf_file,
-                  output_file = metadata_file),
-      reuse = reuse)
+  process_metadata(bcf_file = bcf_file, output_file = metadata_file)
 
   # Get gwas_id
   gwas_id <- get_gwas_id(metadata_file)
 
   # Compute metrics
-  qc_file %>%
-    reuse_or_process(
-      func = process_qc_metrics,
-      args = list(df = main_df, output_file = qc_file,
-                  output_dir = output_dir),
-      reuse = !(update_qc_metrics || no_reuse))
+  process_qc_metrics(df = main_df, output_file = qc_file,
+                     output_dir = output_dir)
 
   # Render Rmarkdown
   if (!no_render) {
