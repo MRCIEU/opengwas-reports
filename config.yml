@@ -23,3 +23,5 @@ default:
   # clump_file
   clump_file: clump.txt
   ldsc_file: ldsc.txt.log
+  # number of cores for multiprocessing needs
+  n_cores: 4

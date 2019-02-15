@@ -36,6 +36,11 @@ get_args <- function(doc) {
     "--refdata",
     type = "character",
     help = "reference bcf data, supply filepath.")
+  config$add_argument(
+    "-j", "--n_cores",
+    type = "integer",
+    default = NULL,
+    help = paste0("Number of cores to use for multiprocessing."))
   # Optional args
   config$add_argument(
     "--output_dir",
@@ -66,7 +71,7 @@ get_args <- function(doc) {
   return(args)
 }
 
-deploy_rendering <- function(main_df, output_dir) {
+deploy_plotting <- function(main_df, output_dir) {
   #' Deploy rendering of plots, returning a list of (funcs, args)
   width = 10
   height = 6
@@ -115,7 +120,7 @@ deploy_rendering <- function(main_df, output_dir) {
 
 main <- function(input, refdata = NULL, output_dir = NULL,
                  show = FALSE, no_reuse = FALSE, no_render = FALSE,
-                 update_qc_metrics = FALSE) {
+                 update_qc_metrics = FALSE, n_cores = NULL) {
   # Config
   if (is.null(refdata))
     refdata <- config::get("refdata")
@@ -140,7 +145,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   qc_file <- path(output_dir, glue("qc_metrics.json"))
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
-  n_cores = 4
+  n_cores <- if (is.null(n_cores)) {config::get("n_cores")} else {n_cores}
   reuse = !no_reuse
   loginfo("Config:")
   loginfo(glue("
@@ -191,7 +196,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   if (!no_render) {
     loginfo("Start rendering plots...")
     plot_files <- mclapply(
-      X = deploy_rendering(main_df = main_df, output_dir = intermediates_dir),
+      X = deploy_plotting(main_df = main_df, output_dir = intermediates_dir),
       FUN = function(x) do.call(what = x$what, args = x$args),
       mc.cores = n_cores)
     loginfo(plot_files)
