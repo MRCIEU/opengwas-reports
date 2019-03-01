@@ -6,5 +6,5 @@ services:
       context: .
       dockerfile: ./env/Dockerfile
     volumes:
-      - ./gwas-files:/home/mrbase-report/gwas-files
-      - ./ref_data:/home/mrbase-report/ref_data
+      - /data/bgc:/home/mrbase-report/gwas-files
+      - /data/bgc/ref:/home/mrbase-report/ref_data
