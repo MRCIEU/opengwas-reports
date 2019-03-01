@@ -1,4 +1,4 @@
-version: "3.7"
+version: "2"
 services:
   report:
     container_name: mrbase-report

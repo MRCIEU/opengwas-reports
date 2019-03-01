@@ -23,6 +23,9 @@ RUN mkdir -p /home/mrbase-report
 COPY . /home/mrbase-report/
 ENV PATH /home/mrbase-report:$PATH
 
+# Add watcher
+RUN wget -O /home/bin/watcher.py https://raw.githubusercontent.com/MRCIEU/bgc-upload-orchestrator/master/watcher.py?token=AB1fTMa-e8fsZrhTfgrH2VEnYtpvjtCBks5cgZIdwA%3D%3D && chmod 775 /home/bin/watcher.py
+
 WORKDIR /home/mrbase-report
 # Keep container persistent
 CMD tail -f /dev/null
