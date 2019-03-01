@@ -1,7 +1,7 @@
 version: "2"
 services:
   report:
-    container_name: mrbase-report
+    container_name: mrbase-report-module
     build:
       context: .
       dockerfile: ./env/Dockerfile
