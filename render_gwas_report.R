@@ -8,11 +8,12 @@ suppressPackageStartupMessages({
   library("fs")
   library("here")
   library("logging")
+  library("parallel")
   source(here("funcs/utils.R"))
-  source(here("funcs/process_bcf_file.R"))
-  source(here("funcs/process_qc_metrics.R"))
-  source(here("funcs/process_metadata.R"))
-  source(here("funcs/process_report.R"))
+  source(here("funcs/bcf_file.R"))
+  source(here("funcs/qc_metrics.R"))
+  source(here("funcs/metadata.R"))
+  source(here("funcs/report.R"))
   source(here("funcs/plots.R"))
 })
 
@@ -35,6 +36,11 @@ get_args <- function(doc) {
     "--refdata",
     type = "character",
     help = "reference bcf data, supply filepath.")
+  config$add_argument(
+    "-j", "--n_cores",
+    type = "integer",
+    default = NULL,
+    help = paste0("Number of cores to use for multiprocessing."))
   # Optional args
   config$add_argument(
     "--output_dir",
@@ -46,28 +52,64 @@ get_args <- function(doc) {
     help = paste0("If True, show the report after it is generated",
                   " [default: %(default)s]"))
   parser$add_argument(
-    "--no_reuse",
-    action = "store_true", default = FALSE,
-    help = paste0("If True, do not reuse any intermediate files",
-                  " [default: %(default)s]"))
-  parser$add_argument(
     "--no_render",
     action = "store_true", default = FALSE,
     help = paste0("If True, only do processing and not rmarkdown report",
-                  " [default: %(default)s]"))
-  parser$add_argument(
-    "--update_qc_metrics",
-    action = "store_true", default = FALSE,
-    help = paste0("If True, reuse intermediate files (if found),",
-                  " and update qc_metrics",
                   " [default: %(default)s]"))
   args <- parser$parse_args()
   return(args)
 }
 
+deploy_plotting <- function(main_df, output_dir) {
+  #' Deploy rendering of plots, returning a list of (funcs, args)
+  width = 10
+  height = 6
+  list(
+    manhattan_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "manhattan_plot.png")
+        main_df %>%
+          plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
+                         p_threshold = config::get("p_threshold"),
+                         is_neg_log10 = TRUE) %>%
+          ggsave(filename = filename, width = width, height = height)
+        filename
+      },
+      args = list(main_df = main_df)),
+    qq_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "qq_plot.png")
+        main_df %>%
+          plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE) %>%
+          ggsave(filename = filename, width = width, height = height)
+        filename
+      },
+      args = list(main_df = main_df)),
+    af_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "af_plot.png")
+        main_df %>%
+          plot_af(af_main = AF, af_ref = AF_reference) %>%
+          ggsave(filename = filename, width = width, height = height)
+        filename
+      },
+      args = list(main_df = main_df)),
+    pz_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "pz_plot.png")
+        main_df %>%
+          plot_pz(beta = EFFECT, se = SE,
+                  pval = L10PVAL, pval_ztest = L10PVAL_ztest,
+                  is_neg_log10 = TRUE) %>%
+          ggsave(filename = filename, width = width, height = height)
+        filename
+      },
+      args = list(main_df = main_df)))
+}
+
 main <- function(input, refdata = NULL, output_dir = NULL,
-                 show = FALSE, no_reuse = FALSE, no_render = FALSE,
-                 update_qc_metrics = FALSE) {
+                 show = FALSE, no_render = FALSE,
+                 n_cores = NULL) {
   # Config
   if (is.null(refdata))
     refdata <- config::get("refdata")
@@ -92,7 +134,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   qc_file <- path(output_dir, glue("qc_metrics.json"))
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
-  reuse = !no_reuse
+  n_cores <- if (is.null(n_cores)) {config::get("n_cores")} else {n_cores}
   loginfo("Config:")
   loginfo(glue("
     input: {input}
@@ -104,7 +146,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
     report_file: {report_file}
     intermediates_dir: {intermediates_dir}
     rmd_intermediates_dir: {rmd_intermediates_dir}
-    reuse: {reuse}
+    n_cores: {n_cores}
   "))
 
   # Verify structure
@@ -119,25 +161,23 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   main_df <- read_bcf_file(bcf_file = input, ref_file = refdata)
 
   # Process metadata
-  metadata_file %>%
-    reuse_or_process(
-      func = process_metadata,
-      args = list(bcf_file = bcf_file,
-                  output_file = metadata_file),
-      reuse = reuse)
+  process_metadata(bcf_file = bcf_file, output_file = metadata_file)
 
   # Get gwas_id
   gwas_id <- get_gwas_id(metadata_file)
 
   # Compute metrics
-  qc_file %>%
-    reuse_or_process(
-      func = process_qc_metrics,
-      args = list(df = main_df, output_file = qc_file),
-      reuse = !update_qc_metrics)
+  process_qc_metrics(df = main_df, output_file = qc_file,
+                     output_dir = output_dir)
 
   # Render Rmarkdown
   if (!no_render) {
+    loginfo("Start rendering plots...")
+    plot_files <- mclapply(
+      X = deploy_plotting(main_df = main_df, output_dir = intermediates_dir),
+      FUN = function(x) do.call(what = x$what, args = x$args),
+      mc.cores = n_cores)
+    loginfo(plot_files)
     loginfo("Start rendering report...")
     rmarkdown::render(
       input = "template/template.Rmd",
@@ -146,11 +186,13 @@ main <- function(input, refdata = NULL, output_dir = NULL,
       output_dir = output_dir,
       intermediates_dir = rmd_intermediates_dir,
       params = list(gwas_id = gwas_id,
+                    output_dir = output_dir,
                     bcf_file = bcf_file,
                     main_df = main_df,
                     qc_file = qc_file,
                     metadata_file = metadata_file,
-                    refdata_file = refdata))
+                    refdata_file = refdata,
+                    plot_files = plot_files))
 
     if (file_exists(report_file)) {
       if (!show) {

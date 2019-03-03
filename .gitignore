@@ -3,6 +3,3 @@ packrat/lib*/
 /TODO*
 
 # pipeline structure
-/logs
-/gwas-files
-/ref_data

@@ -148,7 +148,8 @@ The report will generate the following under `${input_dir}-meta` (e.g. `~/gwas-s
 Use `docker-compose` and
 
 ```
-docker-compose up
+# To avoid generating files as root
+UID=$(id -u):$(id -g) docker-compose up
 ```
 
 Or alternatively, use docker
@@ -158,6 +159,8 @@ docker build -t mrbase-report -f env/Dockerfile .
 docker run --name mrbase-report \
   -v gwas-files:/home/mrbase-report/gwas-files \
   -v ref_data:/home/mrbase-report/ref_data \
+  -v logs:/home/mrbase-report/logs \
+  -u $(id -u):$(id -g) \
   mrbase-report
 ```
 

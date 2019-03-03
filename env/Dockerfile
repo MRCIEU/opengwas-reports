@@ -15,8 +15,7 @@ RUN conda env create -f docker.yml
 ENV PATH /opt/conda/envs/mrbase-report/bin:$PATH
 
 # Update env
-ADD https://cran.r-project.org/src/contrib/argparse_2.0.0.tar.gz /home/
-RUN /bin/bash -c "exec Rscript -e \"install.packages('/home/argparse_2.0.0.tar.gz', repos = NULL, type = 'source')\""
+RUN /bin/bash -c "exec Rscript -e \"install.packages('argparse', repos = 'http://cran.rstudio.com')\""
 
 # Copy files
 RUN mkdir -p /home/mrbase-report
