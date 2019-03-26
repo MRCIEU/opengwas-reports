@@ -7,9 +7,10 @@ dependencies:
   - _r-mutex=1.0.0=anacondar_1
   - bwidget=1.9.11=1
   - bzip2=1.0.6=h1de35cc_1002
-  - ca-certificates=2019.3.9=hecc5488_0
+  - ca-certificates=2019.1.23=0
   - cairo=1.14.12=hc4e6be7_4
   - cctools=895=h7512d6f_0
+  - certifi=2019.3.9=py37_0
   - clang=4.0.1=h662ec87_0
   - clang_osx-64=4.0.1=h1ce6c1d_11
   - clangxx=4.0.1=hc9b4283_0
@@ -53,7 +54,9 @@ dependencies:
   - pandoc=2.7.1=0
   - pango=1.42.4=h060686c_0
   - pcre=8.42=h378b8a2_0
+  - pip=19.0.3=py37_0
   - pixman=0.34.0=h1de35cc_1003
+  - python=3.7.0=hc167b69_0
   - r-argparse=2.0.1=r351h6115d3f_0
   - r-assertthat=0.2.0=r351hf348343_0
   - r-backports=1.1.2=r351h6402f54_0
@@ -158,8 +161,11 @@ dependencies:
   - r-xtable=1.8_3=r351_2000
   - r-yaml=2.2.0=r351h6402f54_0
   - readline=7.0=hcfe32e1_1001
+  - setuptools=40.8.0=py37_0
+  - sqlite=3.26.0=ha441bb4_0
   - tk=8.6.8=ha441bb4_1000
   - tktable=2.10=h1de35cc_0
+  - wheel=0.33.1=py37_0
   - xz=5.2.4=h1de35cc_1001
   - zlib=1.2.11=h1de35cc_1004
 prefix: /Users/ik18445/.local/share/virtualenvs/mrbase-report
