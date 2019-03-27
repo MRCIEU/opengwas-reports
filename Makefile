@@ -15,6 +15,10 @@ PROJECT_NAME = mrbase-report-module
 ## ==== utils ====
 __utils__:
 
+## Check health
+check-health:
+	utils/check-health.sh
+
 ## Unit tests
 test:
 	@files=tests/test_*.R; \
