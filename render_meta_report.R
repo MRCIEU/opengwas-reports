@@ -27,11 +27,11 @@ get_args <- function(doc) {
     help = "Input directory that stores all subdirectories")
   # Config args
   config <- parser$add_argument_group("Override config.yml")
-  # config$add_argument(
-  #   "--meta_report_dir",
-  #   type = "character",
-  #   help = paste0("name (not path) of the (sub)directory to store meta results"))
   # Optional args
+  parser$add_argument(
+    "--output_dir",
+    type = "character", default = NULL,
+    help = paste0("output path to store meta results"))
   parser$add_argument(
     "--show",
     action = "store_true", default = FALSE,
@@ -46,15 +46,12 @@ get_args <- function(doc) {
   return(args)
 }
 
-main <- function(input_dir,
+main <- function(input_dir, output_dir = NULL,
                  show = FALSE, no_reuse = FALSE) {
-  # Config
-  # if (is.null(meta_report_dir)) {
-  #   meta_report_dir <- path(config::get("meta_report_dir"))
-  # }
   # Sanitise paths
   input_dir <- path_abs(input_dir)
-  output_dir <- path(glue("{input_dir}-meta"))
+  if (is.null(output_dir))
+    output_dir <- path(glue("{input_dir}-meta"))
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
   meta_metrics_file <- path(output_dir, "meta_metrics.json")
@@ -66,6 +63,8 @@ main <- function(input_dir,
   glue("logs/render_meta_report_{Sys.Date()}.log") %>%
     addHandler(writeToFile, file = .)
   loginfo(glue("Config:
+    - input_dir: {input_dir}
+    - output_dir: {output_dir}
   "))
 
   # Verify structure
@@ -92,15 +91,10 @@ main <- function(input_dir,
     invalid_studies_id <- all_studies %>% path_file() %>%
       setdiff(valid_studies_id)
     meta_metrics <- list(
-      ID = list(
-        valid_studies_id = valid_studies_id,
-        invalid_studies_id = invalid_studies_id
-      ),
-      metrics = list(
-        num_all_studies = length(all_studies),
-        num_valid_studies = length(valid_studies)
-      )
-    )
+      ID = list(valid_studies_id = valid_studies_id,
+                invalid_studies_id = invalid_studies_id),
+      metrics = list(num_all_studies = length(all_studies),
+                     num_valid_studies = length(valid_studies)))
     meta_metrics %>%
       jsonlite::write_json(meta_metrics_file, auto_unbox = TRUE)
 
