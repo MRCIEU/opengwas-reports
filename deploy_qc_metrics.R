@@ -13,8 +13,7 @@ suppressPackageStartupMessages({
   source(here("funcs/bcf_file.R"))
   source(here("funcs/qc_metrics.R"))
   source(here("funcs/metadata.R"))
-  # source(here("funcs/report.R"))
-  # source(here("funcs/plots.R"))
+  source(here("funcs/gwas_processing.R"))
 })
 
 get_args <- function(doc) {
@@ -34,6 +33,16 @@ get_args <- function(doc) {
   config <- parser$add_argument_group("Override config.yml")
   # Optional args
   parser$add_argument(
+    "-j", "--n_cores",
+    type = "integer",
+    default = NULL,
+    help = paste0("Number of cores to use for multiprocessing."))
+  parser$add_argument(
+    "--no_reuse",
+    action = "store_true", default = FALSE,
+    help = paste0("If True, do not reuse processed files",
+                  " [default: %(default)s]"))
+  parser$add_argument(
     "-n", "--dryrun",
     action = "store_true", default = FALSE,
     help = paste0("If True, dryrun"))
@@ -41,7 +50,41 @@ get_args <- function(doc) {
   return(args)
 }
 
-main <- function(input_dir, dryrun = FALSE) {
+perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
+                       no_reuse = FALSE) {
+  bcf_file <- path(gwas_dir, "data.bcf")
+  ldsc_file <- path(gwas_dir, "ldsc.txt")
+  ldsc_log <- glue("{ldsc_file}.log")
+  clump_file <- path(gwas_dir, "clump.txt")
+  metadata_file <- path(gwas_dir, "metadata.json")
+  qc_file <- path(gwas_dir, "qc_metrics.json")
+
+
+  # ldsc
+  if (!file_exists(ldsc_log) || no_reuse) {
+    loginfo(glue("ldsc: {ldsc_file}"))
+    ldsc(bcf = bcf_file, out = ldsc_file)
+  }
+  # clump
+  if (!file_exists(clump_file) || no_reuse) {
+    loginfo(glue("clump: {bcf_file}"))
+    clump(bcf = bcf_file, out = clump_file)
+  }
+  # metadata
+  if (!file_exists(metadata_file) || no_reuse) {
+    loginfo(glue("metadata: {metadata_file}"))
+    process_metadata(bcf_file = bcf_file, output_file = metadata_file)
+  }
+  # qc metrics
+  if (!file_exists(qc_file) || no_reuse) {
+    main_df <- read_bcf_file(bcf_file = bcf_file, ref_file = refdata)
+    process_qc_metrics(df = main_df, output_file = qc_file,
+                       output_dir = gwas_dir)
+  }
+  TRUE
+}
+
+main <- function(input_dir, n_cores = 4, no_reuse = FALSE, dryrun = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
   conda_dir <- path_abs("~/miniconda3")
@@ -54,14 +97,21 @@ main <- function(input_dir, dryrun = FALSE) {
     - input_dir: {input_dir}
   "))
 
-  if (FALSE) {
-    glue("bash -c '
-      source {conda_dir}/bin/activate ldsc;
-      python {ldsc_bin} --help
-    '") %>% system()
+  # Get a list of input dir containing data.bcf, and data.bcf.csi
+  gwas_dirs <- input_dir %>% dir_ls() %>%
+    purrr::keep(is_dir) %>%
+    purrr::keep(function(dir) {
+      file_exists(path(dir, "data.bcf")) &&
+        file_exists(path(dir, "data.bcf.csi"))
+    })
+  loginfo(glue("Number of candidate studies: {length(gwas_dirs)}"))
+
+  if (!dryrun) {
+    # Deploy processing
+    res = mclapply(X = gwas_dirs, FUN = purrr::safely(perform_qc, otherwise = FALSE),
+                   no_reuse = no_reuse,
+                   mc.cores = n_cores)
   }
-
-
 }
 
 do.call(main, get_args(DOC))
