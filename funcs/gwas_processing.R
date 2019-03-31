@@ -55,7 +55,7 @@ clump <- function(bcf, out,
   # Get clumped SNP list
   clump_file <- glue("{out}.tophits.clumped")
   if (fs::file_exists(clump_file)) {
-    clumped_snp <- read_table(clump_file) %>% select(SNP)
+    clumped_snp <- data.table::fread(clump_file) %>% select(SNP)
     message(glue("Found {nrow(clumped_snp)} hits"))
     clumped_snp %>% write_csv(out, col_names = FALSE)
   } else {
