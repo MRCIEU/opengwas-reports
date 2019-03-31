@@ -9,7 +9,7 @@ plot_qq_log <- function(df, pval, is_neg_log10 = FALSE) {
 
   pseries <- df %>%
     filter(is.finite(!!pval)) %>% pull(!!pval) %>%
-    restore_from_log(is_log = is_neg_log10)
+    unlog(is_log = is_neg_log10)
   plot_df <- tibble(
     observed = -log10(sort(pseries, decreasing = FALSE)),
     expected = -log10(ppoints(length(pseries)))

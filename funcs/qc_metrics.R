@@ -26,7 +26,7 @@ qc__lambda <- function(df, pval, is_neg_log10 = FALSE) {
     return(lambda)
   }
   pval = enquo(pval)
-  p_value <- df %>% pull(!!pval) %>% restore_from_log(is_log = is_neg_log10)
+  p_value <- df %>% pull(!!pval) %>% unlog(is_log = is_neg_log10)
   calc_inflation_factor(p_value)
 }
 
