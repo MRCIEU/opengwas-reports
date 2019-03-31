@@ -107,9 +107,22 @@ display_ldsc(output_dir)
 QC metrics
 ====
 
+Metrics {.tabset .tabset-fade}
+----------------------------------
+
+### Metrics
+
 <span class=".flowing-content-shim">
 ```{r render-qc-metrics}
 qc_file %>% read_file() %>% jsonlite::prettify()
+```
+</span>
+
+### Definitions
+
+<span class=".flowing-content-shim">
+```{r qc_metrics, child = 'qc_metrics.md'}
+
 ```
 </span>
 

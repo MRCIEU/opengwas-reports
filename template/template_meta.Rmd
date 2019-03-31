@@ -153,3 +153,11 @@ params$qc_metrics %>% head(n=10) %>% knitr::kable()
 ```{r tail-qc-metrics}
 params$qc_metrics %>% tail(n=10) %>% knitr::kable()
 ```
+
+### QC metrics: definitions
+
+<span class=".flowing-content-shim">
+```{r qc_metrics, child = 'qc_metrics.md'}
+
+```
+</span>
