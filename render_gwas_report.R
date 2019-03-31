@@ -52,6 +52,11 @@ get_args <- function(doc) {
     help = paste0("If True, show the report after it is generated",
                   " [default: %(default)s]"))
   parser$add_argument(
+    "--no_reuse",
+    action = "store_true", default = FALSE,
+    help = paste0("If True, do not reuse processed files",
+                  " [default: %(default)s]"))
+  parser$add_argument(
     "--no_render",
     action = "store_true", default = FALSE,
     help = paste0("If True, only do processing and not rmarkdown report",
@@ -60,7 +65,7 @@ get_args <- function(doc) {
   return(args)
 }
 
-deploy_plotting <- function(main_df, output_dir) {
+deploy_plotting <- function(main_df, output_dir, no_reuse) {
   #' Deploy rendering of plots, returning a list of (funcs, args)
   width = 10
   height = 6
@@ -68,47 +73,55 @@ deploy_plotting <- function(main_df, output_dir) {
     manhattan_plot = list(
       what = function(main_df) {
         filename <- path(output_dir, "manhattan_plot.png")
-        main_df %>%
-          plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
-                         p_threshold = config::get("p_threshold"),
-                         is_neg_log10 = TRUE) %>%
-          ggsave(filename = filename, width = width, height = height)
+        if (!file_exists(filename) || no_reuse) {
+          main_df %>%
+            plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
+                           p_threshold = config::get("p_threshold"),
+                           is_neg_log10 = TRUE) %>%
+            ggsave(filename = filename, width = width, height = height)
+        }
         filename
       },
       args = list(main_df = main_df)),
     qq_plot = list(
       what = function(main_df) {
         filename <- path(output_dir, "qq_plot.png")
-        main_df %>%
-          plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE) %>%
-          ggsave(filename = filename, width = width, height = height)
+        if (!file_exists(filename) || no_reuse) {
+          main_df %>%
+            plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE) %>%
+            ggsave(filename = filename, width = width, height = height)
+        }
         filename
       },
       args = list(main_df = main_df)),
     af_plot = list(
       what = function(main_df) {
         filename <- path(output_dir, "af_plot.png")
-        main_df %>%
-          plot_af(af_main = AF, af_ref = AF_reference) %>%
-          ggsave(filename = filename, width = width, height = height)
+        if (!file_exists(filename) || no_reuse) {
+          main_df %>%
+            plot_af(af_main = AF, af_ref = AF_reference) %>%
+            ggsave(filename = filename, width = width, height = height)
+        }
         filename
       },
       args = list(main_df = main_df)),
     pz_plot = list(
       what = function(main_df) {
         filename <- path(output_dir, "pz_plot.png")
-        main_df %>%
-          plot_pz(beta = EFFECT, se = SE,
-                  pval = L10PVAL, pval_ztest = L10PVAL_ztest,
-                  is_neg_log10 = TRUE) %>%
-          ggsave(filename = filename, width = width, height = height)
+        if (!file_exists(filename) || no_reuse) {
+          main_df %>%
+            plot_pz(beta = EFFECT, se = SE,
+                    pval = L10PVAL, pval_ztest = L10PVAL_ztest,
+                    is_neg_log10 = TRUE) %>%
+            ggsave(filename = filename, width = width, height = height)
+        }
         filename
       },
       args = list(main_df = main_df)))
 }
 
 main <- function(input, refdata = NULL, output_dir = NULL,
-                 show = FALSE, no_render = FALSE,
+                 show = FALSE, no_render = FALSE, no_reuse = FALSE,
                  n_cores = NULL) {
   # Config
   if (is.null(refdata))
@@ -174,7 +187,9 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   if (!no_render) {
     loginfo("Start rendering plots...")
     plot_files <- mclapply(
-      X = deploy_plotting(main_df = main_df, output_dir = intermediates_dir),
+      X = deploy_plotting(main_df = main_df,
+                          output_dir = intermediates_dir,
+                          no_reuse = no_reuse),
       FUN = function(x) do.call(what = x$what, args = x$args),
       mc.cores = n_cores)
     loginfo(plot_files)
