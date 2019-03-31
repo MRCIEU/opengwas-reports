@@ -77,7 +77,9 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
   }
   # qc metrics
   if (!file_exists(qc_file) || no_reuse) {
+    loginfo(glue("main_df: {bcf_file}"))
     main_df <- read_bcf_file(bcf_file = bcf_file, ref_file = refdata)
+    loginfo(glue("qc_metrics: {qc_file}"))
     process_qc_metrics(df = main_df, output_file = qc_file,
                        output_dir = gwas_dir)
   }
@@ -108,9 +110,13 @@ main <- function(input_dir, n_cores = 4, no_reuse = FALSE, dryrun = FALSE) {
 
   if (!dryrun) {
     # Deploy processing
-    res = mclapply(X = gwas_dirs, FUN = purrr::safely(perform_qc, otherwise = FALSE),
-                   no_reuse = no_reuse,
-                   mc.cores = n_cores)
+    res = mclapply(
+      X = gwas_dirs,
+      FUN = purrr::safely(perform_qc, otherwise = FALSE, quiet = FALSE),
+      no_reuse = no_reuse,
+      mc.cores = n_cores)
+    res %>% purrr::transpose() %>%
+      write_rds(glue("logs/deploy_qc_metrics_{Sys.Date()}.rds"))
   }
 }
 
