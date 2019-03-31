@@ -97,11 +97,6 @@ plot_manhattan <- function(df, chr, bp, snp, p,
 
 plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
 
-  maf <- function(af) {
-    #' Minus allele frequency
-    if_else(af > 0.5, 1 - af, af)
-  }
-
   # tidy eval
   af_main <- enquo(af_main)
   af_ref <- enquo(af_ref)
