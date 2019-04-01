@@ -125,7 +125,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     }) %>% sort()
   loginfo(glue("Number of valid studies: {length(gwas_dirs)}"))
   if (!is.null(n_chunks) && !is.null(idx_chunks)) {
-    candaidate_dirs <- gwas_dirs %>% split_by_chunk(n_chunks, idx_chunks)
+    candidate_dirs <- gwas_dirs %>% split_by_chunk(n_chunks, idx_chunks)
   } else {
     candidate_dirs <- gwas_dirs
   }
@@ -134,7 +134,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
   if (!dryrun) {
     # Deploy processing
     res = mclapply(
-      X = gwas_dirs,
+      X = candidate_dirs,
       FUN = purrr::safely(perform_qc, otherwise = FALSE, quiet = FALSE),
       no_reuse = no_reuse,
       mc.cores = n_cores)
