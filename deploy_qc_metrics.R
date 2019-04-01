@@ -38,6 +38,18 @@ get_args <- function(doc) {
     default = NULL,
     help = paste0("Number of cores to use for multiprocessing."))
   parser$add_argument(
+    "--n_chunks",
+    type = "integer",
+    default = NULL,
+    help = paste0("Number of chunks to distribute to",
+                  " [default: %(default)s]"))
+  parser$add_argument(
+    "--idx_chunks",
+    type = "integer",
+    default = NULL,
+    help = paste0("idx of chunks to distribute to",
+                  " [default: %(default)s]"))
+  parser$add_argument(
     "--no_reuse",
     action = "store_true", default = FALSE,
     help = paste0("If True, do not reuse processed files",
@@ -85,7 +97,8 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
   TRUE
 }
 
-main <- function(input_dir, n_cores = 4, no_reuse = FALSE, dryrun = FALSE) {
+main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
+                 no_reuse = FALSE, dryrun = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
   conda_dir <- path_abs("~/miniconda3")
@@ -96,6 +109,11 @@ main <- function(input_dir, n_cores = 4, no_reuse = FALSE, dryrun = FALSE) {
     addHandler(writeToFile, file = .)
   loginfo(glue("Config:
     - input_dir: {input_dir}
+    - n_cores: {n_cores}
+    - n_chunks: {n_chunks}
+    - idx_chunks: {idx_chunks}
+    - no_reuse: {no_reuse}
+    - dryrun: {dryrun}
   "))
 
   # Get a list of input dir containing data.bcf, and data.bcf.csi
@@ -104,8 +122,14 @@ main <- function(input_dir, n_cores = 4, no_reuse = FALSE, dryrun = FALSE) {
     purrr::keep(function(dir) {
       file_exists(path(dir, "data.bcf")) &&
         file_exists(path(dir, "data.bcf.csi"))
-    })
-  loginfo(glue("Number of candidate studies: {length(gwas_dirs)}"))
+    }) %>% sort()
+  loginfo(glue("Number of valid studies: {length(gwas_dirs)}"))
+  if (!is.null(n_chunks) && !is.null(idx_chunks)) {
+    candaidate_dirs <- gwas_dirs %>% split_by_chunk(n_chunks, idx_chunks)
+  } else {
+    candidate_dirs <- gwas_dirs
+  }
+  loginfo(glue("Number of candidate studies: {length(candidate_dirs)}"))
 
   if (!dryrun) {
     # Deploy processing

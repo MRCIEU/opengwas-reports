@@ -35,6 +35,20 @@ get_build_version <- function() {
   glue("{branch}-{commit}-{date}")
 }
 
+split_by_chunk <- function(vec, n_chunks, chunk_idx) {
+  chunks <- function(vec, n_chunks) {
+    chunk_size = ceiling(length(vec) / n_chunks)
+    1:n_chunks %>%
+      map(function(idx, vec, chunk_size) {
+        vec[(1 + (idx - 1) * chunk_size):
+              min(((idx - 1) * chunk_size + chunk_size), length(vec))]
+      }, vec = vec, chunk_size = chunk_size)
+  }
+  vec_split = chunks(vec, n_chunks)
+  vec_idx = vec_split[[chunk_idx]]
+  vec_idx
+}
+
 neg_log10 <- function(pval, is_neg_log10 = FALSE) {
   #' If not `is_neg_log10`, transform by -log10(pval),
   #' otherwise return as is.
