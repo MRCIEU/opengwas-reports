@@ -6,7 +6,7 @@ read_bcf_file <- function(bcf_file, ref_file) {
                       "%INFO/AF", "%INFO/N", "%INFO/AF_REF",
                       sep = "\t")
   col_names <- c("CHROM", "POS", "ID",
-                 "EFFECT", "SE", "L10PVAL",
+                 "EFFECT", "SE", "PVAL",
                  "AF", "N", "AF_reference")
   cmd <- glue(
     "bcftools annotate -a {ref_file} -c '{ref_header}' {bcf_file} | ",
@@ -19,6 +19,7 @@ read_bcf_file <- function(bcf_file, ref_file) {
     set_names(col_names) %>%
     mutate_at(vars(CHROM, ID), as.character) %>%
     mutate_at(vars(CHROM), translate_chrom_to_int) %>%
+    mutate_at(vars(PVAL), function(x) 10^(-x)) %>%
     bcf_post_proc()
   df %>% as_tibble()
 }
@@ -78,11 +79,10 @@ bcf_post_proc <- function(df) {
   get_pval <- function(beta, se) {
     2 * pnorm(-abs(beta / se))
   }
-  df %>% mutate(L10PVAL_ztest =
-                get_pval(EFFECT, SE) %>% neg_log10()) %>%
+  df %>% mutate(PVAL_ztest = get_pval(EFFECT, SE)) %>%
     select(CHROM, POS, ID,
            EFFECT, SE,
-           L10PVAL, L10PVAL_ztest,
+           PVAL, PVAL_ztest,
            AF, AF_reference,
            N)
 }

@@ -29,7 +29,7 @@ qc__lambda <- function(df) {
       / qchisq(0.5, 1, low = FALSE))
     return(lambda)
   }
-  p_value <- df %>% pull(L10PVAL) %>% unlog(is_log = TRUE)
+  p_value <- df %>% pull(PVAL)
   calc_inflation_factor(p_value)
 }
 
@@ -39,8 +39,7 @@ qc__count_p_sig <- function(df) {
     count.sig <- length(which(pval < threshold))
     return(count.sig)
   }
-  df %>% pull(L10PVAL) %>% unlog(is_log = TRUE) %>%
-    count_p_sig()
+  df %>% pull(PVAL) %>% count_p_sig()
 }
 
 qc__count_mono <- function(df) {
@@ -53,7 +52,7 @@ qc__count_mono <- function(df) {
 }
 
 qc__count_miss <- function(df) {
-  df %>% select(EFFECT, SE, L10PVAL, AF, AF_reference) %>%
+  df %>% select(EFFECT, SE, PVAL, AF, AF_reference) %>%
     summarise_all(~ sum(is.na(.x))) %>%
     (function(df) {
       names_df <- df %>% names() %>% sprintf("n_miss_%s", .)

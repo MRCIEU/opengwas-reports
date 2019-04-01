@@ -75,9 +75,8 @@ deploy_plotting <- function(main_df, output_dir, no_reuse) {
         filename <- path(output_dir, "manhattan_plot.png")
         if (!file_exists(filename) || no_reuse) {
           main_df %>%
-            plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = L10PVAL,
-                           p_threshold = config::get("p_threshold"),
-                           is_neg_log10 = TRUE) %>%
+            plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL,
+                           p_threshold = config::get("p_threshold")) %>%
             ggsave(filename = filename, width = width, height = height)
         }
         filename
@@ -88,7 +87,7 @@ deploy_plotting <- function(main_df, output_dir, no_reuse) {
         filename <- path(output_dir, "qq_plot.png")
         if (!file_exists(filename) || no_reuse) {
           main_df %>%
-            plot_qq_log(pval = L10PVAL, is_neg_log10 = TRUE) %>%
+            plot_qq_log(pval = PVAL) %>%
             ggsave(filename = filename, width = width, height = height)
         }
         filename
@@ -111,8 +110,7 @@ deploy_plotting <- function(main_df, output_dir, no_reuse) {
         if (!file_exists(filename) || no_reuse) {
           main_df %>%
             plot_pz(beta = EFFECT, se = SE,
-                    pval = L10PVAL, pval_ztest = L10PVAL_ztest,
-                    is_neg_log10 = TRUE) %>%
+                    pval = PVAL, pval_ztest = PVAL_ztest) %>%
             ggsave(filename = filename, width = width, height = height)
         }
         filename

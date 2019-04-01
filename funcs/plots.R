@@ -1,4 +1,4 @@
-plot_qq_log <- function(df, pval, is_neg_log10 = FALSE) {
+plot_qq_log <- function(df, pval) {
   #' Quantile-quantile plot, log-transformed
   #' adapted from qqman:qq
   #'
@@ -8,8 +8,7 @@ plot_qq_log <- function(df, pval, is_neg_log10 = FALSE) {
   pval <- enquo(pval)
 
   pseries <- df %>%
-    filter(is.finite(!!pval)) %>% pull(!!pval) %>%
-    unlog(is_log = is_neg_log10)
+    filter(is.finite(!!pval)) %>% pull(!!pval)
   plot_df <- tibble(
     observed = -log10(sort(pseries, decreasing = FALSE)),
     expected = -log10(ppoints(length(pseries)))
@@ -30,8 +29,7 @@ plot_qq_log <- function(df, pval, is_neg_log10 = FALSE) {
 plot_manhattan <- function(df, chr, bp, snp, p,
                            p_threshold = 0.1,
                            red_line = -log10(5e-08),
-                           blue_line = -log10(5e-05),
-                           is_neg_log10 = FALSE) {
+                           blue_line = -log10(5e-05)) {
   #' Manhattan plot
   #'
   #' - `chr`: name (tidy symbol) of the chromosome column
@@ -58,14 +56,8 @@ plot_manhattan <- function(df, chr, bp, snp, p,
     # Add a cumulative position of each SNP
     arrange(!!chr, !!bp) %>%
     mutate(Chromosome = !!bp + tot) %>%
-    mutate(pval = neg_log10(!!p, is_neg_log10 = is_neg_log10)) %>%
-    (function(df) {
-       if (is_neg_log10) {
-         df %>% filter(10^(-pval) < p_threshold)
-       } else {
-         df %>% filter(pval < p_threshold)
-       }
-    })()
+    mutate(pval = -log10(!!p)) %>%
+    filter(pval > -log10(p_threshold))
 
   axis_df <- df_manhattan %>% group_by(!!chr) %>%
     summarise(center = (max(Chromosome) + min(Chromosome)) / 2)
@@ -127,8 +119,7 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
     }
 }
 
-plot_pz <- function(df, beta, se, pval, pval_ztest,
-                    is_neg_log10 = FALSE) {
+plot_pz <- function(df, beta, se, pval, pval_ztest) {
 
   beta <- enquo(beta)
   se <- enquo(se)
@@ -136,10 +127,8 @@ plot_pz <- function(df, beta, se, pval, pval_ztest,
   pval_ztest <- enquo(pval_ztest)
 
   df <- df %>%
-    mutate(neg_log_10_p = neg_log10(!!pval,
-                                    is_neg_log10 = is_neg_log10),
-           neg_log_10_p_ztest = neg_log10(!!pval_ztest,
-                                          is_neg_log10 = is_neg_log10)) %>%
+    mutate(neg_log_10_p = -log10(!!pval),
+           neg_log_10_p_ztest = -log10(!!pval_ztest)) %>%
     filter(is.finite(neg_log_10_p),
            is.finite(neg_log_10_p_ztest))
 

@@ -46,10 +46,10 @@ neg_log10 <- function(pval, is_neg_log10 = FALSE) {
   res
 }
 
-unlog <- function(pval, is_log = FALSE,
-                             func = function(x) 10^(-x)) {
+unlog <- function(val, is_log = FALSE,
+                  func = function(x) 10^(-x)) {
   #' If `is_log`, restore from log transformed value, by `func`
   if (is_log)
-    pval <- 10^(-pval)
-  pval
+    val <- func(val)
+  val
 }
