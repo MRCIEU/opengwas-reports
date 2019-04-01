@@ -59,7 +59,6 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
   metadata_file <- path(gwas_dir, "metadata.json")
   qc_file <- path(gwas_dir, "qc_metrics.json")
 
-
   # ldsc
   if (!file_exists(ldsc_log) || no_reuse) {
     loginfo(glue("ldsc: {ldsc_file}"))

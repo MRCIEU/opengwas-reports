@@ -5,9 +5,13 @@ process_qc_metrics <- function(df, output_file, output_dir) {
   ldsc_file <- path(output_dir, config::get("ldsc_file"))
   qc_metrics <- list(
     af_correlation = qc__af_cor(df),
-    inflation_factor = qc__lambda(df, pval = L10PVAL, is_neg_log10 = TRUE),
-    clumped_hits = qc__clumped_hits(output_dir)
+    inflation_factor = qc__lambda(df),
+    clumped_hits = qc__clumped_hits(output_dir),
+    count_p_sig = qc__count_p_sig(df),
+    count_mono = qc__count_mono(df)
   ) %>%
+    purrr::splice(qc__count_miss(df)) %>%
+    purrr::splice(qc__se_n_r2(df)) %>%
     purrr::splice(qc__ldsc(ldsc_file))
   loginfo(glue("Write qc_metics to {output_file}"))
   qc_metrics %>%
@@ -19,15 +23,63 @@ qc__af_cor <- function(df) {
   cor(df$AF, df$AF_reference, use = "na.or.complete")
 }
 
-qc__lambda <- function(df, pval, is_neg_log10 = FALSE) {
+qc__lambda <- function(df) {
   calc_inflation_factor <- function(pval) {
     lambda = (median(qchisq(pval, df = 1, low = FALSE))
       / qchisq(0.5, 1, low = FALSE))
     return(lambda)
   }
-  pval = enquo(pval)
-  p_value <- df %>% pull(!!pval) %>% unlog(is_log = is_neg_log10)
+  p_value <- df %>% pull(L10PVAL) %>% unlog(is_log = TRUE)
   calc_inflation_factor(p_value)
+}
+
+qc__count_p_sig <- function(df) {
+  count_p_sig <- function(pval, threshold = 5e-8){
+    #' Count number of pvalues below threshold
+    count.sig <- length(which(pval < threshold))
+    return(count.sig)
+  }
+  df %>% pull(L10PVAL) %>% unlog(is_log = TRUE) %>%
+    count_p_sig()
+}
+
+qc__count_mono <- function(df) {
+  count_mono <- function(maf){
+    #' Count number of monomorphic SNPs
+    count.mono <- sum(maf == 1 | maf == 0)
+    return(count.mono)
+  }
+  df %>% pull(AF_reference) %>% na.omit() %>% count_mono()
+}
+
+qc__count_miss <- function(df) {
+  df %>% select(EFFECT, SE, L10PVAL, AF, AF_reference) %>%
+    summarise_all(~ sum(is.na(.x))) %>%
+    (function(df) {
+      names_df <- df %>% names() %>% sprintf("n_miss_%s", .)
+      names(df) <- names_df
+      df
+    }) %>%
+    as.list()
+}
+
+qc__se_n_r2 <- function(df) {
+  df <- df %>%
+    select(beta = EFFECT, se = SE, n = N, maf = AF_reference)
+  se_n_res <- se_n(n = max(df$n),
+                   maf = na.omit(df$maf),
+                   se = na.omit(df$se),
+                   beta = na.omit(df$beta))
+  r2_res <- sum_r2(
+      beta = na.omit(df$beta),
+      se = na.omit(df$se),
+      maf = na.omit(df$maf),
+      n = na.omit(df$n),
+      sd_y_rep = sd(df$beta, na.rm = TRUE),
+      sd_y_est1 = se_n_res$sd_y_est1,
+      sd_y_est2 = se_n_res$sd_y_est2)
+  res <- se_n_res %>% purrr::splice(r2_res)
+  res
 }
 
 qc__ldsc <- function(ldsc_file) {
