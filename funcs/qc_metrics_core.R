@@ -41,13 +41,8 @@ se_n <- function(n, maf, se, beta) {
   return(res)
 }
 
-sum_r2 <- function(beta,
-                   se,
-                   maf,
-                   n,
-                   sd_y_rep,
-                   sd_y_est1,
-                   sd_y_est2) {
+sum_r2 <- function(beta, se, maf, n,
+                   sd_y_rep, sd_y_est1, sd_y_est2) {
   # Calculate sum of r2 statistics using different assumptions
   # about the variance and diffeerent methods
   var1 = 1
@@ -77,26 +72,19 @@ sum_r2 <- function(beta,
   return(res)
 }
 
-# How many SNPs had nonsense values:
-# alleles other than ‘A’,’C’,’G’ or ‘T’
-# P-values <0 or >1
-# negative or infinite standard errors (<=0 or =Infinity)
-# infinite beta estimates or allele frequencies <0 or >1
+count_ns <- function(effect_allele, other_allele,
+                     pval, se, beta, maf) {
+  # alleles other than `A, C, G or T`
+  # P-values `< 0` or `> 1`
+  # negative or infinite standard errors (`<= 0` or `= Infinity`)
+  # infinite beta estimates or allele frequencies `< 0` or `> 1`
 
-count_ns <- function(effect_allele,
-                     other_allele,
-                     pval,
-                     se,
-                     beta,
-                     maf) {
-  count1 <- length(which(!tolower(effect_allele) %in% c("a", "c", "g", "t")))
-  count2 <- length(which(!tolower(other_allele) %in% c("a", "c", "g", "t")))
-  count3 <- length(which(pval < 0 | pval > 1))
-  count4 <- length(which(se <= 0 |
-                           se == "Infinity" | se == "Inf" |
-                           se == "infinity" | se == "inf"))
-  count5 <- length(which(maf < 0 | maf > 1))
-  count6 <- length(which(!is.numeric(beta)))
+  count1 <- sum(!tolower(effect_allele) %in% c("a", "c", "g", "t"))
+  count2 <- sum(!tolower(other_allele) %in% c("a", "c", "g", "t"))
+  count3 <- sum(pval < 0 | pval > 1)
+  count4 <- sum(se <= 0 | !is.finite(se))
+  count5 <- sum(maf < 0 | maf > 1)
+  count6 <- sum(!is.finite(beta))
   count.ns <- sum(count1, count2, count3, count4, count5, count6)
   return(count.ns)
 }

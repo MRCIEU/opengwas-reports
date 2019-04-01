@@ -8,7 +8,8 @@ process_qc_metrics <- function(df, output_file, output_dir) {
     inflation_factor = qc__lambda(df),
     clumped_hits = qc__clumped_hits(output_dir),
     count_p_sig = qc__count_p_sig(df),
-    count_mono = qc__count_mono(df)
+    count_mono = qc__count_mono(df),
+    count_ns = qc__count_ns(df)
   ) %>%
     purrr::splice(qc__count_miss(df)) %>%
     purrr::splice(qc__se_n_r2(df)) %>%
@@ -49,6 +50,14 @@ qc__count_mono <- function(df) {
     return(count.mono)
   }
   df %>% pull(AF_reference) %>% na.omit() %>% count_mono()
+}
+
+qc__count_ns <- function(df) {
+  df <- df %>%
+    select(effect_allele = REF, other_allele = ALT,
+           pval = PVAL, se = SE, beta = EFFECT, maf = AF_reference)
+  count_ns(df$effect_allele, df$other_allele,
+           df$pval, df$se, df$beta, df$maf)
 }
 
 qc__count_miss <- function(df) {
