@@ -14,6 +14,8 @@ suppressPackageStartupMessages({
   source(here("funcs/qc_metrics.R"))
   source(here("funcs/metadata.R"))
   source(here("funcs/gwas_processing.R"))
+  source(here("funcs/report.R"))
+  source(here("funcs/plots.R"))
 })
 
 get_args <- function(doc) {
@@ -50,6 +52,12 @@ get_args <- function(doc) {
     help = paste0("idx of chunks to distribute to",
                   " [default: %(default)s]"))
   parser$add_argument(
+    "--render_report",
+    action = "store_true", default = FALSE,
+    help = paste0("If True, render_gwas_report as well",
+                  " NOTE: takes considerably longer time!",
+                  " [default: %(default)s]"))
+  parser$add_argument(
     "--no_reuse",
     action = "store_true", default = FALSE,
     help = paste0("If True, do not reuse processed files",
@@ -63,7 +71,7 @@ get_args <- function(doc) {
 }
 
 perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
-                       no_reuse = FALSE) {
+                       no_reuse = FALSE, render_report = FALSE) {
   bcf_file <- path(gwas_dir, "data.bcf")
   ldsc_file <- path(gwas_dir, "ldsc.txt")
   ldsc_log <- glue("{ldsc_file}.log")
@@ -94,10 +102,49 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
     process_qc_metrics(df = main_df, output_file = qc_file,
                        output_dir = gwas_dir)
   }
+  if (render_report) {
+    if (!exists("main_df")) {
+      main_df <- read_bcf_file(bcf_file = bcf_file, ref_file = refdata)
+    }
+    intermediates_dir <- path(gwas_dir, "intermediate")
+    rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
+    report_file <- path(gwas_dir, "report.html")
+    gwas_id <- path_file(gwas_dir)
+    loginfo(glue("gwas_id: {gwas_id}"))
+    plot_files <- lapply(
+      X = deploy_plotting(main_df = main_df,
+                          output_dir = intermediates_dir,
+                          no_reuse = no_reuse),
+      FUN = function(x) do.call(what = x$what, args = x$args))
+    loginfo(plot_files)
+    loginfo("Start rendering report...")
+    rmarkdown::render(
+      input = "template/template.Rmd",
+      output_format = "flexdashboard::flex_dashboard",
+      output_file = report_file,
+      output_dir = gwas_dir,
+      intermediates_dir = rmd_intermediates_dir,
+      params = list(gwas_id = gwas_id,
+                    output_dir = gwas_dir,
+                    bcf_file = bcf_file,
+                    main_df = main_df,
+                    qc_file = qc_file,
+                    metadata_file = metadata_file,
+                    refdata_file = refdata,
+                    plot_files = plot_files))
+    if (file_exists(report_file)) {
+      loginfo(glue(
+        "Success!! (～o￣▽￣)～[]\n",
+        "Report available at {report_file}."))
+    } else {
+      logerror("Failure!! (ToT)")
+    }
+  }
   TRUE
 }
 
 main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
+                 render_report = FALSE,
                  no_reuse = FALSE, dryrun = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
@@ -110,8 +157,9 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
   loginfo(glue("Config:
     - input_dir: {input_dir}
     - n_cores: {n_cores}
-    - n_chunks: {n_chunks}
-    - idx_chunks: {idx_chunks}
+    - n_chunks: {ifelse(is.null(n_chunks), NA, n_chunks)}
+    - idx_chunks: {ifelse(is.null(idx_chunks), NA, idx_chunks)}
+    - render_report: {render_report}
     - no_reuse: {no_reuse}
     - dryrun: {dryrun}
   "))
@@ -136,7 +184,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     res = mclapply(
       X = candidate_dirs,
       FUN = purrr::safely(perform_qc, otherwise = FALSE, quiet = FALSE),
-      no_reuse = no_reuse,
+      no_reuse = no_reuse, render_report = render_report,
       mc.cores = n_cores)
     res %>% purrr::transpose() %>%
       write_rds(glue("logs/deploy_qc_metrics_{Sys.Date()}.rds"))

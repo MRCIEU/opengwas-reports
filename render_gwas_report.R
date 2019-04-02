@@ -65,59 +65,6 @@ get_args <- function(doc) {
   return(args)
 }
 
-deploy_plotting <- function(main_df, output_dir, no_reuse) {
-  #' Deploy rendering of plots, returning a list of (funcs, args)
-  width = 10
-  height = 6
-  list(
-    manhattan_plot = list(
-      what = function(main_df) {
-        filename <- path(output_dir, "manhattan_plot.png")
-        if (!file_exists(filename) || no_reuse) {
-          main_df %>%
-            plot_manhattan(chr = CHROM, bp = POS, snp = ID, p = PVAL,
-                           p_threshold = config::get("p_threshold")) %>%
-            ggsave(filename = filename, width = width, height = height)
-        }
-        filename
-      },
-      args = list(main_df = main_df)),
-    qq_plot = list(
-      what = function(main_df) {
-        filename <- path(output_dir, "qq_plot.png")
-        if (!file_exists(filename) || no_reuse) {
-          main_df %>%
-            plot_qq_log(pval = PVAL) %>%
-            ggsave(filename = filename, width = width, height = height)
-        }
-        filename
-      },
-      args = list(main_df = main_df)),
-    af_plot = list(
-      what = function(main_df) {
-        filename <- path(output_dir, "af_plot.png")
-        if (!file_exists(filename) || no_reuse) {
-          main_df %>%
-            plot_af(af_main = AF, af_ref = AF_reference) %>%
-            ggsave(filename = filename, width = width, height = height)
-        }
-        filename
-      },
-      args = list(main_df = main_df)),
-    pz_plot = list(
-      what = function(main_df) {
-        filename <- path(output_dir, "pz_plot.png")
-        if (!file_exists(filename) || no_reuse) {
-          main_df %>%
-            plot_pz(beta = EFFECT, se = SE,
-                    pval = PVAL, pval_ztest = PVAL_ztest) %>%
-            ggsave(filename = filename, width = width, height = height)
-        }
-        filename
-      },
-      args = list(main_df = main_df)))
-}
-
 main <- function(input, refdata = NULL, output_dir = NULL,
                  show = FALSE, no_render = FALSE, no_reuse = FALSE,
                  n_cores = NULL) {
