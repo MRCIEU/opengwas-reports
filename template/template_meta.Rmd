@@ -59,13 +59,183 @@ QC metrics {.tabset .tabset-fade}
 ### Allele frequency correlation
 
 ```{r plot_af_corr}
-params$qc_metrics %>% plot_scatter(x = sample_size, y = af_correlation)
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = af_correlation)
 ```
 
 ### Inflation factor
 
 ```{r plot_inflation_factor}
-params$qc_metrics %>% plot_scatter(x = sample_size, y = inflation_factor)
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = inflation_factor)
+```
+
+### Clumped hits
+
+```{r plot_clumped_hits}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = clumped_hits)
+```
+
+### `count_p_sig`
+
+```{r plot_count_p_sig}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = count_p_sig)
+```
+
+### `count_mono`
+
+```{r plot_count_mono}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = count_mono)
+```
+
+### `count_ns`
+
+```{r plot_count_ns}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = count_ns)
+```
+
+### `n_miss_EFFECT`
+
+```{r plot_n_miss_EFFECT}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = n_miss_EFFECT)
+```
+
+### `n_miss_PVAL`
+
+```{r plot_n_miss_PVAL}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = n_miss_PVAL)
+```
+
+### `n_miss_AF`
+
+```{r plot_n_miss_AF}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = n_miss_AF)
+```
+
+### `n_miss_AF_reference`
+
+```{r plot_n_miss_AF_reference}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = n_miss_AF_reference)
+```
+
+### `n_est`
+
+```{r plot_n_est}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = n_est)
+```
+
+### `n_est_sqrt`
+
+```{r plot_n_est_sqrt}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = n_est_sqrt)
+```
+
+### `sd_y_est1`
+
+```{r plot_sd_y_est1}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = sd_y_est1)
+```
+
+### `sd_y_est2`
+
+```{r plot_sd_y_est2}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = sd_y_est2)
+```
+
+### `r2_sum1`
+
+```{r plot_r2_sum1}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = r2_sum1)
+```
+
+### `r2_sum2`
+
+```{r plot_r2_sum2}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = r2_sum2)
+```
+
+### `r2_sum3`
+
+```{r plot_r2_sum3}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = r2_sum3)
+```
+
+### `r2_sum5`
+
+```{r plot_r2_sum5}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = r2_sum5)
+```
+
+### `ldsc_nsnp_merge_refpanel_ld`
+
+```{r plot_ldsc_nsnp_merge_refpanel_ld}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = ldsc_nsnp_merge_refpanel_ld)
+```
+
+### `ldsc_nsnp_merge_regression_ld`
+
+```{r plot_ldsc_nsnp_merge_regression_ld}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = ldsc_nsnp_merge_regression_ld)
+```
+
+### `ldsc_observed_scale_h2_beta`
+
+```{r plot_ldsc_observed_scale_h2_beta}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = ldsc_observed_scale_h2_beta)
+```
+
+### `ldsc_observed_scale_h2_se`
+
+```{r plot_ldsc_observed_scale_h2_se}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = ldsc_observed_scale_h2_se)
+```
+
+### `ldsc_intercept_beta`
+
+```{r plot_ldsc_intercept_beta}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = ldsc_intercept_beta)
+```
+
+### `ldsc_intercept_se`
+
+```{r plot_ldsc_intercept_se}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = ldsc_intercept_se)
+```
+
+### `ldsc_lambda_gc`
+
+```{r plot_ldsc_lambda_gc}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = ldsc_lambda_gc)
+```
+
+### `ldsc_mean_chisq`
+
+```{r plot_ldsc_mean_chisq}
+params$qc_metrics %>%
+  plot_scatter(x = sample_size, y = ldsc_mean_chisq)
 ```
 
 Flags
