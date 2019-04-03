@@ -110,6 +110,9 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
     rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
     report_file <- path(gwas_dir, "report.html")
     gwas_id <- path_file(gwas_dir)
+    c(intermediates_dir, rmd_intermediates_dir) %>%
+      walk(dir_create)
+
     loginfo(glue("gwas_id: {gwas_id}"))
     plot_files <- lapply(
       X = deploy_plotting(main_df = main_df,
