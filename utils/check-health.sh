@@ -7,6 +7,7 @@ declare -a dependent_paths=(
   $(pwd)/ref_data
   $(pwd)/ref_data/1kg_v3_nomult.bcf
   $(pwd)/ref_data/1kg_v3_nomult.bcf.csi
+  $(pwd)/ref_data/study-table-13-02-19.tsv
   $(pwd)/ref_data/eur_w_ld_chr
   $(pwd)/ref_data/ld_files
   $(pwd)/ref_data/snplist.gz
