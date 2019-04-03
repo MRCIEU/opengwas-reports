@@ -2,7 +2,7 @@
 title: "MR-Base GWAS Meta Report"
 output:
   flexdashboard::flex_dashboard:
-    theme: flatly
+    theme: yeti
     orientation: rows
     vertical_scroll: scroll
 params:
