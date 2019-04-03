@@ -88,9 +88,13 @@ populate_gwas_files <- function(input_id, input_dir, output_dir,
 
 get_study_id <- function(input_id, study_dict) {
   # Get Study id from study dict,
-  # TODO: if it is not found, use input_id
+  # if it is not found, use input_id
   file_name <- glue("{input_id}.txt.gz")
-  study_id <- study_dict %>% filter(filename == file_name) %>% pull(id)
+  study_id <- study_dict %>% filter(filename == file_name) %>% pull(id) %>%
+    first()
+  # if empty
+  if (length(study_id) != 1)
+    study_id <- input_id
   study_id
 }
 
