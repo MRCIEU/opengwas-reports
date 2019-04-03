@@ -14,8 +14,7 @@ process_api_info <- function(gwas_id) {
   read_api <- purrr::possibly(
     function(api_url) jsonlite::read_json(api_url),
     otherwise = list())
-  read_api(api_url) %>% first() %>% enframe() %>%
-    mutate(value = value %>% map_chr(transform_cell))
+  read_api(api_url) %>% first() %>% enframe()
 }
 
 get_trait_name <- function(api_data) {
