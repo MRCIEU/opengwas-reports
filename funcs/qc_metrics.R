@@ -9,7 +9,9 @@ process_qc_metrics <- function(df, output_file, output_dir) {
     clumped_hits = qc__clumped_hits(output_dir),
     count_p_sig = qc__count_p_sig(df),
     count_mono = qc__count_mono(df),
-    count_ns = qc__count_ns(df)
+    count_ns = qc__count_ns(df),
+    count_mac = qc__count_mac(df),
+    is_snpid_unique = qc__is_snpid_unique(df)
   ) %>%
     purrr::splice(qc__count_miss(df)) %>%
     purrr::splice(qc__se_n_r2(df)) %>%
@@ -49,13 +51,13 @@ qc__count_mono <- function(df) {
     count.mono <- sum(maf == 1 | maf == 0)
     return(count.mono)
   }
-  df %>% pull(AF_reference) %>% na.omit() %>% count_mono()
+  df %>% pull(AF) %>% na.omit() %>% count_mono()
 }
 
 qc__count_ns <- function(df) {
   df <- df %>%
     select(effect_allele = REF, other_allele = ALT,
-           pval = PVAL, se = SE, beta = EFFECT, maf = AF_reference)
+           pval = PVAL, se = SE, beta = EFFECT, maf = AF)
   count_ns(df$effect_allele, df$other_allele,
            df$pval, df$se, df$beta, df$maf)
 }
@@ -71,10 +73,27 @@ qc__count_miss <- function(df) {
     as.list()
 }
 
+
+qc__count_mac <- function(df) {
+  # Number of cases where MAC is less than 5
+  df %>% select(N, AF) %>%
+    mutate(mac = mac(n = N, maf = AF)) %>%
+    pull(mac) %>% `<`(5) %>% sum(na.rm = TRUE)
+}
+
+qc__is_snpid_unique <- function(df) {
+  # Number of rows with identical
+  # ID-REF-ALT combination
+  df_rows <- df %>% nrow()
+  df_filtered_rows <- df %>% select(ID, REF, ALT) %>%
+    distinct() %>% nrow()
+  df_rows == df_filtered_rows
+}
+
 qc__se_n_r2 <- function(df) {
   df <- df %>%
-    select(beta = EFFECT, se = SE, n = N, maf = AF_reference)
-  se_n_res <- se_n(n = max(df$n),
+    select(beta = EFFECT, se = SE, n = N, maf = AF)
+  se_n_res <- se_n(n = na.omit(df$n),
                    maf = na.omit(df$maf),
                    se = na.omit(df$se),
                    beta = na.omit(df$beta))
@@ -83,10 +102,12 @@ qc__se_n_r2 <- function(df) {
       se = na.omit(df$se),
       maf = na.omit(df$maf),
       n = na.omit(df$n),
-      sd_y_rep = sd(df$beta, na.rm = TRUE),
+      # NOTE: sd_y_rep is not applicable
+      # sd_y_rep = sd(df$beta, na.rm = TRUE),
       sd_y_est1 = se_n_res$sd_y_est1,
       sd_y_est2 = se_n_res$sd_y_est2)
-  res <- se_n_res %>% purrr::splice(r2_res)
+  # res <- se_n_res %>% purrr::splice(r2_res)
+  res <- r2_res
   res
 }
 
