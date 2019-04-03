@@ -36,10 +36,9 @@ n_sample <- min(
   config::get("plot_max_frac") * nrow(main_df))
 ```
 
-Sidebar {data-width=450 .sidebar}
-=======================================================================
+# Sidebar {data-width=450 .sidebar}
 
-### MR-Base trait information
+## MR-Base trait information
 
 Trait: **`r trait_name`**.
 
@@ -49,7 +48,7 @@ if (!is.null(api_data)) {
 }
 ```
 
-### Report information
+## Report information
 
 ```{r render-info}
 info <- tribble(
@@ -66,11 +65,9 @@ info <- tribble(
 info %>% knitr::kable()
 ```
 
-Summary
-=====
+# Summary
 
-Summary {data-width=650} {.tabset .tabset-fade}
------------------------------------------------------------------------
+## Summary {data-width=650} {.tabset .tabset-fade}
 
 ### Manhattan plot
 
@@ -104,11 +101,9 @@ display_ldsc(params$output_dir)
 ```
 </span>
 
-QC metrics
-====
+# QC metrics
 
-Metrics {.tabset .tabset-fade}
-----------------------------------
+## Metrics {.tabset .tabset-fade}
 
 ### Metrics
 
@@ -126,11 +121,9 @@ qc_file %>% read_file() %>% jsonlite::prettify()
 ```
 </span>
 
-Diagnostics
-=====
+# Diagnostics
 
-Details {.tabset .tabset-fade}
--------------------------------------------------
+## Details {.tabset .tabset-fade}
 
 ### Summary stats
 

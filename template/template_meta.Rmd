@@ -23,10 +23,9 @@ metrics <- params$qc_metrics %>%
   names() %>% setdiff(c("ID", "sample_size"))
 ```
 
-Sidebar {data-width=450 .sidebar}
-=======================================================================
+# Sidebar {data-width=450 .sidebar}
 
-### Meta metrics
+## Meta metrics
 
 ```{r meta-metrics}
 meta_metrics <- params$meta_metrics %>%
@@ -36,7 +35,7 @@ meta_metrics <- params$meta_metrics %>%
 meta_metrics %>% knitr::kable()
 ```
 
-### Report information
+## Report information
 
 ```{r render-info}
 info <- tribble(
@@ -53,11 +52,9 @@ info <- tribble(
 info %>% knitr::kable()
 ```
 
-Metrics: scatterplot
-====
+# Metrics: scatterplot
 
-Plots {.tabset .tabset-fade}
--------------------------------------------------
+## Plots {.tabset .tabset-fade}
 
 ```{r meta_scatter, results="asis"}
 metrics %>%
@@ -70,11 +67,9 @@ metrics %>%
   })
 ```
 
-Metrics: histogram
-====
+# Metrics: histogram
 
-Plots {.tabset .tabset-fade}
--------------------------------------------------
+## Plots {.tabset .tabset-fade}
 
 ```{r meta_hist, results="asis"}
 metrics %>%
@@ -87,11 +82,9 @@ metrics %>%
   })
 ```
 
-Metrics: head and tails
-====
+# Metrics: head and tails
 
-Tables {.tabset .tabset-fade}
--------------------------------------------------
+## Tables {.tabset .tabset-fade}
 
 ```{r meta_tails, results="asis"}
 metrics %>%
@@ -111,11 +104,9 @@ metrics %>%
   })
 ```
 
-Flags
-====
+# Flags
 
-QC metrics {.tabset .tabset-fade}
--------------------------------------------------
+## QC metrics {.tabset .tabset-fade}
 
 ### Allele frequency correlation
 
@@ -139,11 +130,9 @@ params$qc_metrics %>% select(ID, inflation_factor) %>%
   knitr::kable()
 ```
 
-Diagnostics
-=====
+# Diagnostics
 
-Diagnostics {.tabset .tabset-fade}
--------------------------------------------------
+## Diagnostics {.tabset .tabset-fade}
 
 ### Metadata: glimpse
 
