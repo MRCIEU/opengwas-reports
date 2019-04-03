@@ -14,6 +14,7 @@ suppressPackageStartupMessages({
   library("fs")
   library("here")
   library("logging")
+  library("data.table")
 })
 
 get_args <- function(doc) {
@@ -33,7 +34,7 @@ get_args <- function(doc) {
   parser$add_argument(
     "--output_dir",
     type = "character",
-    help = "Directory to store outputs, by default is the same to input.")
+    help = "Directory to store outputs, by default is {input_dir}-gwas-files.")
   parser$add_argument(
     "-n", "--dryrun",
     action = "store_true", default = FALSE,
@@ -64,10 +65,16 @@ get_valid_ids <- function(input_dir) {
   valid_ids
 }
 
-populate_gwas_files <- function(id, input_dir, output_dir) {
-  output_sub_dir <- glue("{output_dir}/{id}")
-  bcf_in <- glue("{input_dir}/{id}.bcf")
-  csi_in <- glue("{input_dir}/{id}.bcf.csi")
+populate_gwas_files <- function(input_id, input_dir, output_dir,
+                                study_dict) {
+  study_id <- get_study_id(input_id, study_dict)
+  loginfo(glue("
+    - input_id: {input_id}
+    - study_id: {study_id}
+  "))
+  output_sub_dir <- glue("{output_dir}/{study_id}")
+  bcf_in <- glue("{input_dir}/{input_id}.bcf")
+  csi_in <- glue("{input_dir}/{input_id}.bcf.csi")
   bcf_out <- glue("{output_sub_dir}/data.bcf")
   csi_out <- glue("{output_sub_dir}/data.bcf.csi")
   loginfo(glue("mkdir {output_sub_dir}"))
@@ -77,6 +84,14 @@ populate_gwas_files <- function(id, input_dir, output_dir) {
   loginfo(glue("ln -vs {csi_in} {csi_out}"))
   csi_in %>% link_create(csi_out)
   invisible()
+}
+
+get_study_id <- function(input_id, study_dict) {
+  # Get Study id from study dict,
+  # TODO: if it is not found, use input_id
+  file_name <- glue("{input_id}.txt.gz")
+  study_id <- study_dict %>% filter(filename == file_name) %>% pull(id)
+  study_id
 }
 
 main <- function(input_dir, output_dir = NULL, dryrun = FALSE) {
@@ -97,10 +112,13 @@ main <- function(input_dir, output_dir = NULL, dryrun = FALSE) {
   loginfo(glue("ids: {paste(ids, collapse = ' ')}"))
   # if not dryrun
   if (!dryrun) {
+    study_dict <- fread(here("ref_data/study-table-13-02-19.tsv")) %>%
+      as_tibble()
     output_dir %>% dir_create()
     ids %>%
       walk(populate_gwas_files,
-           input_dir = input_dir, output_dir = output_dir)
+           input_dir = input_dir, output_dir = output_dir,
+           study_dict = study_dict)
   }
 }
 
