@@ -44,7 +44,7 @@ se_n <- function(n, maf, se, beta) {
 sum_r2 <- function(beta, se, maf, n,
                    sd_y_est1, sd_y_est2) {
   # Calculate sum of r2 statistics using different assumptions
-  # about the variance and diffeerent methods
+  # about the variance and different methods
   var1 = 1
   # # variance reported in the study table
   # var2 = sd_y_rep ^ 2
