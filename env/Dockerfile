@@ -24,6 +24,7 @@ ENV PATH /home/mrbase-report:$PATH
 
 # Add watcher
 # RUN wget -O /home/mrbase-report/watcher.py https://raw.githubusercontent.com/MRCIEU/bgc-upload-orchestrator/master/watcher.py?token=AB1fTMa-e8fsZrhTfgrH2VEnYtpvjtCBks5cgZIdwA%3D%3D && chmod 775 /home/mrbase-report/watcher.py
+RUN mkdir -p /home/bin
 ADD watcher.py /home/bin
 RUN chmod 775 /home/bin/watcher.py
 
