@@ -47,3 +47,5 @@
   Coefficient value and SE for intercept.
 - `ldsc_lambda_gc`:
   Lambda GC statistics.
+
+**Flags**
