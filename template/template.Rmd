@@ -116,7 +116,7 @@ qc_file %>% read_file() %>% jsonlite::prettify()
 ### Definitions
 
 <span class=".flowing-content-shim">
-```{r qc_metrics, child = 'qc_metrics.md'}
+```{r qc_metrics, child = here::here('docs/qc_metrics.md')}
 
 ```
 </span>

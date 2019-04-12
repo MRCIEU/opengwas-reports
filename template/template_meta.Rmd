@@ -189,7 +189,7 @@ params$qc_metrics %>% tail(n=10) %>% knitr::kable()
 ### QC metrics: definitions
 
 <span class=".flowing-content-shim">
-```{r qc_metrics, child = 'qc_metrics.md'}
+```{r qc_metrics, child = here::here('docs/qc_metrics.md')}
 
 ```
 </span>
