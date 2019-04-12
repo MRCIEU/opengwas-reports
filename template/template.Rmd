@@ -1,5 +1,5 @@
 ---
-title: "MR-Base GWAS Pipeline Report"
+title: "IEU GWAS QC Report"
 output:
   flexdashboard::flex_dashboard:
     orientation: rows

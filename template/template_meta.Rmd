@@ -1,5 +1,5 @@
 ---
-title: "MR-Base GWAS Meta Report"
+title: "IEU GWAS MetaQC Report"
 output:
   flexdashboard::flex_dashboard:
     theme: yeti
