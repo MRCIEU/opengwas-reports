@@ -9,6 +9,11 @@ mac <- function(n, maf) {
 }
 
 se_n <- function(n, maf, se, beta) {
+  # - `n`: int: reported max sample size
+  # - `maf`: vec[dbl]: minor allele frequencies
+  # - `se`: vec[dbl]: standard error
+  # - `beta`: vec[dbl]: effect size
+
   # square root of reported max sample size
   n_rep_sqrt <- sqrt(n)
   # median observed standard error in GWAS
@@ -27,15 +32,22 @@ se_n <- function(n, maf, se, beta) {
   sd_y_est1 <- (n_rep_sqrt * med_se) / C
   # estimate variance for Y using method 2:
   z <- beta / se
-  standardised_bhat <- sqrt((z ^ 2 / (z ^ 2 + n - 2)) /
-                              (2 * maf * (1 - maf))) * sign(z)
+  standardised_bhat <- (
+    sqrt(
+    ((z ^ 2) / (z ^ 2 + n - 2)) /
+      (2 * maf * (1 - maf)))
+    * sign(z))
   estimated_sd <- beta / standardised_bhat
   estimated_sd <- estimated_sd[!is.na(estimated_sd)]
   # estimate variance for Y from summary data using method 2
   sd_y_est2 <- median(estimated_sd)
+  # ratio of sqrt of estimated sample size over sqrt of reported max sample size,
+  # expected to be one
+  ratio_se_n <- n_est_sqrt / n_rep_sqrt
   # return results:
   res <- list(n_est = n_est,
               n_est_sqrt = n_est_sqrt,
+              ratio_se_n = ratio_se_n,
               sd_y_est1 = sd_y_est1,
               sd_y_est2 = sd_y_est2)
   return(res)
@@ -52,11 +64,11 @@ sum_r2 <- function(beta, se, maf, n,
   var2 = sd_y_est1 ^ 2
   # variance estimated using method 2 in se_n function
   var3 = sd_y_est2 ^ 2
-  Fstat = beta ^ 2 / se ^ 2
-  r2_1 = 2 * beta ^ 2 * maf * (1 - maf) / var1
-  # r2_2 = 2 * beta ^ 2 * maf * (1 - maf) / var2
-  r2_2 = 2 * beta ^ 2 * maf * (1 - maf) / var2
-  r2_3 = 2 * beta ^ 2 * maf * (1 - maf) / var3
+  Fstat = (beta ^ 2) / (se ^ 2)
+  r2_1 = 2 * (beta ^ 2) * maf * (1 - maf) / var1
+  # r2_2 = 2 (* beta ^ 2) * maf * (1 - maf) / var2
+  r2_2 = 2 * (beta ^ 2) * maf * (1 - maf) / var2
+  r2_3 = 2 * (beta ^ 2) * maf * (1 - maf) / var3
   r2_4 = Fstat / (Fstat + n - 2)
   r2_sum1 = sum(r2_1, na.rm = FALSE)
   r2_sum2 = sum(r2_2, na.rm = FALSE)

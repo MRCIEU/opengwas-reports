@@ -1,9 +1,18 @@
 source(here("funcs/qc_metrics_core.R"))
 
 process_qc_metrics <- function(df, output_file, output_dir) {
-
+  # Wrapper processing the qc metrics returned from `qc__calc_qc`.
   ldsc_file <- path(output_dir, config::get("ldsc_file"))
-  qc_metrics <- list(
+  qc_metrics <- df %>% qc__calc_qc(ldsc_file, output_dir)
+  loginfo(glue("Write qc_metics to {output_file}"))
+  qc_metrics %>%
+    jsonlite::write_json(output_file, auto_unbox = TRUE)
+  invisible()
+}
+
+qc__calc_qc <- function(df, ldsc_file, output_dir) {
+  # The actual routine to calculate various qc metrics.
+  list(
     af_correlation = qc__af_cor(df),
     inflation_factor = qc__lambda(df),
     clumped_hits = qc__clumped_hits(output_dir),
@@ -14,12 +23,8 @@ process_qc_metrics <- function(df, output_file, output_dir) {
     is_snpid_unique = qc__is_snpid_unique(df)
   ) %>%
     purrr::splice(qc__count_miss(df)) %>%
-    purrr::splice(qc__se_n_r2(df)) %>%
+    purrr::splice(qc__se_n(df)) %>%
     purrr::splice(qc__ldsc(ldsc_file))
-  loginfo(glue("Write qc_metics to {output_file}"))
-  qc_metrics %>%
-    jsonlite::write_json(output_file, auto_unbox = TRUE)
-  invisible()
 }
 
 qc__af_cor <- function(df) {
@@ -73,12 +78,11 @@ qc__count_miss <- function(df) {
     as.list()
 }
 
-
 qc__count_mac <- function(df) {
-  # Number of cases where MAC is less than 5
+  # Number of cases where MAC is less than 6
   df %>% select(N, AF) %>%
     mutate(mac = mac(n = N, maf = AF)) %>%
-    pull(mac) %>% `<`(5) %>% sum(na.rm = TRUE)
+    pull(mac) %>% `<`(6) %>% sum(na.rm = TRUE)
 }
 
 qc__is_snpid_unique <- function(df) {
@@ -90,24 +94,35 @@ qc__is_snpid_unique <- function(df) {
   df_rows == df_filtered_rows
 }
 
-qc__se_n_r2 <- function(df) {
+qc__se_n <- function(df) {
   df <- df %>%
-    select(beta = EFFECT, se = SE, n = N, maf = AF)
-  se_n_res <- se_n(n = na.omit(df$n),
-                   maf = na.omit(df$maf),
-                   se = na.omit(df$se),
-                   beta = na.omit(df$beta))
+    select(beta = EFFECT, se = SE, n = N, maf = AF) %>%
+    na.omit()
+  n_max <- max(df$n)
+  se_n_res <- se_n(n = n_max,
+                   maf = df$maf,
+                   se = df$se,
+                   beta = df$beta)
   r2_res <- sum_r2(
-      beta = na.omit(df$beta),
-      se = na.omit(df$se),
-      maf = na.omit(df$maf),
-      n = na.omit(df$n),
+      beta = df$beta,
+      se = df$se,
+      maf = df$maf,
+      n = n_max,
       # NOTE: sd_y_rep is not applicable
       # sd_y_rep = sd(df$beta, na.rm = TRUE),
       sd_y_est1 = se_n_res$sd_y_est1,
       sd_y_est2 = se_n_res$sd_y_est2)
-  # res <- se_n_res %>% purrr::splice(r2_res)
-  res <- r2_res
+  res <- list(
+    n = n_max,
+    n_est = se_n_res$n_est,
+    ratio_se_n = se_n_res$ratio_se_n,
+    sd_y_est1 = se_n_res$sd_y_est1,
+    sd_y_est2 = se_n_res$sd_y_est2,
+    r2_sum1 = r2_res$r2_sum1,
+    r2_sum2 = r2_res$r2_sum2,
+    r2_sum3 = r2_res$r2_sum3,
+    r2_sum4 = r2_res$r2_sum4
+  )
   res
 }
 
