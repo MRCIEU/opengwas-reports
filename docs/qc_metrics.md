@@ -3,15 +3,16 @@
 - `af_correlation`: Correlation coefficient between `AF` and `AF_reference`.
 - `inflation_factor` (`lambda`): Genomic inflation factor.
 - `clumped_hits`: Number of clumped hits.
-- `count_p_sig`: Number of SNPs with pvalue below `5e-8`.
-- `count_mono`: Number of monomorphic (`MAF == 1` or `MAF == 0`) SNPs.
-- `count_ns`: Number of SNPs with nonsense values:
+- `n_snps`: Number of SNPs
+- `n_p_sig`: Number of SNPs with pvalue below `5e-8`.
+- `n_mono`: Number of monomorphic (`MAF == 1` or `MAF == 0`) SNPs.
+- `n_ns`: Number of SNPs with nonsense values:
     - alleles other than `A, C, G or T`.
     - P-values `< 0` or `> 1`.
     - negative or infinite standard errors (`<= 0` or `= Infinity`).
     - infinite beta estimates or allele frequencies `< 0` or `> 1`.
-- `count_mac`: Number of cases where `MAC`
-  ($2 \times N \times MAF$) is less than `5`.
+- `n_mac`: Number of cases where `MAC`
+  ($2 \times N \times MAF$) is less than `6`.
 - `is_snpid_unique`: `true` if the combination of `ID` `REF` `ALT` is unique
   and therefore no duplication in snpid.
 - `n_miss_<*>`: Number of `NA` observations for `<*>` column.
