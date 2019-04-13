@@ -88,8 +88,8 @@ main <- function(input, refdata = NULL, output_dir = NULL,
     addHandler(writeToFile, file = .)
   bcf_file <- input
   report_file <- path(output_dir, "report.html")
-  metadata_file <- path(output_dir, glue("metadata.json"))
-  qc_file <- path(output_dir, glue("qc_metrics.json"))
+  metadata_file <- path(output_dir, "metadata.json")
+  qc_file <- path(output_dir, "qc_metrics.json")
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
   n_cores <- if (is.null(n_cores)) {config::get("n_cores")} else {n_cores}

@@ -3,26 +3,28 @@ source(here("funcs/qc_metrics_core.R"))
 process_qc_metrics <- function(df, output_file, output_dir) {
   # Wrapper processing the qc metrics returned from `qc__calc_qc`.
   ldsc_file <- path(output_dir, config::get("ldsc_file"))
-  qc_metrics <- df %>% qc__calc_qc(ldsc_file, output_dir)
+  metadata_file <- path(output_dir, "metadata.json")
+  qc_metrics <- df %>% qc__calc_qc(ldsc_file, metadata_file, output_dir)
   loginfo(glue("Write qc_metics to {output_file}"))
   qc_metrics %>%
     jsonlite::write_json(output_file, auto_unbox = TRUE)
   invisible()
 }
 
-qc__calc_qc <- function(df, ldsc_file, output_dir) {
+qc__calc_qc <- function(df, ldsc_file, metadata_file, output_dir) {
   # The actual routine to calculate various qc metrics.
   list(
     af_correlation = qc__af_cor(df),
     inflation_factor = qc__lambda(df),
-    clumped_hits = qc__clumped_hits(output_dir),
-    count_p_sig = qc__count_p_sig(df),
-    count_mono = qc__count_mono(df),
-    count_ns = qc__count_ns(df),
-    count_mac = qc__count_mac(df),
+    n_snps = qc__get_n_snps(df, metadata_file),
+    n_clumped_hits = qc__clumped_hits(output_dir),
+    n_p_sig = qc__n_p_sig(df),
+    n_mono = qc__n_mono(df),
+    n_ns = qc__n_ns(df),
+    n_mac = qc__n_mac(df),
     is_snpid_unique = qc__is_snpid_unique(df)
   ) %>%
-    purrr::splice(qc__count_miss(df)) %>%
+    purrr::splice(qc__n_miss(df)) %>%
     purrr::splice(qc__se_n(df)) %>%
     purrr::splice(qc__ldsc(ldsc_file))
 }
@@ -41,16 +43,30 @@ qc__lambda <- function(df) {
   calc_inflation_factor(p_value)
 }
 
-qc__count_p_sig <- function(df) {
+qc__get_n_snps <- function(df, metadata_file) {
+  # If metadata_file is found, use "counts.total_variants"
+  # otherwise use the total number of rows after controlling
+  # for multiallelic snps
+  if (fs::file_exists(metadata_file)) {
+    metadata <- jsonlite::read_json(metadata_file)
+    n_snps <- metadata[["counts.total_variants"]] %>% as.integer()
+  } else {
+    n_snps <- df %>% select(POS, ID, REF) %>% distinct() %>%
+      nrow()
+  }
+  n_snps
+}
+
+qc__n_p_sig <- function(df) {
   count_p_sig <- function(pval, threshold = 5e-8){
     #' Count number of pvalues below threshold
-    count.sig <- length(which(pval < threshold))
-    return(count.sig)
+    count_sig <- length(which(pval < threshold))
+    return(count_sig)
   }
   df %>% pull(PVAL) %>% count_p_sig()
 }
 
-qc__count_mono <- function(df) {
+qc__n_mono <- function(df) {
   count_mono <- function(maf){
     #' Count number of monomorphic SNPs
     count.mono <- sum(maf == 1 | maf == 0)
@@ -59,7 +75,7 @@ qc__count_mono <- function(df) {
   df %>% pull(AF) %>% na.omit() %>% count_mono()
 }
 
-qc__count_ns <- function(df) {
+qc__n_ns <- function(df) {
   df <- df %>%
     select(effect_allele = REF, other_allele = ALT,
            pval = PVAL, se = SE, beta = EFFECT, maf = AF)
@@ -67,7 +83,7 @@ qc__count_ns <- function(df) {
            df$pval, df$se, df$beta, df$maf)
 }
 
-qc__count_miss <- function(df) {
+qc__n_miss <- function(df) {
   df %>% select(EFFECT, SE, PVAL, AF, AF_reference) %>%
     summarise_all(~ sum(is.na(.x))) %>%
     (function(df) {
@@ -78,7 +94,7 @@ qc__count_miss <- function(df) {
     as.list()
 }
 
-qc__count_mac <- function(df) {
+qc__n_mac <- function(df) {
   # Number of cases where MAC is less than 6
   df %>% select(N, AF) %>%
     mutate(mac = mac(n = N, maf = AF)) %>%
