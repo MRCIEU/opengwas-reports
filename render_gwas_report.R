@@ -12,6 +12,7 @@ suppressPackageStartupMessages({
   source(here("funcs/utils.R"))
   source(here("funcs/bcf_file.R"))
   source(here("funcs/qc_metrics.R"))
+  source(here("funcs/flags.R"))
   source(here("funcs/metadata.R"))
   source(here("funcs/report.R"))
   source(here("funcs/plots.R"))

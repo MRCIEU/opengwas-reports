@@ -76,3 +76,6 @@
   Lambda GC statistics.
 
 **Flags**
+
+- `af_correlation`: `abs(af_correlation)` < 0.7
+- `inflation_factor`: `inflation_factor` > 1.2

@@ -113,6 +113,17 @@ qc_file %>% read_file() %>% jsonlite::prettify()
 ```
 </span>
 
+### Flags
+
+<span class=".flowing-content-shim">
+```{r render-flags}
+qc_metrics %>% process_flags() %>%
+  enframe() %>%
+  mutate_at(vars(value), flatten_lgl) %>%
+  knitr::kable()
+```
+</span>
+
 ### Definitions
 
 <span class=".flowing-content-shim">
