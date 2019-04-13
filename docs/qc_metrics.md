@@ -2,7 +2,8 @@
 
 - `af_correlation`: Correlation coefficient between `AF` and `AF_reference`.
 - `inflation_factor` (`lambda`): Genomic inflation factor.
-- `clumped_hits`: Number of clumped hits.
+- `mean_EFFECT`: Mean of `EFFECT` size.
+- `n_clumped_hits`: Number of clumped hits.
 - `n_snps`: Number of SNPs
 - `n_p_sig`: Number of SNPs with pvalue below `5e-8`.
 - `n_mono`: Number of monomorphic (`MAF == 1` or `MAF == 0`) SNPs.
@@ -74,8 +75,17 @@
   Coefficient value and SE for intercept.
 - `ldsc_lambda_gc`:
   Lambda GC statistics.
+- `ldsc_mean_chisq`:
+  Mean $\chi^2$ statistics.
 
 **Flags**
 
-- `af_correlation`: `abs(af_correlation)` < 0.7
-- `inflation_factor`: `inflation_factor` > 1.2
+> When a metric needs attention, the flag should return TRUE.
+
+- `af_correlation`: `abs(af_correlation)` < 0.7.
+- `inflation_factor`: `inflation_factor` > 1.2.
+- `is_snpid_non_unique`: NOT `is_snpid_unique`.
+- `mean_EFFECT`: `abs(mean(EFFECT))` > 0.5.
+- `mean_chisq`: `ldsc_mean_chisq` > 1.3 or `ldsc_mean_chisq` < 0.7.
+- `n_p_sig`: `n_p_sig` > 1000.
+- `miss_<*>` `n_miss_<*>` / `n_snps` > 0.01.

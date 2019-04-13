@@ -10,6 +10,8 @@ suppressPackageStartupMessages({
   library("logging")
   source(here("funcs/utils.R"))
   source(here("funcs/meta_plots.R"))
+  source(here("funcs/flags.R"))
+  source(here("funcs/meta_metrics.R"))
 })
 
 get_args <- function(doc) {

@@ -16,6 +16,7 @@ qc__calc_qc <- function(df, ldsc_file, metadata_file, output_dir) {
   list(
     af_correlation = qc__af_cor(df),
     inflation_factor = qc__lambda(df),
+    mean_EFFECT = qc__mean_beta(df),
     n_snps = qc__get_n_snps(df, metadata_file),
     n_clumped_hits = qc__clumped_hits(output_dir),
     n_p_sig = qc__n_p_sig(df),
@@ -41,6 +42,10 @@ qc__lambda <- function(df) {
   }
   p_value <- df %>% pull(PVAL)
   calc_inflation_factor(p_value)
+}
+
+qc__mean_beta <- function(df) {
+  df %>% pull(EFFECT) %>% mean(na.rm = TRUE)
 }
 
 qc__get_n_snps <- function(df, metadata_file) {

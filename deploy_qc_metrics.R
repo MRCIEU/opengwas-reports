@@ -15,6 +15,7 @@ suppressPackageStartupMessages({
   source(here("funcs/metadata.R"))
   source(here("funcs/gwas_processing.R"))
   source(here("funcs/report.R"))
+  source(here("funcs/flags.R"))
   source(here("funcs/plots.R"))
 })
 
