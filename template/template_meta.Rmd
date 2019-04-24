@@ -57,7 +57,7 @@ info <- tribble(
 info %>% knitr::kable()
 ```
 
-# Scatterplot
+# Scatter plot
 
 ## Plots {.tabset .tabset-fade}
 
@@ -96,7 +96,7 @@ metric_names %>%
   })
 ```
 
-# Density plots
+# Density plot
 
 ## Plots {.tabset .tabset-fade}
 
