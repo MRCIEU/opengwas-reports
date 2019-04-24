@@ -69,7 +69,9 @@ metric_names %>%
      # but plot `n` against `ID`
      if (metric_name != "n") {
        p <- params$qc_metrics %>%
-         plot_scatter(x = n, y = !!rlang::sym(metric_name))
+         mutate_at(vars(n), as.numeric) %>%
+         plot_scatter(x = n, y = !!rlang::sym(metric_name),
+                      hide_x_ticks = FALSE)
      } else {
        p <- params$qc_metrics %>%
          plot_scatter(x = ID, y = !!rlang::sym(metric_name))
