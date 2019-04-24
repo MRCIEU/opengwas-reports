@@ -12,11 +12,22 @@ plot_scatter <- function(df, x, y) {
 
 plot_hist <- function(df, x) {
   x <- enquo(x)
-  df %>% {
+  df %>%
+    filter(is.finite(!!x)) %>% {
     ggplot(.) +
       aes(x = !!x) +
-      geom_histogram(fill = "#4f8bb7", alpha = 0.5, stat = "count") +
+      geom_histogram(fill = "#4f8bb7", alpha = 0.5) +
       theme_classic()
   }
+}
 
+plot_density <- function(df, x) {
+  x <- enquo(x)
+  df %>%
+    filter(is.finite(!!x)) %>% {
+      ggplot(.) +
+        aes(x = !!x) +
+        geom_density(fill = "#4f8bb7", alpha = 0.3) +
+        theme_classic()
+    }
 }
