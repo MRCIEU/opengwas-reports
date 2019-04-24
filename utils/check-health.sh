@@ -48,7 +48,6 @@ done
 check_data() {
   if [ -d $1 ] || [ -f $1 ]; then
     echo "GOOD: $1"
-    ls -lah $1
   else
     echo "BAD: $1"
   fi
