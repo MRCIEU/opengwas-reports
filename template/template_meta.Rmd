@@ -96,21 +96,6 @@ metric_names %>%
   })
 ```
 
-# Density plot
-
-## Plots {.tabset .tabset-fade}
-
-```{r meta_density, results="asis"}
-metric_names %>%
-  walk(function(metric_name) {
-     cat(glue("\n\n### `{metric_name}`\n\n"))
-     p <- params$qc_metrics %>%
-       plot_density(x = !!rlang::sym(metric_name))
-     print(p)
-     cat("\n\n\n\n")
-  })
-```
-
 # Head and tails
 
 ## Tables {.tabset .tabset-fade}
@@ -157,7 +142,7 @@ metric_names %>%
 
 ### Ranking
 
-Sort studies with most flags on top.
+Sort studies (top 100) with most flags on top.
 
 ```{r n_flags}
 meta_flags %>%
@@ -165,6 +150,7 @@ meta_flags %>%
   arrange(desc(n_flags)) %>%
   left_join(params$qc_metrics %>% select(ID, trait)) %>%
   select(ID, trait, everything()) %>%
+  head(100) %>%
   knitr::kable()
 ```
 
