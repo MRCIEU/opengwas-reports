@@ -133,6 +133,24 @@ metric_names %>%
   })
 ```
 
+# Invalid
+
+## Tables {.tabset .tabset-fade}
+
+```{r meta_invalid, results="asis"}
+metric_names %>%
+  walk(function(metric_name) {
+     cat(glue("\n\n### `{metric_name}`\n\n"))
+     df <- params$qc_metrics %>%
+       filter(!is.finite(!!rlang::sym(metric_name))) %>%
+       select(ID, trait, !!rlang::sym(metric_name))
+     cat("Studies whose metric are `NaN`, `NA`, `Inf`, etc...\n\n")
+     table <- df %>% knitr::kable()
+     print(table)
+     cat("\n\n\n\n")
+  })
+```
+
 # Flags
 
 ## QC metrics {.tabset .tabset-fade}
