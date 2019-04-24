@@ -60,6 +60,8 @@ main <- function(input_dir, output_dir = NULL,
   metadata_file <- path(output_dir, "metadata.csv")
   qc_metrics_file <- path(output_dir, "qc_metrics.csv")
   report_file <- path(output_dir, "meta_report.html")
+  # dependency files
+  study_table_file <- path(here("ref_data/study-table-13-02-19.tsv"))
   # Setup logging
   basicConfig()
   glue("logs/render_meta_report_{Sys.Date()}.log") %>%
@@ -121,7 +123,10 @@ main <- function(input_dir, output_dir = NULL,
   }
   meta_metrics <- jsonlite::read_json(meta_metrics_file)
   metadata <- read_csv(metadata_file)
-  qc_metrics <- read_csv(qc_metrics_file)
+  study_table <- data.table::fread(study_table_file)
+  qc_metrics <- read_csv(qc_metrics_file) %>%
+    left_join(study_table %>% select(ID = id, trait)) %>%
+    select(ID, trait, everything())
 
   qc_metrics <- qc_metrics %>%
     left_join(metadata %>%

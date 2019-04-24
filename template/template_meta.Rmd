@@ -20,11 +20,11 @@ params:
 options(width = 100)
 
 metric_names <- params$qc_metrics %>%
-  names() %>% setdiff(c("ID", "sample_size"))
+  names() %>% setdiff(c("ID", "sample_size", "trait"))
 meta_flags <- params$qc_metrics %>%
   get_meta_flags()
 flag_names <- meta_flags %>% names() %>%
-  setdiff(c("ID"))
+  setdiff(c("ID", "trait"))
 flag_defn <- flags_definitions()
 ```
 
@@ -121,7 +121,7 @@ metric_names %>%
      cat(glue("\n\n### `{metric_name}`\n\n"))
      df <- params$qc_metrics %>%
        arrange(!!rlang::sym(metric_name)) %>%
-       select(ID, !!rlang::sym(metric_name))
+       select(ID, trait, !!rlang::sym(metric_name))
      head <- df %>% head(n=10) %>% knitr::kable()
      tail <- df %>% tail(n=10) %>% knitr::kable()
      cat("**Head**")
@@ -145,6 +145,8 @@ Sort studies with most flags on top.
 meta_flags %>%
   mutate(n_flags = calc_n_flags(.)) %>%
   arrange(desc(n_flags)) %>%
+  left_join(params$qc_metrics %>% select(ID, trait)) %>%
+  select(ID, trait, everything()) %>%
   knitr::kable()
 ```
 
@@ -155,7 +157,7 @@ Studies with `r flag_defn$af_correlation`.
 ```{r flag_af_corr}
 params$qc_metrics %>%
   filter(flags__af_corr(.)) %>%
-  select(ID, af_correlation) %>%
+  select(ID, trait, af_correlation) %>%
   arrange(af_correlation) %>%
   knitr::kable()
 ```
@@ -167,7 +169,7 @@ Studies with `r flag_defn$af_correlation`.
 ```{r flag_inflation_factor}
 params$qc_metrics %>%
   filter(flags__lambda(.)) %>%
-  select(ID, inflation_factor) %>%
+  select(ID, trait, inflation_factor) %>%
   arrange(desc(inflation_factor)) %>%
   knitr::kable()
 ```
@@ -179,7 +181,7 @@ Studies with `r flag_defn$is_snpid_non_unique`.
 ```{r flag_is_snpid_non_unique}
 params$qc_metrics %>%
   filter(flags__is_snpid_non_unique(.)) %>%
-  select(ID, is_snpid_unique) %>%
+  select(ID, trait, is_snpid_unique) %>%
   arrange(desc(is_snpid_unique)) %>%
   knitr::kable()
 ```
@@ -191,7 +193,7 @@ Studies with `r flag_defn$mean_EFFECT`.
 ```{r flag_mean_EFFECT}
 params$qc_metrics %>%
   filter(flags__mean_beta(.)) %>%
-  select(ID, mean_EFFECT) %>%
+  select(ID, trait, mean_EFFECT) %>%
   arrange(desc(abs(mean_EFFECT))) %>%
   knitr::kable()
 ```
@@ -204,7 +206,7 @@ Studies with `r flag_defn$mean_chisq`.
 params$qc_metrics %>%
   filter(purrr::transpose(.) %>%
          map_lgl(flags__mean_chisq)) %>%
-  select(ID, ldsc_mean_chisq) %>%
+  select(ID, trait, ldsc_mean_chisq) %>%
   arrange(desc(ldsc_mean_chisq)) %>%
   knitr::kable()
 ```
@@ -216,7 +218,7 @@ Studies with `r flag_defn$n_p_sig`.
 ```{r flag_n_p_sig}
 params$qc_metrics %>%
   filter(flags__lambda(.)) %>%
-  select(ID, n_p_sig) %>%
+  select(ID, trait, n_p_sig) %>%
   arrange(desc(n_p_sig)) %>%
   knitr::kable()
 ```
@@ -228,7 +230,7 @@ Studies with `r flag_defn$miss_EFFECT`.
 ```{r flag_miss_EFFECT}
 params$qc_metrics %>%
   filter(flags__miss_beta(.)) %>%
-  select(ID, n_miss_EFFECT) %>%
+  select(ID, trait, n_miss_EFFECT) %>%
   arrange(desc(n_miss_EFFECT)) %>%
   knitr::kable()
 ```
@@ -240,7 +242,7 @@ Studies with `r flag_defn$miss_SE`.
 ```{r flag_miss_SE}
 params$qc_metrics %>%
   filter(flags__miss_se(.)) %>%
-  select(ID, n_miss_SE) %>%
+  select(ID, trait, n_miss_SE) %>%
   arrange(desc(n_miss_SE)) %>%
   knitr::kable()
 ```
@@ -252,7 +254,7 @@ Studies with `r flag_defn$miss_PVAL`.
 ```{r flag_miss_PVAL}
 params$qc_metrics %>%
   filter(flags__miss_pval(.)) %>%
-  select(ID, n_miss_PVAL) %>%
+  select(ID, trait, n_miss_PVAL) %>%
   arrange(desc(n_miss_PVAL)) %>%
   knitr::kable()
 ```
