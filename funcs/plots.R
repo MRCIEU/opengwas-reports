@@ -48,7 +48,19 @@ deploy_plotting <- function(main_df, output_dir, no_reuse) {
         }
         filename
       },
-      args = list(main_df = main_df)))
+      args = list(main_df = main_df)),
+    beta_std_plot = list(
+      what = function(main_df) {
+        filename <- path(output_dir, "beta_std_plot.png")
+        if (!file_exists(filename) || no_reuse) {
+          main_df %>%
+            plot_beta_std() %>%
+            ggsave(filename = filename, width = width, height = height)
+        }
+        filename
+      },
+      args = list(main_df = main_df))
+    )
 }
 
 
@@ -72,7 +84,7 @@ plot_qq_log <- function(df, pval) {
 
   plot_df %>% {
     ggplot(., aes(x = expected, y = observed)) +
-      geom_point(alpha = 0.5, color = "skyblue") +
+      geom_point(alpha = 0.5, color = "#2580e3") +
       geom_abline(slope = 1, color = "red") +
       xlim(0, max(.$expected)) + ylim(0, max(.$observed)) +
       xlab(xlab) + ylab(ylab) +
@@ -126,7 +138,7 @@ plot_manhattan <- function(df, chr, bp, snp, p,
                    alpha = 0.8, size = 0.8) +
         geom_hline(yintercept = red_line, color = "red") +
         geom_hline(yintercept = blue_line, color = "blue") +
-        scale_color_manual(values = rep(c("grey", "skyblue"), 22)) +
+        scale_color_manual(values = rep(c("grey", "#2580e3"), 22)) +
         # Custom X axis
         scale_x_continuous(label = axis_df[[quo_name(chr)]],
                            breaks = axis_df[["center"]]) +
@@ -164,7 +176,7 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
         aes(x = !!af_ref, y = !!af_main, color = rare_snps) +
         geom_point(alpha = 0.5) +
         geom_abline(slope = 1, color = "red") +
-        scale_colour_manual(values = c("skyblue", "red"),
+        scale_colour_manual(values = c("#2580e3", "red"),
                             name = glue("Rare SNPs (MAF <= {maf_rarity})")) +
         xlab("AF reference") + ylab("AF gwas") +
         ggtitle(title) +
@@ -192,9 +204,23 @@ plot_pz <- function(df, beta, se, pval, pval_ztest) {
   df %>% {
     ggplot(.) +
       aes(x = neg_log_10_p_ztest, y = neg_log_10_p) +
-      geom_point(alpha = 0.5, color = "skyblue") +
+      geom_point(alpha = 0.5, color = "#2580e3") +
       geom_abline(slope = 1, color = "red") +
       xlab(xlab) + ylab(ylab) +
+      theme_minimal()
+  }
+}
+
+plot_beta_std <- function(df) {
+  df <- df %>% select(beta = EFFECT, se = SE, maf = AF, n = N) %>%
+    na.omit() %>%
+    mutate(z = beta / se,
+           beta_std = b_std(z = z, maf = maf, n = n))
+  df %>% {
+    ggplot(.) +
+      aes(x = beta_std, y = beta) +
+      geom_point(color = "#2580e3", alpha = 0.5) +
+      geom_abline(slope = 1, color = "red") +
       theme_minimal()
   }
 }

@@ -3,20 +3,22 @@ source(here("funcs/qc_metrics_core.R"))
 process_qc_metrics <- function(df, output_file, output_dir) {
   # Wrapper processing the qc metrics returned from `qc__calc_qc`.
   ldsc_file <- path(output_dir, config::get("ldsc_file"))
+  clump_file <- path(output_dir, "clump.txt")
   metadata_file <- path(output_dir, "metadata.json")
-  qc_metrics <- df %>% qc__calc_qc(ldsc_file, metadata_file, output_dir)
+  qc_metrics <- df %>% qc__calc_qc(ldsc_file, metadata_file, clump_file, output_dir)
   loginfo(glue("Write qc_metics to {output_file}"))
   qc_metrics %>%
     jsonlite::write_json(output_file, auto_unbox = TRUE)
   invisible()
 }
 
-qc__calc_qc <- function(df, ldsc_file, metadata_file, output_dir) {
+qc__calc_qc <- function(df, ldsc_file, metadata_file, clump_file, output_dir) {
   # The actual routine to calculate various qc metrics.
   list(
     af_correlation = qc__af_cor(df),
     inflation_factor = qc__lambda(df),
     mean_EFFECT = qc__mean_beta(df),
+    n = qc__get_n_max(df),
     n_snps = qc__get_n_snps(df, metadata_file),
     n_clumped_hits = qc__clumped_hits(output_dir),
     n_p_sig = qc__n_p_sig(df),
@@ -26,7 +28,7 @@ qc__calc_qc <- function(df, ldsc_file, metadata_file, output_dir) {
     is_snpid_unique = qc__is_snpid_unique(df)
   ) %>%
     purrr::splice(qc__n_miss(df)) %>%
-    purrr::splice(qc__se_n(df)) %>%
+    purrr::splice(qc__se_n_r2(df, clump_file = clump_file)) %>%
     purrr::splice(qc__ldsc(ldsc_file))
 }
 
@@ -46,6 +48,10 @@ qc__lambda <- function(df) {
 
 qc__mean_beta <- function(df) {
   df %>% pull(EFFECT) %>% mean(na.rm = TRUE)
+}
+
+qc__get_n_max <- function(df) {
+  df %>% pull(N) %>% na.omit() %>% max()
 }
 
 qc__get_n_snps <- function(df, metadata_file) {
@@ -115,30 +121,47 @@ qc__is_snpid_unique <- function(df) {
   df_rows == df_filtered_rows
 }
 
-qc__se_n <- function(df) {
+qc__se_n_r2 <- function(df, clump_file) {
   df <- df %>%
-    select(beta = EFFECT, se = SE, n = N, maf = AF) %>%
+    select(ID, beta = EFFECT, se = SE, n = N, maf = AF) %>%
     na.omit()
   n_max <- max(df$n)
   se_n_res <- se_n(n = n_max,
                    maf = df$maf,
                    se = df$se,
                    beta = df$beta)
-  r2_res <- sum_r2(
-      beta = df$beta,
-      se = df$se,
-      maf = df$maf,
-      n = n_max,
-      # NOTE: sd_y_rep is not applicable
-      # sd_y_rep = sd(df$beta, na.rm = TRUE),
+  if (fs::file_exists(clump_file)) {
+    top_hits <- read_csv(clump_file, col_names = FALSE) %>% pull(X1)
+  } else {
+    top_hits <- NULL
+  }
+  if (!is.null(top_hits) || nrow(top_hits) > 0) {
+    df_clumped <- df %>% filter(ID %in% top_hits)
+    n_max_clumped <- max(df_clumped$n)
+    r2_res <- sum_r2(
+      beta = df_clumped$beta,
+      se = df_clumped$se,
+      maf = df_clumped$maf,
+      n = n_max_clumped,
       sd_y_est1 = se_n_res$sd_y_est1,
       sd_y_est2 = se_n_res$sd_y_est2)
+  } else {
+    r2_res <- list(
+      r2_sum1 = NA_real_,
+      r2_sum2 = NA_real_,
+      r2_sum3 = NA_real_,
+      r2_sum4 = NA_real_
+    )
+  }
   res <- list(
-    n = n_max,
+    # se_n metrics
     n_est = se_n_res$n_est,
     ratio_se_n = se_n_res$ratio_se_n,
+    mean_diff = se_n_res$mean_diff,
+    ratio_diff = se_n_res$ratio_diff,
     sd_y_est1 = se_n_res$sd_y_est1,
     sd_y_est2 = se_n_res$sd_y_est2,
+    # r2 metrics
     r2_sum1 = r2_res$r2_sum1,
     r2_sum2 = r2_res$r2_sum2,
     r2_sum3 = r2_res$r2_sum3,

@@ -85,6 +85,10 @@ info %>% knitr::kable()
 
 ![pz_plot](`r params$plot_files$pz_plot`)
 
+### beta_std plot
+
+![beta_std_plot](`r params$plot_files$beta_std_plot`)
+
 ### Metadata
 
 <span class=".flowing-content-shim">
