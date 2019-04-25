@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Transfer results to target directories on epi-franlin
+# retry 5 times.
+# This version transfer symlink files as well.
+#
+# Usage
+# ./transfer-results <orig_dir>
+#
+# NOTE: you need to have a ssh alias called epi-franklin
+
+orig_dir=$1
+target_dir=/projects/MRC-IEU/research/projects/ieu2/p4/013/working/data/results
+
+for i in {1..5}; do
+  rsync -avLz --timeout=60 --progress \
+    ${orig_dir} epi-franklin:${target_dir}/
+done
