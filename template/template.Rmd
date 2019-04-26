@@ -38,7 +38,7 @@ n_sample <- min(
 
 # Sidebar {data-width=450 .sidebar}
 
-## MR-Base GWAS information
+## IEU GWAS information
 
 Trait: **`r trait_name`**.
 
