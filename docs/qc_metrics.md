@@ -21,64 +21,57 @@
 
 **se_n metrics**
 
->     We expect `ratio_se_n` to be 1. When it is not 1 the following problems could apply:
->     - Study phenotype was not standardised, i.e. variance of phenotype is not 1.
->       The study's phenotypic variance differs from other studies, which might be
->       explained by a different study design or special study population.
->     - The study's MAFs differ from other studies, which might be explained by
->       a diverging genotyping platform, reference panel for the impuation, or a
->       different ethnicity.
->     - The study's effective sample size differs from the stated sample size,
->       which might be due to unaccounted relatedness between study participants
->       or mis-coded sample size.
->     - The study analyst has used a different statistical test; or the
->       study analyst has mis-specified the phenotype transformation or
->       the regression model, which results in a different phenotype variance
->       or residual variance.
-
 - `n_est`: Estimated sample size value, $\widehat{n}$.
-- `ratio_se_n`: $\frac{\sqrt{\widehat{n}}}{\sqrt{n}}$.
+- `ratio_se_n`: $\texttt{ratio_se_n} = \frac{\sqrt{\widehat{n}}}{\sqrt{n}}$.
+  We expect `ratio_se_n` to be 1. 
+  When it is not 1, it implies that the trait did not have a variance of 1, 
+  the reported sample size is wrong, or that the SNP-level effective sample sizes differ
+  markedly from the reported sample size.
 - `mean_diff`:
-  Mean difference between the standardised beta, predicted from P-values,
-  and the observed beta. The difference should be very close to zero if the observed
-  betas are already in a standard deviation scale.
-    - $\texttt{mean_diff} = \sum_{j} \frac{\widehat{\beta_j^{std}} - \beta_j}{\texttt{n_snps}}$,
+  $\texttt{mean_diff} = \sum_{j} \frac{\widehat{\beta_j^{std}} - \beta_j}{\texttt{n_snps}}$,
+  mean difference between the standardised beta, predicted from P-values,
+  and the observed beta. The difference should be very close to zero if trait has a variance of 1.
     - $\widehat{\beta_j^{std}} = \sqrt{\frac{{z}_j^2 / ({z}_j^2 + n -2)}{2 \times {MAF}_j \times {1 - {MAF}_j}}} \times sign({z}_j)$,
     - ${z}_j = \frac{\beta_j}{{se}_j}$,
     - and $\beta_j$ is the reported effect size.
 - `ratio_diff`:
-  Absolute ratio between the mean of `diff` and the mean of `diff2`
-  (diff. between the standardised beta predicted from P-values, and the standardised beta
+  $\texttt{ratio_diff} = |\frac{\texttt{mean_diff}}{\texttt{mean_diff2}}|$,
+  absolute ratio between the mean of `diff` and the mean of `diff2`
+  (expected difference between the standardised beta predicted from P-values, and the standardised beta
   derived from the observed beta divided by the predicted SD; **NOT** reported).
   The ratio should be close to 1. If different from 1, then implies that the betas are
   not in a standard deviation scale.
-    - $\texttt{ratio_diff} = |\frac{\texttt{mean_diff}}{\texttt{mean_diff2}}|$
     - $\texttt{mean_diff2} = \sum_{j} \frac{\widehat{\beta_j^{std}} - \beta^{\prime}_j}{\texttt{n_snps}}$
-    - $\beta^{\prime}_j = \frac{\beta_j}{\widehat{sd2}_{y}}$
+    - $\beta^{\prime}_j = \frac{\beta_j}{\widehat{\texttt{sd2}}_{y}}$
 - `sd_y_est1`:
-    - $\widehat{sd1}_{y} = \frac{\sqrt{n} \times median({se}_j)}{C}$,
+  The standard deviation for the trait inferred from the reported sample size, median standard errors for
+  the SNP-trait assocations and SNP variances.
+    - $\widehat{\texttt{sd1}}_{y} = \frac{\sqrt{n} \times median({se}_j)}{C}$,
     - $C = median(\frac{1}{\sqrt{2 \times {MAF}_j \times (1 - {MAF}_j)}})$,
     - and ${se}_j$ is the reported standard error.
 - `sd_y_est2`:
-    - $\widehat{sd2}_{y} = median(\widehat{sd_j})$,
+  The standard deviation for the trait inferred from the reported sample size, 
+  Z statistics for the SNP-trait effects (beta/se) and allele frequency.
+    - $\widehat{\texttt{sd2}}_{y} = median(\widehat{sd_j})$,
     - $\widehat{sd_j} = \frac{\beta_j}{\widehat{\beta_j^{std}}}$,
+
 
 **r2 metrics**
 
->      Sum of variance explained, calculated from the clumped top hits sample.
+> Sum of variance explained, calculated from the clumped top hits sample.
 
 - `r2_sum<*>`: `r2` statistics under various assumptions
     - `1`:
-      $r2 = \sum_j{\frac{2 \times \beta_j^2 \times {MAF}_j \times (1 - {MAF}_j)}{var1}}$,
-      $var1 = 1$.
+      $r^2 = \sum_j{\frac{2 \times \beta_j^2 \times {MAF}_j \times (1 - {MAF}_j)}{\texttt{var1}}}$,
+      $\texttt{var1} = 1$.
     - `2`:
-      $r2 = \sum_j{\frac{2 \times \beta_j^2 \times {MAF}_j \times (1 - {MAF}_j)}{var2}}$,
-      $var2 = {\widehat{sd1}_{y}}^2$,
+      $r^2 = \sum_j{\frac{2 \times \beta_j^2 \times {MAF}_j \times (1 - {MAF}_j)}{\texttt{var2}}}$,
+      $\texttt{var2} = {\widehat{\texttt{sd1}}_{y}}^2$,
     - `3`:
-      $r2 = \sum_j{\frac{2 \times \beta_j^2 \times {MAF}_j \times (1 - {MAF}_j)}{var3}}$,
-      $var3 = {\widehat{sd2}_{y}}^2$,
+      $r^2 = \sum_j{\frac{2 \times \beta_j^2 \times {MAF}_j \times (1 - {MAF}_j)}{\texttt{var3}}}$,
+      $\texttt{var3} = {\widehat{\texttt{sd2}}_{y}}^2$,
     - `4`:
-      $r2 = \sum_j{\frac{F_j}{F_j + n - 2}}$,
+      $r^2 = \sum_j{\frac{F_j}{F_j + n - 2}}$,
       $F = \frac{\beta_j^2}{{se}_j^2}$.
 
 **LDSC metrics**
@@ -113,7 +106,10 @@
 **Plots**
 
 - Manhattan plot
+    - Red line: $-log_{10}^{5 \times 10^{-8}}$
+    - Blue line: $-log_{10}^{5 \times 10^{-5}}$
 - QQ plot
 - AF plot
 - P-Z plot
-- beta_std plot
+- beta_std plot: 
+  Scatter plot between $\widehat{\beta_j^{std}}$ and $\beta_j$

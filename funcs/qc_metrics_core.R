@@ -34,6 +34,7 @@ se_n <- function(n, maf, se, beta) {
   # calculate C constant
   C <- median(1 / sqrt(var_x))
   # estimate variance for Y from summary data using method 1
+  # formula from EasyQC PMID: 24762786
   sd_y_est1 <- (n_rep_sqrt * med_se) / C
   # estimate variance for Y using method 2:
   z <- beta / se
