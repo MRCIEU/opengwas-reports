@@ -2,7 +2,7 @@ default:
   # api_gwasinfo
   # Endpoint to fetch gwas info
   # TODO: Update url when api is released
-  api_gwasinfo: http://apitest.mrbase.org/gwasinfo/
+  api_gwasinfo: http://ieu-db-interface.epi.bris.ac.uk:8082/docs/gwasinfo/
   # refdata:
   # Reference dataset to calculate allele frequency.
   refdata: ref_data/1kg_v3_nomult.bcf
