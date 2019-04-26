@@ -32,6 +32,10 @@ get_args <- function(doc) {
     help = "Input directory that stores all subdirectories")
   # Optional args
   parser$add_argument(
+    "--head",
+    type = "double", default = NULL,
+    help = "Only populate first N studies.")
+  parser$add_argument(
     "--output_dir",
     type = "character",
     help = "Directory to store outputs, by default is {input_dir}-gwas-files.")
@@ -98,7 +102,7 @@ get_study_id <- function(input_id, study_dict) {
   study_id
 }
 
-main <- function(input_dir, output_dir = NULL, dryrun = FALSE) {
+main <- function(input_dir, output_dir = NULL, head=NULL, dryrun = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
   if (is.null(output_dir)) {
@@ -113,6 +117,8 @@ main <- function(input_dir, output_dir = NULL, dryrun = FALSE) {
   "))
 
   ids <- get_valid_ids(input_dir)
+  if (!is.null(head))
+    ids <- ids %>% head(head)
   loginfo(glue("ids: {paste(ids, collapse = ' ')}"))
   # if not dryrun
   if (!dryrun) {
