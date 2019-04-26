@@ -131,12 +131,12 @@ qc__se_n_r2 <- function(df, clump_file) {
                    se = df$se,
                    beta = df$beta)
   if (fs::file_exists(clump_file)) {
-    top_hits <- read_csv(clump_file, col_names = FALSE) %>% pull(X1)
+    top_hits <- read_csv(clump_file, col_names = FALSE)
   } else {
     top_hits <- NULL
   }
   if (!is.null(top_hits) || nrow(top_hits) > 0) {
-    df_clumped <- df %>% filter(ID %in% top_hits)
+    df_clumped <- df %>% filter(ID %in% top_hits$X1)
     n_max_clumped <- max(df_clumped$n)
     r2_res <- sum_r2(
       beta = df_clumped$beta,
