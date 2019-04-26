@@ -9,7 +9,7 @@
 # NOTE: you need to have a ssh alias called epi-franklin
 
 orig_dir=$1
-target_dir=/projects/MRC-IEU/research/projects/ieu2/p4/013/working/data/results
+target_dir=/projects/MRC-IEU/research/projects/ieu2/p4/013/working/data/qc-report-results
 
 for i in {1..5}; do
   rsync -avz --timeout=30 --progress \
