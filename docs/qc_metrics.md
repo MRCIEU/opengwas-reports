@@ -53,7 +53,7 @@
   The ratio should be close to 1. If different from 1, then implies that the betas are
   not in a standard deviation scale.
     - $\texttt{ratio_diff} = |\frac{\texttt{mean_diff}}{\texttt{mean_diff2}}|$
-    - $\texttt{mean_diff2} = \sum_{j} \frac{\widehat{beta_j^{std}} - \beta^{\prime}_j}{\texttt{n_snps}}$
+    - $\texttt{mean_diff2} = \sum_{j} \frac{\widehat{\beta_j^{std}} - \beta^{\prime}_j}{\texttt{n_snps}}$
     - $\beta^{\prime}_j = \frac{\beta_j}{\widehat{sd2}_{y}}$
 - `sd_y_est1`:
     - $\widehat{sd1}_{y} = \frac{\sqrt{n} \times median({se}_j)}{C}$,
@@ -61,7 +61,7 @@
     - and ${se}_j$ is the reported standard error.
 - `sd_y_est2`:
     - $\widehat{sd2}_{y} = median(\widehat{sd_j})$,
-    - $\widehat{sd_j} = \frac{\beta_j}{\widehat{beta_j^{std}}}$,
+    - $\widehat{sd_j} = \frac{\beta_j}{\widehat{\beta_j^{std}}}$,
 
 **r2 metrics**
 
