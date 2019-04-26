@@ -3,6 +3,7 @@ process_flags <- function(qc_metrics) {
   res <- list(
     af_correlation = flags__af_corr(qc_metrics),
     inflation_factor = flags__lambda(qc_metrics),
+    n = flags__n(qc_metrics),
     is_snpid_non_unique = flags__is_snpid_non_unique(qc_metrics),
     mean_EFFECT = flags__mean_beta(qc_metrics),
     mean_chisq = flags__mean_chisq(qc_metrics),
@@ -20,6 +21,10 @@ flags__af_corr <- function(qc_metrics) {
 
 flags__lambda <- function(qc_metrics) {
   qc_metrics$inflation_factor > 1.2
+}
+
+flags__n <- function(qc_metrics) {
+  qc_metrics$n < 10000
 }
 
 flags__is_snpid_non_unique <- function(qc_metrics) {
@@ -58,6 +63,9 @@ flags_definitions <- function() {
     ),
     inflation_factor = glue(
       "`inflation_factor` > 1.2"
+    ),
+    n = glue(
+      "`n` (max reported sample size) < 10,000"
     ),
     is_snpid_non_unique = glue(
       "NOT `is_snpid_unique`"

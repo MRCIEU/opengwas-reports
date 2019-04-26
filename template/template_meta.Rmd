@@ -178,6 +178,18 @@ params$qc_metrics %>%
   knitr::kable()
 ```
 
+### `n`
+
+Studies with `r flag_defn$n`.
+
+```{r flag_n}
+params$qc_metrics %>%
+  filter(flags__n(.)) %>%
+  select(ID, trait, n) %>%
+  arrange(n) %>%
+  knitr::kable()
+```
+
 ### `is_snpid_non_unique`
 
 Studies with `r flag_defn$is_snpid_non_unique`.
