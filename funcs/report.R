@@ -6,21 +6,25 @@ process_api_info <- function(gwas_id) {
     #' numeric => format it with delim
     #' otherwise => characterise it
     ifelse(is.null(cell), NA_character_,
-           ifelse(is.numeric(cell), format(cell, big.mark = ","),
-                  as.character(cell)))
+      ifelse(is.numeric(cell), format(cell, big.mark = ","),
+        as.character(cell)
+      )
+    )
   }
   api_url <- paste0(config::get("api_gwasinfo"), gwas_id)
   # Read api, or returns an empty list
   read_api <- purrr::possibly(
     function(api_url) jsonlite::read_json(api_url),
-    otherwise = list())
+    otherwise = list()
+  )
   read_api(api_url) %>% first() %>% enframe()
 }
 
 get_trait_name <- function(api_data) {
   #' Retrieve trait name from api data
   if (!is.null(api_data)) {
-    res <- api_data %>% filter(name == "trait") %>%
+    res <- api_data %>%
+      filter(name == "trait") %>%
       pull(value)
   } else {
     res <- "NULL"

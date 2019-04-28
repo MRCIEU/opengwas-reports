@@ -17,14 +17,19 @@ get_args <- function(doc) {
   doc_fmt <- doc %>%
     str_replace_all("\n", "\\\\n")
   parser <- argparse::ArgumentParser(
-    description=doc_fmt,
-    formatter_class="argparse.RawDescriptionHelpFormatter")
+    description = doc_fmt,
+    formatter_class = "argparse.RawDescriptionHelpFormatter"
+  )
   # Required args
   required <- parser$add_argument_group("required arguments")
   required$add_argument(
-    "--input", type = "character")
+    "--input",
+    type = "character"
+  )
   required$add_argument(
-    "--output", type = "character")
+    "--output",
+    type = "character"
+  )
   args <- parser$parse_args()
   return(args)
 }
@@ -43,4 +48,3 @@ main <- function(input, output) {
 }
 
 do.call(main, get_args(DOC))
-

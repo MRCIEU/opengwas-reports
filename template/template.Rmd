@@ -33,7 +33,8 @@ qc_metrics <- jsonlite::read_json(params$qc_file)
 plot_sample <- config::get("plot_sample")
 n_sample <- min(
   config::get("plot_max_snps"),
-  config::get("plot_max_frac") * nrow(main_df))
+  config::get("plot_max_frac") * nrow(main_df)
+)
 ```
 
 # Sidebar {data-width=450 .sidebar}
@@ -121,7 +122,8 @@ qc_file %>% read_file() %>% jsonlite::prettify()
 
 <span class=".flowing-content-shim">
 ```{r render-flags}
-qc_metrics %>% process_flags() %>%
+qc_metrics %>%
+  process_flags() %>%
   enframe() %>%
   mutate_at(vars(value), flatten_lgl) %>%
   knitr::kable()
@@ -151,19 +153,21 @@ main_df %>% skimr::skim() %>% skimr::kable()
 ### Head and tail
 
 ```{r df-head}
-main_df %>% head(n=10) %>% knitr::kable()
+main_df %>% head(n = 10) %>% knitr::kable()
 ```
 
 ```{r df-tail}
-main_df %>% tail(n=10) %>% knitr::kable()
+main_df %>% tail(n = 10) %>% knitr::kable()
 ```
 
 ### bcf preview
 
 <span class=".flowing-content-shim">
 ```{r bcf-preview}
-preview <- system(glue("bcftools view -H {bcf_file} | head -n 50"),
-                  intern = TRUE)
+preview <- system(
+  glue("bcftools view -H {bcf_file} | head -n 50"),
+  intern = TRUE
+)
 cat(preview, sep = "\n")
 ```
 </span>

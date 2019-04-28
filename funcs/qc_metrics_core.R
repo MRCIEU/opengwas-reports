@@ -11,8 +11,8 @@ mac <- function(n, maf) {
 b_std <- function(z, maf, n) {
   # standardised beta
   (
-    sqrt(((z ^ 2) / (z ^ 2 + n - 2)) /
-           (2 * maf * (1 - maf)))
+    sqrt(((z^2) / (z^2 + n - 2)) /
+      (2 * maf * (1 - maf)))
     * sign(z)
   )
 }
@@ -46,7 +46,7 @@ se_n <- function(n, maf, se, beta) {
   # estimate square root of sample size from the summary data
   n_est_sqrt <- (C * sd_y_est2) / med_se
   # estimate sample size from the summary data
-  n_est <- n_est_sqrt ^ 2
+  n_est <- n_est_sqrt^2
   # ratio of sqrt of estimated sample size over sqrt of
   # reported max sample size, expected to be one
   ratio_se_n <- n_est_sqrt / n_rep_sqrt
@@ -68,13 +68,15 @@ se_n <- function(n, maf, se, beta) {
   ratio_diff <- abs(mean_diff / mean_diff2)
 
   # return results:
-  res <- list(n_est = n_est,
-              n_est_sqrt = n_est_sqrt,
-              ratio_se_n = ratio_se_n,
-              mean_diff = mean_diff,
-              ratio_diff = ratio_diff,
-              sd_y_est1 = sd_y_est1,
-              sd_y_est2 = sd_y_est2)
+  res <- list(
+    n_est = n_est,
+    n_est_sqrt = n_est_sqrt,
+    ratio_se_n = ratio_se_n,
+    mean_diff = mean_diff,
+    ratio_diff = ratio_diff,
+    sd_y_est1 = sd_y_est1,
+    sd_y_est2 = sd_y_est2
+  )
   res
 }
 
@@ -90,28 +92,30 @@ sum_r2 <- function(beta, se, maf, n,
   # - `sd_y_est1`: dbl
   # - `sd_y_est2`: dbl
 
-  var1 = 1
+  var1 <- 1
   # # variance reported in the study table
   # var2 = sd_y_rep ^ 2
   # variance estimated using method 1 in se_n function
-  var2 = sd_y_est1 ^ 2
+  var2 <- sd_y_est1^2
   # variance estimated using method 2 in se_n function
-  var3 = sd_y_est2 ^ 2
-  Fstat = (beta ^ 2) / (se ^ 2)
-  r2_1 = 2 * (beta ^ 2) * maf * (1 - maf) / var1
+  var3 <- sd_y_est2^2
+  Fstat <- (beta^2) / (se^2)
+  r2_1 <- 2 * (beta^2) * maf * (1 - maf) / var1
   # r2_2 = 2 (* beta ^ 2) * maf * (1 - maf) / var2
-  r2_2 = 2 * (beta ^ 2) * maf * (1 - maf) / var2
-  r2_3 = 2 * (beta ^ 2) * maf * (1 - maf) / var3
-  r2_4 = Fstat / (Fstat + n - 2)
-  r2_sum1 = sum(r2_1, na.rm = FALSE)
-  r2_sum2 = sum(r2_2, na.rm = FALSE)
-  r2_sum3 = sum(r2_3, na.rm = FALSE)
-  r2_sum4 = sum(r2_4, na.rm = FALSE)
+  r2_2 <- 2 * (beta^2) * maf * (1 - maf) / var2
+  r2_3 <- 2 * (beta^2) * maf * (1 - maf) / var3
+  r2_4 <- Fstat / (Fstat + n - 2)
+  r2_sum1 <- sum(r2_1, na.rm = FALSE)
+  r2_sum2 <- sum(r2_2, na.rm = FALSE)
+  r2_sum3 <- sum(r2_3, na.rm = FALSE)
+  r2_sum4 <- sum(r2_4, na.rm = FALSE)
   # r2_sum5 = sum(r2_5, na.rm = FALSE)
-  res <- list(r2_sum1 = r2_sum1,
-              r2_sum2 = r2_sum2,
-              r2_sum3 = r2_sum3,
-              r2_sum4 = r2_sum4)
+  res <- list(
+    r2_sum1 = r2_sum1,
+    r2_sum2 = r2_sum2,
+    r2_sum3 = r2_sum3,
+    r2_sum4 = r2_sum4
+  )
   return(res)
 }
 
@@ -129,7 +133,8 @@ count_ns <- function(effect_allele, other_allele,
   count5 <- sum(maf < 0 | maf > 1)
   count6 <- sum(!is.finite(beta))
   count.ns <- sum(count1, count2, count3, count4, count5, count6,
-                  na.rm = TRUE)
+    na.rm = TRUE
+  )
   return(count.ns)
 }
 

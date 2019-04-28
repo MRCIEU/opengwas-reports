@@ -5,17 +5,17 @@ ldsc <- function(bcf, out,
                  ldsc_repo = here("ldsc"),
                  ldsc_ref = here("ref_data/eur_w_ld_chr/"),
                  snplist = here("ref_data/snplist.gz"),
-                 conda_dir = fs::path("~/miniconda3")
-                 ) {
+                 conda_dir = fs::path("~/miniconda3")) {
   #' Wrapper for LD score regression
   #' Usage: bcf = "/path/to/<id>/data.bcf", out = "/path/to/<id>/ldsc.txt"
 
-  cmd = glue(
+  cmd <- glue(
     "{ldsc_repo}/ldsc.py",
     " --h2 {bcf} --snplist {snplist}",
     " --ref-ld-chr {ldsc_ref} --w-ld-chr {ldsc_ref}",
-    " --out {out}")
-  bash_cmd = glue("bash -c '
+    " --out {out}"
+  )
+  bash_cmd <- glue("bash -c '
     source {conda_dir}/bin/activate ldsc;
     python {cmd}
   '")
@@ -35,20 +35,22 @@ clump <- function(bcf, out,
   #' Usage: bcf = "/path/to/<id>/data.bcf", out = "/path/to/<id>/clump.txt"
 
   # Get tophits
-  tophits_cmd = glue(
+  tophits_cmd <- glue(
     "{bcftools_binary} view -i 'L10PVAL>{-log10(clump_pval)}' {bcf} |",
     " {bcftools_binary} query -f '%ID %L10PVAL\n' |",
     " awk 'BEGIN {{print \"SNP P\"}}; {{print $1, 10^-$2}}' |",
-    " awk '!seen[$1]++' > {out}.tophits")
+    " awk '!seen[$1]++' > {out}.tophits"
+  )
   message(tophits_cmd)
   system(tophits_cmd)
 
   # Perform clumping
-  clump_cmd = glue(
+  clump_cmd <- glue(
     "{plink_binary} --bfile {plink_ref} --clump {out}.tophits",
     " --clump-kb {clump_kb} --clump-r2 {clump_r2}",
     " --clump-p1 {clump_pval} --clump-p2 {clump_pval}",
-    " --out {out}.tophits")
+    " --out {out}.tophits"
+  )
   message(clump_cmd)
   system(clump_cmd)
 
@@ -68,8 +70,9 @@ clump <- function(bcf, out,
     c(".tophits.clumped", ".tophits.log", ".tophits.nosex", ".tophits") %>%
       walk(function(ext, out) {
         file <- glue("{out}{ext}")
-        if (fs::file_exists(file))
+        if (fs::file_exists(file)) {
           fs::file_delete(file)
+        }
       }, out = out)
   }
 }

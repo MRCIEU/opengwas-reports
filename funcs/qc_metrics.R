@@ -38,8 +38,8 @@ qc__af_cor <- function(df) {
 
 qc__lambda <- function(df) {
   calc_inflation_factor <- function(pval) {
-    lambda = (median(qchisq(pval, df = 1, low = FALSE))
-      / qchisq(0.5, 1, low = FALSE))
+    lambda <- (median(qchisq(pval, df = 1, low = FALSE))
+    / qchisq(0.5, 1, low = FALSE))
     return(lambda)
   }
   p_value <- df %>% pull(PVAL)
@@ -62,14 +62,16 @@ qc__get_n_snps <- function(df, metadata_file) {
     metadata <- jsonlite::read_json(metadata_file)
     n_snps <- metadata[["counts.total_variants"]] %>% as.integer()
   } else {
-    n_snps <- df %>% select(POS, ID, REF) %>% distinct() %>%
+    n_snps <- df %>%
+      select(POS, ID, REF) %>%
+      distinct() %>%
       nrow()
   }
   n_snps
 }
 
 qc__n_p_sig <- function(df) {
-  count_p_sig <- function(pval, threshold = 5e-8){
+  count_p_sig <- function(pval, threshold = 5e-8) {
     #' Count number of pvalues below threshold
     count_sig <- length(which(pval < threshold))
     return(count_sig)
@@ -78,7 +80,7 @@ qc__n_p_sig <- function(df) {
 }
 
 qc__n_mono <- function(df) {
-  count_mono <- function(maf){
+  count_mono <- function(maf) {
     #' Count number of monomorphic SNPs
     count.mono <- sum(maf == 1 | maf == 0)
     return(count.mono)
@@ -88,14 +90,19 @@ qc__n_mono <- function(df) {
 
 qc__n_ns <- function(df) {
   df <- df %>%
-    select(effect_allele = REF, other_allele = ALT,
-           pval = PVAL, se = SE, beta = EFFECT, maf = AF)
-  count_ns(df$effect_allele, df$other_allele,
-           df$pval, df$se, df$beta, df$maf)
+    select(
+      effect_allele = REF, other_allele = ALT,
+      pval = PVAL, se = SE, beta = EFFECT, maf = AF
+    )
+  count_ns(
+    df$effect_allele, df$other_allele,
+    df$pval, df$se, df$beta, df$maf
+  )
 }
 
 qc__n_miss <- function(df) {
-  df %>% select(EFFECT, SE, PVAL, AF, AF_reference) %>%
+  df %>%
+    select(EFFECT, SE, PVAL, AF, AF_reference) %>%
     summarise_all(~ sum(is.na(.x))) %>%
     (function(df) {
       names_df <- df %>% names() %>% sprintf("n_miss_%s", .)
@@ -107,17 +114,22 @@ qc__n_miss <- function(df) {
 
 qc__n_mac <- function(df) {
   # Number of cases where MAC is less than 6
-  df %>% select(N, AF) %>%
+  df %>%
+    select(N, AF) %>%
     mutate(mac = mac(n = N, maf = AF)) %>%
-    pull(mac) %>% `<`(6) %>% sum(na.rm = TRUE)
+    pull(mac) %>%
+    `<`(6) %>%
+    sum(na.rm = TRUE)
 }
 
 qc__is_snpid_unique <- function(df) {
   # Number of rows with identical
   # ID-REF-ALT combination
   df_rows <- df %>% nrow()
-  df_filtered_rows <- df %>% select(ID, REF, ALT) %>%
-    distinct() %>% nrow()
+  df_filtered_rows <- df %>%
+    select(ID, REF, ALT) %>%
+    distinct() %>%
+    nrow()
   df_rows == df_filtered_rows
 }
 
@@ -126,10 +138,12 @@ qc__se_n_r2 <- function(df, clump_file) {
     select(ID, beta = EFFECT, se = SE, n = N, maf = AF) %>%
     na.omit()
   n_max <- max(df$n)
-  se_n_res <- se_n(n = n_max,
-                   maf = df$maf,
-                   se = df$se,
-                   beta = df$beta)
+  se_n_res <- se_n(
+    n = n_max,
+    maf = df$maf,
+    se = df$se,
+    beta = df$beta
+  )
   if (fs::file_exists(clump_file)) {
     top_hits <- read_csv(clump_file, col_names = FALSE)
   } else {
@@ -144,7 +158,8 @@ qc__se_n_r2 <- function(df, clump_file) {
       maf = df_clumped$maf,
       n = n_max_clumped,
       sd_y_est1 = se_n_res$sd_y_est1,
-      sd_y_est2 = se_n_res$sd_y_est2)
+      sd_y_est2 = se_n_res$sd_y_est2
+    )
   } else {
     r2_res <- list(
       r2_sum1 = NA_real_,
@@ -192,24 +207,32 @@ qc__ldsc <- function(ldsc_file) {
 qc__ldsc_extract <- function(ldsc) {
   ldsc_nsnp_merge_refpanel_ld <- ldsc %>%
     str_match("After merging with reference panel LD, (\\d*) SNPs remain") %>%
-    nth(2) %>% as.integer()
+    nth(2) %>%
+    as.integer()
   ldsc_nsnp_merge_regression_ld <- ldsc %>%
     str_match("After merging with regression SNP LD, (\\d*) SNPs remain") %>%
-    nth(2) %>% as.integer()
+    nth(2) %>%
+    as.integer()
   ldsc_observed_scale_h2 <- ldsc %>%
     str_match("Total Observed scale h2: ([\\d.]*) \\(([\\d.]*)\\)")
   ldsc_observed_scale_h2_beta <- ldsc_observed_scale_h2 %>%
-    nth(2) %>% as.double()
+    nth(2) %>%
+    as.double()
   ldsc_observed_scale_h2_se <- ldsc_observed_scale_h2 %>%
-    nth(3) %>% as.double()
+    nth(3) %>%
+    as.double()
   ldsc_intercept <- ldsc %>%
     str_match("Intercept: ([\\d.]*) \\(([\\d.]*)\\)")
   ldsc_intercept_beta <- ldsc_intercept %>% nth(2) %>% as.double()
   ldsc_intercept_se <- ldsc_intercept %>% nth(3) %>% as.double()
-  ldsc_lambda_gc <- ldsc %>% str_match("Lambda GC: ([\\d.]*)") %>%
-    nth(2) %>% as.double()
-  ldsc_mean_chisq <- ldsc %>% str_match("Mean Chi\\^2: ([\\d.]*)") %>%
-    nth(2) %>% as.double()
+  ldsc_lambda_gc <- ldsc %>%
+    str_match("Lambda GC: ([\\d.]*)") %>%
+    nth(2) %>%
+    as.double()
+  ldsc_mean_chisq <- ldsc %>%
+    str_match("Mean Chi\\^2: ([\\d.]*)") %>%
+    nth(2) %>%
+    as.double()
 
   list(
     ldsc_nsnp_merge_refpanel_ld = ldsc_nsnp_merge_refpanel_ld,

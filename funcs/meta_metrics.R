@@ -6,7 +6,8 @@ get_meta_flags <- function(metrics_df) {
 
   # {"ID": [...]}
   meta_flags_id <- metrics_df %>%
-    select(ID) %>% as.list()
+    select(ID) %>%
+    as.list()
 
   meta_flags <- metrics_df %>%
     # {{"ID": study1, "metric1": ., "metric2": .},
@@ -26,7 +27,8 @@ get_meta_flags <- function(metrics_df) {
 
 calc_n_flags <- function(meta_flags) {
   n_flags <- meta_flags %>%
-    select(-ID) %>% mutate_all(as.integer) %>%
+    select(-ID) %>%
+    mutate_all(as.integer) %>%
     reduce(`+`)
   n_flags
 }

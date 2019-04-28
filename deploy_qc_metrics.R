@@ -24,14 +24,17 @@ get_args <- function(doc) {
   doc_fmt <- doc %>%
     str_replace_all("\n", "\\\\n")
   parser <- argparse::ArgumentParser(
-    description=doc_fmt,
-    formatter_class="argparse.RawDescriptionHelpFormatter")
+    description = doc_fmt,
+    formatter_class = "argparse.RawDescriptionHelpFormatter"
+  )
   # Required args
   required <- parser$add_argument_group("required arguments")
   required$add_argument(
-    "input_dir", nargs = 1,
+    "input_dir",
+    nargs = 1,
     type = "character",
-    help = "Input directory that stores all subdirectories")
+    help = "Input directory that stores all subdirectories"
+  )
   # Config args
   config <- parser$add_argument_group("Override config.yml")
   # Optional args
@@ -39,34 +42,48 @@ get_args <- function(doc) {
     "-j", "--n_cores",
     type = "integer",
     default = NULL,
-    help = paste0("Number of cores to use for multiprocessing."))
+    help = paste0("Number of cores to use for multiprocessing.")
+  )
   parser$add_argument(
     "--n_chunks",
     type = "integer",
     default = NULL,
-    help = paste0("Number of chunks to distribute to",
-                  " [default: %(default)s]"))
+    help = paste0(
+      "Number of chunks to distribute to",
+      " [default: %(default)s]"
+    )
+  )
   parser$add_argument(
     "--idx_chunks",
     type = "integer",
     default = NULL,
-    help = paste0("idx of chunks to distribute to",
-                  " [default: %(default)s]"))
+    help = paste0(
+      "idx of chunks to distribute to",
+      " [default: %(default)s]"
+    )
+  )
   parser$add_argument(
     "--render_report",
     action = "store_true", default = FALSE,
-    help = paste0("If True, render_gwas_report as well",
-                  " NOTE: takes considerably longer time!",
-                  " [default: %(default)s]"))
+    help = paste0(
+      "If True, render_gwas_report as well",
+      " NOTE: takes considerably longer time!",
+      " [default: %(default)s]"
+    )
+  )
   parser$add_argument(
     "--no_reuse",
     action = "store_true", default = FALSE,
-    help = paste0("If True, do not reuse processed files",
-                  " [default: %(default)s]"))
+    help = paste0(
+      "If True, do not reuse processed files",
+      " [default: %(default)s]"
+    )
+  )
   parser$add_argument(
     "-n", "--dryrun",
     action = "store_true", default = FALSE,
-    help = paste0("If True, dryrun"))
+    help = paste0("If True, dryrun")
+  )
   args <- parser$parse_args()
   return(args)
 }
@@ -100,8 +117,10 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
     loginfo(glue("main_df: {bcf_file}"))
     main_df <- read_bcf_file(bcf_file = bcf_file, ref_file = refdata)
     loginfo(glue("qc_metrics: {qc_file}"))
-    process_qc_metrics(df = main_df, output_file = qc_file,
-                       output_dir = gwas_dir)
+    process_qc_metrics(
+      df = main_df, output_file = qc_file,
+      output_dir = gwas_dir
+    )
   }
   if (render_report) {
     if (!exists("main_df")) {
@@ -116,10 +135,13 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
 
     loginfo(glue("gwas_id: {gwas_id}"))
     plot_files <- lapply(
-      X = deploy_plotting(main_df = main_df,
-                          output_dir = intermediates_dir,
-                          no_reuse = no_reuse),
-      FUN = function(x) do.call(what = x$what, args = x$args))
+      X = deploy_plotting(
+        main_df = main_df,
+        output_dir = intermediates_dir,
+        no_reuse = no_reuse
+      ),
+      FUN = function(x) do.call(what = x$what, args = x$args)
+    )
     loginfo(plot_files)
     loginfo("Start rendering report...")
     rmarkdown::render(
@@ -128,18 +150,22 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
       output_file = report_file,
       output_dir = gwas_dir,
       intermediates_dir = rmd_intermediates_dir,
-      params = list(gwas_id = gwas_id,
-                    output_dir = gwas_dir,
-                    bcf_file = bcf_file,
-                    main_df = main_df,
-                    qc_file = qc_file,
-                    metadata_file = metadata_file,
-                    refdata_file = refdata,
-                    plot_files = plot_files))
+      params = list(
+        gwas_id = gwas_id,
+        output_dir = gwas_dir,
+        bcf_file = bcf_file,
+        main_df = main_df,
+        qc_file = qc_file,
+        metadata_file = metadata_file,
+        refdata_file = refdata,
+        plot_files = plot_files
+      )
+    )
     if (file_exists(report_file)) {
       loginfo(glue(
         "Success!! (～o￣▽￣)～[]\n",
-        "Report available at {report_file}."))
+        "Report available at {report_file}."
+      ))
     } else {
       logerror("Failure!! (ToT)")
     }
@@ -169,12 +195,14 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
   "))
 
   # Get a list of input dir containing data.bcf, and data.bcf.csi
-  gwas_dirs <- input_dir %>% dir_ls() %>%
+  gwas_dirs <- input_dir %>%
+    dir_ls() %>%
     purrr::keep(is_dir) %>%
     purrr::keep(function(dir) {
       file_exists(path(dir, "data.bcf")) &&
         file_exists(path(dir, "data.bcf.csi"))
-    }) %>% sort()
+    }) %>%
+    sort()
   loginfo(glue("Number of valid studies: {length(gwas_dirs)}"))
   if (!is.null(n_chunks) && !is.null(idx_chunks)) {
     candidate_dirs <- gwas_dirs %>% split_by_chunk(n_chunks, idx_chunks)
@@ -185,12 +213,14 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
 
   if (!dryrun) {
     # Deploy processing
-    res = mclapply(
+    res <- mclapply(
       X = candidate_dirs,
       FUN = purrr::safely(perform_qc, otherwise = FALSE, quiet = FALSE),
       no_reuse = no_reuse, render_report = render_report,
-      mc.cores = n_cores)
-    res %>% purrr::transpose() %>%
+      mc.cores = n_cores
+    )
+    res %>%
+      purrr::transpose() %>%
       write_rds(glue("logs/deploy_qc_metrics_{Sys.Date()}.rds"))
   }
 }

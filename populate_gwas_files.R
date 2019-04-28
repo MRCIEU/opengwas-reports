@@ -22,27 +22,33 @@ get_args <- function(doc) {
   doc_fmt <- doc %>%
     str_replace_all("\n", "\\\\n")
   parser <- argparse::ArgumentParser(
-    description=doc_fmt,
-    formatter_class="argparse.RawDescriptionHelpFormatter")
+    description = doc_fmt,
+    formatter_class = "argparse.RawDescriptionHelpFormatter"
+  )
   # Required args
   required <- parser$add_argument_group("required arguments")
   required$add_argument(
-    "input_dir", nargs = 1,
+    "input_dir",
+    nargs = 1,
     type = "character",
-    help = "Input directory that stores all subdirectories")
+    help = "Input directory that stores all subdirectories"
+  )
   # Optional args
   parser$add_argument(
     "--head",
     type = "double", default = NULL,
-    help = "Only populate first N studies.")
+    help = "Only populate first N studies."
+  )
   parser$add_argument(
     "--output_dir",
     type = "character",
-    help = "Directory to store outputs, by default is {input_dir}-gwas-files.")
+    help = "Directory to store outputs, by default is {input_dir}-gwas-files."
+  )
   parser$add_argument(
     "-n", "--dryrun",
     action = "store_true", default = FALSE,
-    help = paste0("If True, dry run"))
+    help = paste0("If True, dry run")
+  )
   args <- parser$parse_args()
   return(args)
 }
@@ -50,13 +56,18 @@ get_args <- function(doc) {
 get_valid_ids <- function(input_dir) {
 
   # Files in `input_dir`
-  dir_files = input_dir %>% dir_ls()
+  dir_files <- input_dir %>% dir_ls()
   # ids with bcf files
-  ids_bcf_files <- dir_files %>% str_subset("\\.bcf$") %>%
-    path_file() %>% path_ext_remove()
+  ids_bcf_files <- dir_files %>%
+    str_subset("\\.bcf$") %>%
+    path_file() %>%
+    path_ext_remove()
   # ids with bcf.csi files
-  ids_csi_files <- dir_files %>% str_subset("\\.bcf.csi$") %>%
-    path_file() %>% path_ext_remove() %>% path_ext_remove()
+  ids_csi_files <- dir_files %>%
+    str_subset("\\.bcf.csi$") %>%
+    path_file() %>%
+    path_ext_remove() %>%
+    path_ext_remove()
   # list of valid ids
   valid_ids <- intersect(ids_bcf_files, ids_csi_files)
   loginfo(glue("
@@ -94,15 +105,18 @@ get_study_id <- function(input_id, study_dict) {
   # Get Study id from study dict,
   # if it is not found, use input_id
   file_name <- glue("{input_id}.txt.gz")
-  study_id <- study_dict %>% filter(filename == file_name) %>% pull(id) %>%
+  study_id <- study_dict %>%
+    filter(filename == file_name) %>%
+    pull(id) %>%
     first()
   # if empty
-  if (length(study_id) != 1)
+  if (length(study_id) != 1) {
     study_id <- input_id
+  }
   study_id
 }
 
-main <- function(input_dir, output_dir = NULL, head=NULL, dryrun = FALSE) {
+main <- function(input_dir, output_dir = NULL, head = NULL, dryrun = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
   if (is.null(output_dir)) {
@@ -117,8 +131,9 @@ main <- function(input_dir, output_dir = NULL, head=NULL, dryrun = FALSE) {
   "))
 
   ids <- get_valid_ids(input_dir)
-  if (!is.null(head))
+  if (!is.null(head)) {
     ids <- ids %>% head(head)
+  }
   loginfo(glue("ids: {paste(ids, collapse = ' ')}"))
   # if not dryrun
   if (!dryrun) {
@@ -127,8 +142,9 @@ main <- function(input_dir, output_dir = NULL, head=NULL, dryrun = FALSE) {
     output_dir %>% dir_create()
     ids %>%
       walk(populate_gwas_files,
-           input_dir = input_dir, output_dir = output_dir,
-           study_dict = study_dict)
+        input_dir = input_dir, output_dir = output_dir,
+        study_dict = study_dict
+      )
   }
 }
 

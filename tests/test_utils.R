@@ -37,8 +37,10 @@ test_that("split_by_chunk", {
   n_chunks <- 3
   chunk_idx <- 3
   expected_results <- list(1:4, 5:8, 9:10)
-  results <- list(split_by_chunk(vec, n_chunks, 1),
-                  split_by_chunk(vec, n_chunks, 2),
-                  split_by_chunk(vec, n_chunks, 3))
+  results <- list(
+    split_by_chunk(vec, n_chunks, 1),
+    split_by_chunk(vec, n_chunks, 2),
+    split_by_chunk(vec, n_chunks, 3)
+  )
   expect_equal(expected_results, results)
 })

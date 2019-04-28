@@ -19,31 +19,41 @@ get_args <- function(doc) {
   doc_fmt <- doc %>%
     str_replace_all("\n", "\\\\n")
   parser <- argparse::ArgumentParser(
-    description=doc_fmt,
-    formatter_class="argparse.RawDescriptionHelpFormatter")
+    description = doc_fmt,
+    formatter_class = "argparse.RawDescriptionHelpFormatter"
+  )
   # Required args
   required <- parser$add_argument_group("required arguments")
   required$add_argument(
-    "input_dir", nargs = 1,
+    "input_dir",
+    nargs = 1,
     type = "character",
-    help = "Input directory that stores all subdirectories")
+    help = "Input directory that stores all subdirectories"
+  )
   # Config args
   config <- parser$add_argument_group("Override config.yml")
   # Optional args
   parser$add_argument(
     "--output_dir",
     type = "character", default = NULL,
-    help = paste0("output path to store meta results"))
+    help = paste0("output path to store meta results")
+  )
   parser$add_argument(
     "--show",
     action = "store_true", default = FALSE,
-    help = paste0("If True, show the report after it is generated",
-                  " [default: %(default)s]"))
+    help = paste0(
+      "If True, show the report after it is generated",
+      " [default: %(default)s]"
+    )
+  )
   parser$add_argument(
     "--no_reuse",
     action = "store_true", default = FALSE,
-    help = paste0("If True, do not reuse any intermediate files",
-                  " [default: %(default)s]"))
+    help = paste0(
+      "If True, do not reuse any intermediate files",
+      " [default: %(default)s]"
+    )
+  )
   args <- parser$parse_args()
   return(args)
 }
@@ -52,8 +62,9 @@ main <- function(input_dir, output_dir = NULL,
                  show = FALSE, no_reuse = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
-  if (is.null(output_dir))
+  if (is.null(output_dir)) {
     output_dir <- path(glue("{input_dir}-meta"))
+  }
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
   meta_metrics_file <- path(output_dir, "meta_metrics.json")
@@ -72,14 +83,16 @@ main <- function(input_dir, output_dir = NULL,
   "))
 
   # Verify structure
-  list(list(path = input_dir, how = "fail")) %>% purrr::transpose() %>%
+  list(list(path = input_dir, how = "fail")) %>%
+    purrr::transpose() %>%
     pwalk(verify_path)
   c(output_dir, intermediates_dir) %>% walk(dir_create)
 
   # Process metadata and qc_metrics
   if (no_reuse ||
-      c(metadata_file, qc_metrics_file, meta_metrics_file) %>%
-        map(negate(file_exists)) %>% reduce(`||`)) {
+    c(metadata_file, qc_metrics_file, meta_metrics_file) %>%
+      map(negate(file_exists)) %>%
+      reduce(`||`)) {
 
     # meta_metadata
     all_studies <- input_dir %>% dir_ls()
@@ -90,33 +103,50 @@ main <- function(input_dir, output_dir = NULL,
         file_exists(path(dir, "metadata.json")) &&
           file_exists(path(dir, "qc_metrics.json"))
       })
-    valid_studies_id <- valid_studies %>% path_file() %>%
+    valid_studies_id <- valid_studies %>%
+      path_file() %>%
       as.character()
-    invalid_studies_id <- all_studies %>% path_file() %>%
+    invalid_studies_id <- all_studies %>%
+      path_file() %>%
       setdiff(valid_studies_id)
     meta_metrics <- list(
-      ID = list(valid_studies_id = valid_studies_id,
-                invalid_studies_id = invalid_studies_id),
-      metrics = list(num_all_studies = length(all_studies),
-                     num_valid_studies = length(valid_studies)))
+      ID = list(
+        valid_studies_id = valid_studies_id,
+        invalid_studies_id = invalid_studies_id
+      ),
+      metrics = list(
+        num_all_studies = length(all_studies),
+        num_valid_studies = length(valid_studies)
+      )
+    )
     meta_metrics %>%
       jsonlite::write_json(meta_metrics_file, auto_unbox = TRUE)
 
     # metadata
-    metadata <- valid_studies %>% path(., "metadata.json") %>%
-      map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
+    metadata <- valid_studies %>%
+      path(., "metadata.json") %>%
+      map(jsonlite::read_json) %>%
+      purrr::transpose() %>%
+      as_tibble() %>%
       mutate_all(simplify2array) %>%
       mutate(ID = valid_studies_id)
     # Remove list columns that could not be written as a tabular file
     non_list_cols <- metadata %>%
       summarise_all(negate(~ "list" %in% class(.))) %>%
-      t() %>% t() %>% which() %>% `[`(names(metadata), .)
-    metadata %>% select(one_of(non_list_cols)) %>%
+      t() %>%
+      t() %>%
+      which() %>%
+      `[`(names(metadata), .)
+    metadata %>%
+      select(one_of(non_list_cols)) %>%
       write_csv(metadata_file)
 
     # qc_metrics
-    qc_metrics <- valid_studies %>% path(., "qc_metrics.json") %>%
-      map(jsonlite::read_json) %>% purrr::transpose() %>% as_tibble() %>%
+    qc_metrics <- valid_studies %>%
+      path(., "qc_metrics.json") %>%
+      map(jsonlite::read_json) %>%
+      purrr::transpose() %>%
+      as_tibble() %>%
       mutate_all(simplify2array) %>%
       mutate(ID = valid_studies_id)
     qc_metrics %>% write_csv(qc_metrics_file)
@@ -130,8 +160,8 @@ main <- function(input_dir, output_dir = NULL,
 
   qc_metrics <- qc_metrics %>%
     left_join(metadata %>%
-                select(ID, sample_size = counts.total_variants) %>%
-                mutate_at(vars(sample_size), as.integer))
+      select(ID, sample_size = counts.total_variants) %>%
+      mutate_at(vars(sample_size), as.integer))
 
   # Render Rmarkdown
   loginfo("Start rendering report...")
@@ -141,27 +171,30 @@ main <- function(input_dir, output_dir = NULL,
     output_file = report_file,
     output_dir = output_dir,
     intermediates_dir = rmd_intermediates_dir,
-    params = list(meta_metrics = meta_metrics,
-                  qc_metrics = qc_metrics,
-                  metadata = metadata,
-                  input_dir = input_dir,
-                  output_dir = output_dir,
-                  meta_metrics_file = meta_metrics_file,
-                  metadata_file = metadata_file,
-                  qc_metrics_file = qc_metrics_file))
+    params = list(
+      meta_metrics = meta_metrics,
+      qc_metrics = qc_metrics,
+      metadata = metadata,
+      input_dir = input_dir,
+      output_dir = output_dir,
+      meta_metrics_file = meta_metrics_file,
+      metadata_file = metadata_file,
+      qc_metrics_file = qc_metrics_file
+    )
+  )
 
   if (file_exists(report_file)) {
     if (!show) {
       loginfo(glue(
         "Success!! (～o￣▽￣)～[]\n",
-        "Report available at {report_file}."))
+        "Report available at {report_file}."
+      ))
     } else {
       browseURL(report_file)
     }
   } else {
     logerror("Failure!! (ToT)")
   }
-
 }
 
 do.call(main, get_args(DOC))
