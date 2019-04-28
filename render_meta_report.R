@@ -37,7 +37,7 @@ get_args <- function(doc) {
   parser$add_argument(
     "-j", "--n_cores",
     type = "integer",
-    default = NULL,
+    default = 2,
     help = paste0("Number of cores to use for multiprocessing.")
   )
   parser$add_argument(
