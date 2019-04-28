@@ -57,6 +57,7 @@ flags__n_p_sig <- function(qc_metrics) {
 }
 
 flags_definitions <- function() {
+  # Generate definitions for flags
   defn <- list(
     af_correlation = glue(
       "`abs(af_corrlation)` < 0.7"
@@ -90,4 +91,73 @@ flags_definitions <- function() {
     )
   )
   defn
+}
+
+flags_display_funcs <- function() {
+  # Generate functions to display flagged studies
+  #
+  # NOTE: functions must take input:
+  #       `qc_metrics`
+  funcs <- list(
+    af_correlation = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__af_corr(.)) %>%
+        select(ID, trait, af_correlation) %>%
+        arrange(af_correlation),
+
+    inflation_factor = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__lambda(.)) %>%
+        select(ID, trait, inflation_factor) %>%
+        arrange(desc(inflation_factor)),
+
+    n = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__n(.)) %>%
+        select(ID, trait, n),
+
+    is_snpid_non_unique = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__is_snpid_non_unique(.)) %>%
+        select(ID, trait, is_snpid_unique) %>%
+        arrange(desc(is_snpid_unique)),
+
+    mean_EFFECT = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__mean_beta(.)) %>%
+        select(ID, trait, mean_EFFECT) %>%
+        arrange(desc(abs(mean_EFFECT))),
+
+    mean_chisq = function(qc_metrics)
+      qc_metrics %>%
+        filter(purrr::transpose(.) %>%
+          map_lgl(flags__mean_chisq)) %>%
+        select(ID, trait, ldsc_mean_chisq) %>%
+        arrange(desc(ldsc_mean_chisq)),
+
+    n_p_sig = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__lambda(.)) %>%
+        select(ID, trait, n_p_sig) %>%
+        arrange(desc(n_p_sig)),
+
+    miss_EFFECT = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__miss_se(.)) %>%
+        select(ID, trait, n_miss_SE) %>%
+        arrange(desc(n_miss_SE)),
+
+    miss_SE = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__miss_se(.)) %>%
+        select(ID, trait, n_miss_SE) %>%
+        arrange(desc(n_miss_SE)),
+
+    miss_PVAL = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__miss_pval(.)) %>%
+        select(ID, trait, n_miss_PVAL) %>%
+        arrange(desc(n_miss_PVAL))
+  )
+  funcs
 }

@@ -159,125 +159,21 @@ meta_flags %>%
   knitr::kable()
 ```
 
-### `af_correlation`
-
-Studies with `r flag_defn$af_correlation`.
-
-```{r flag_af_corr}
-params$qc_metrics %>%
-  filter(flags__af_corr(.)) %>%
-  select(ID, trait, af_correlation) %>%
-  arrange(af_correlation) %>%
-  knitr::kable()
-```
-
-### `inflation_factor`
-
-Studies with `r flag_defn$af_correlation`.
-
-```{r flag_inflation_factor}
-params$qc_metrics %>%
-  filter(flags__lambda(.)) %>%
-  select(ID, trait, inflation_factor) %>%
-  arrange(desc(inflation_factor)) %>%
-  knitr::kable()
-```
-
-### `n`
-
-Studies with `r flag_defn$n`.
-
-```{r flag_n}
-params$qc_metrics %>%
-  filter(flags__n(.)) %>%
-  select(ID, trait, n) %>%
-  arrange(n) %>%
-  knitr::kable()
-```
-
-### `is_snpid_non_unique`
-
-Studies with `r flag_defn$is_snpid_non_unique`.
-
-```{r flag_is_snpid_non_unique}
-params$qc_metrics %>%
-  filter(flags__is_snpid_non_unique(.)) %>%
-  select(ID, trait, is_snpid_unique) %>%
-  arrange(desc(is_snpid_unique)) %>%
-  knitr::kable()
-```
-
-### `mean_EFFECT`
-
-Studies with `r flag_defn$mean_EFFECT`.
-
-```{r flag_mean_EFFECT}
-params$qc_metrics %>%
-  filter(flags__mean_beta(.)) %>%
-  select(ID, trait, mean_EFFECT) %>%
-  arrange(desc(abs(mean_EFFECT))) %>%
-  knitr::kable()
-```
-
-### `mean_chisq`
-
-Studies with `r flag_defn$mean_chisq`.
-
-```{r flag_mean_chisq}
-params$qc_metrics %>%
-  filter(purrr::transpose(.) %>%
-         map_lgl(flags__mean_chisq)) %>%
-  select(ID, trait, ldsc_mean_chisq) %>%
-  arrange(desc(ldsc_mean_chisq)) %>%
-  knitr::kable()
-```
-
-### `n_p_sig`
-
-Studies with `r flag_defn$n_p_sig`.
-
-```{r flag_n_p_sig}
-params$qc_metrics %>%
-  filter(flags__lambda(.)) %>%
-  select(ID, trait, n_p_sig) %>%
-  arrange(desc(n_p_sig)) %>%
-  knitr::kable()
-```
-
-### `miss_EFFECT`
-
-Studies with `r flag_defn$miss_EFFECT`.
-
-```{r flag_miss_EFFECT}
-params$qc_metrics %>%
-  filter(flags__miss_beta(.)) %>%
-  select(ID, trait, n_miss_EFFECT) %>%
-  arrange(desc(n_miss_EFFECT)) %>%
-  knitr::kable()
-```
-
-### `miss_SE`
-
-Studies with `r flag_defn$miss_SE`.
-
-```{r flag_miss_SE}
-params$qc_metrics %>%
-  filter(flags__miss_se(.)) %>%
-  select(ID, trait, n_miss_SE) %>%
-  arrange(desc(n_miss_SE)) %>%
-  knitr::kable()
-```
-
-### `miss_PVAL`
-
-Studies with `r flag_defn$miss_PVAL`.
-
-```{r flag_miss_PVAL}
-params$qc_metrics %>%
-  filter(flags__miss_pval(.)) %>%
-  select(ID, trait, n_miss_PVAL) %>%
-  arrange(desc(n_miss_PVAL)) %>%
-  knitr::kable()
+```{r flagged_studies, results="asis"}
+flag_names %>%
+  walk(function(flag_name) {
+    cat(glue("\n\n### `{flag_name}`\n\n"))
+    defn <- flags_definitions() %>%
+      pluck(flag_name)
+    func <- flags_display_funcs() %>%
+      pluck(flag_name)
+    # description
+    cat(glue("\n\n{defn}\n\n"))
+    # table
+    func(qc_metrics = params$qc_metrics) %>%
+      knitr::kable() %>%
+      print()
+  })
 ```
 
 # Definitions
