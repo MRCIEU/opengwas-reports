@@ -77,6 +77,7 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2,
   meta_metrics_file <- path(output_dir, "meta_metrics.json")
   metadata_file <- path(output_dir, "metadata.csv")
   qc_metrics_file <- path(output_dir, "qc_metrics.csv")
+  meta_flags_file <- path(output_dir, "flags.csv")
   report_file <- path(output_dir, "meta_report.html")
   # dependency files
   study_table_file <- path(here("ref_data/study-table-13-02-19.tsv"))
@@ -175,6 +176,7 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2,
       mutate(ID = valid_studies_id)
     qc_metrics %>% glimpse()
     qc_metrics %>% write_csv(qc_metrics_file)
+
   }
   meta_metrics <- jsonlite::read_json(meta_metrics_file)
   metadata <- read_csv(metadata_file)
@@ -188,6 +190,10 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2,
       select(ID, sample_size = counts.total_variants) %>%
       mutate_at(vars(sample_size), as.integer))
 
+  meta_flags <- qc_metrics %>% get_meta_flags()
+  meta_flags %>% glimpse()
+  meta_flags %>% write_csv(meta_flags_file)
+
   # Render Rmarkdown
   loginfo("Start rendering report...")
   rmarkdown::render(
@@ -199,6 +205,7 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2,
     params = list(
       meta_metrics = meta_metrics,
       qc_metrics = qc_metrics,
+      meta_flags = meta_flags,
       metadata = metadata,
       input_dir = input_dir,
       output_dir = output_dir,

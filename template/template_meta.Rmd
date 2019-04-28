@@ -8,6 +8,7 @@ output:
 params:
   meta_metrics: meta_metrics
   qc_metrics: qc_metrics
+  meta_flags: meta_flags
   metadata: metadata
   input_dir: input_dir
   output_dir: output_dir
@@ -22,8 +23,7 @@ options(width = 100)
 metric_names <- params$qc_metrics %>%
   names() %>%
   setdiff(c("ID", "sample_size", "trait"))
-meta_flags <- params$qc_metrics %>%
-  get_meta_flags()
+meta_flags <- params$meta_flags
 flag_names <- meta_flags %>%
   names() %>%
   setdiff(c("ID", "trait"))

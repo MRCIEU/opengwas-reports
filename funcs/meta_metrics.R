@@ -19,7 +19,8 @@ get_meta_flags <- function(metrics_df) {
     purrr::transpose() %>%
     splice(meta_flags_id) %>%
     as_tibble() %>%
-    select(ID, everything())
+    select(ID, everything()) %>%
+    mutate_at(vars(-ID), flatten_lgl)
 
   # ~ID, ~flag1, ~flag2, ...
   meta_flags
