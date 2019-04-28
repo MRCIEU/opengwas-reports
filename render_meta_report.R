@@ -8,6 +8,7 @@ suppressPackageStartupMessages({
   library("fs")
   library("here")
   library("logging")
+  library("parallel")
   source(here("funcs/utils.R"))
   source(here("funcs/meta_plots.R"))
   source(here("funcs/flags.R"))
@@ -34,6 +35,12 @@ get_args <- function(doc) {
   config <- parser$add_argument_group("Override config.yml")
   # Optional args
   parser$add_argument(
+    "-j", "--n_cores",
+    type = "integer",
+    default = NULL,
+    help = paste0("Number of cores to use for multiprocessing.")
+  )
+  parser$add_argument(
     "--output_dir",
     type = "character", default = NULL,
     help = paste0("output path to store meta results")
@@ -58,7 +65,7 @@ get_args <- function(doc) {
   return(args)
 }
 
-main <- function(input_dir, output_dir = NULL,
+main <- function(input_dir, output_dir = NULL, n_cores = 2,
                  show = FALSE, no_reuse = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
@@ -109,6 +116,14 @@ main <- function(input_dir, output_dir = NULL,
     invalid_studies_id <- all_studies %>%
       path_file() %>%
       setdiff(valid_studies_id)
+    loginfo(glue("Studies:
+      - num all studies: {length(all_studies)}
+      - num valid studies: {length(valid_studies)}
+      - valid ids preview:
+        {paste(head(valid_studies_id, 10), collapse = ', ')}
+    "))
+
+    loginfo("Process meta_metrics")
     meta_metrics <- list(
       ID = list(
         valid_studies_id = valid_studies_id,
@@ -123,9 +138,13 @@ main <- function(input_dir, output_dir = NULL,
       jsonlite::write_json(meta_metrics_file, auto_unbox = TRUE)
 
     # metadata
+    loginfo("Process metadata")
     metadata <- valid_studies %>%
       path(., "metadata.json") %>%
-      map(jsonlite::read_json) %>%
+      mclapply(
+        X = .,
+        FUN = possibly(jsonlite::read_json, otherwise = NULL),
+        mc.cores = n_cores) %>%
       purrr::transpose() %>%
       as_tibble() %>%
       mutate_all(simplify2array) %>%
@@ -137,18 +156,24 @@ main <- function(input_dir, output_dir = NULL,
       t() %>%
       which() %>%
       `[`(names(metadata), .)
-    metadata %>%
-      select(one_of(non_list_cols)) %>%
-      write_csv(metadata_file)
+    metadata <- metadata %>%
+      select(one_of(non_list_cols))
+    metadata %>% glimpse()
+    metadata %>% write_csv(metadata_file)
 
     # qc_metrics
+    loginfo("Process qc_metrics")
     qc_metrics <- valid_studies %>%
       path(., "qc_metrics.json") %>%
-      map(jsonlite::read_json) %>%
+      mclapply(
+        X = .,
+        FUN = possibly(jsonlite::read_json, otherwise = NULL),
+        mc.cores = n_cores) %>%
       purrr::transpose() %>%
       as_tibble() %>%
       mutate_all(simplify2array) %>%
       mutate(ID = valid_studies_id)
+    qc_metrics %>% glimpse()
     qc_metrics %>% write_csv(qc_metrics_file)
   }
   meta_metrics <- jsonlite::read_json(meta_metrics_file)
