@@ -137,15 +137,15 @@ flags_display_funcs <- function() {
 
     n_p_sig = function(qc_metrics)
       qc_metrics %>%
-        filter(flags__lambda(.)) %>%
+        filter(flags__n_p_sig(.)) %>%
         select(ID, trait, n_p_sig) %>%
         arrange(desc(n_p_sig)),
 
     miss_EFFECT = function(qc_metrics)
       qc_metrics %>%
-        filter(flags__miss_se(.)) %>%
-        select(ID, trait, n_miss_SE) %>%
-        arrange(desc(n_miss_SE)),
+        filter(flags__miss_beta(.)) %>%
+        select(ID, trait, n_miss_EFFECT) %>%
+        arrange(desc(n_miss_EFFECT)),
 
     miss_SE = function(qc_metrics)
       qc_metrics %>%
