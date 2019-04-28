@@ -1,13 +1,13 @@
 name: mrbase-report
 channels:
-  - conda-forge
   - r
+  - conda-forge
   - defaults
 dependencies:
   - _r-mutex=1.0.0=anacondar_1
   - bwidget=1.9.11=1
   - bzip2=1.0.6=h1de35cc_1002
-  - ca-certificates=2019.1.23=0
+  - ca-certificates=2019.3.9=hecc5488_0
   - cairo=1.14.12=hc4e6be7_4
   - cctools=895=h7512d6f_0
   - certifi=2019.3.9=py37_0
@@ -132,6 +132,7 @@ dependencies:
   - r-readr=1.1.1=r351h32998d9_0
   - r-readxl=1.1.0=r351h32998d9_0
   - r-rematch=1.0.1=r351hf348343_0
+  - r-rematch2=2.0.1=r351h6115d3f_1001
   - r-reprex=0.2.0=r351hf348343_0
   - r-reshape2=1.4.3=r351h32998d9_0
   - r-rlang=0.2.1=r351h6402f54_0
@@ -146,6 +147,7 @@ dependencies:
   - r-sourcetools=0.1.7=r351h32998d9_0
   - r-stringi=1.2.4=r351h32998d9_0
   - r-stringr=1.3.1=r351hf348343_0
+  - r-styler=1.1.0=r351h6115d3f_1000
   - r-testthat=2.0.0=r351h32998d9_0
   - r-tibble=1.4.2=r351h6402f54_0
   - r-tidyr=0.8.1=r351h32998d9_0

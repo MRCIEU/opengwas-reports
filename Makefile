@@ -19,6 +19,10 @@ __utils__:
 check-health:
 	utils/check-health.sh
 
+## Format code
+fmt:
+	Rscript -e "styler::style_dir(filetype = c('.R', '.Rmd'))"
+
 ## Unit tests
 test:
 	@files=tests/test_*.R; \
