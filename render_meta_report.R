@@ -46,6 +46,11 @@ get_args <- function(doc) {
     help = paste0("output path to store meta results")
   )
   parser$add_argument(
+    "--whitelist",
+    type = "character", default = NULL,
+    help = paste0("path to a whitelist file to only include whitelisted studies")
+  )
+  parser$add_argument(
     "--show",
     action = "store_true", default = FALSE,
     help = paste0(
@@ -65,12 +70,21 @@ get_args <- function(doc) {
   return(args)
 }
 
-main <- function(input_dir, output_dir = NULL, n_cores = 2,
+main <- function(input_dir, output_dir = NULL, n_cores = 2, whitelist = NULL,
                  show = FALSE, no_reuse = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
+  # output paths:
+  # if not specified, will be {input_dir}-meta
+  # if there is a whitelist, will be {input_dir}-meta-filtered
   if (is.null(output_dir)) {
     output_dir <- path(glue("{input_dir}-meta"))
+    if (!is.null(whitelist)) {
+      output_dir <- path(glue("{input_dir}-meta-filtered"))
+    }
+  }
+  if (!is.null(whitelist)) {
+    whitelist <- path_abs(whitelist)
   }
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
@@ -104,6 +118,20 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2,
 
     # meta_metadata
     all_studies <- input_dir %>% dir_ls()
+    loginfo(glue("Num all studies: {length(all_studies)}"))
+    if (!is.null(whitelist)) {
+      loginfo(glue("Read whitelist ids from {whitelist}"))
+      whitelist_ids <- read_csv(whitelist, col_names = FALSE) %>%
+        pull(X1)
+      loginfo(glue(
+        "whitelist ids: {paste(head(whitelist_ids, 10), collapse = ', ')}"
+      ))
+      all_studies <- all_studies %>%
+        keep(function(dir) {
+          path_file(dir) %in% whitelist_ids
+        })
+      loginfo(glue("Num all studies (filterd): {length(all_studies)}"))
+    }
     valid_studies <- all_studies %>%
       # Only directories that contains
       # "metadata.json" and "qc_metrics.json"
@@ -117,12 +145,8 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2,
     invalid_studies_id <- all_studies %>%
       path_file() %>%
       setdiff(valid_studies_id)
-    loginfo(glue("Studies:
-      - num all studies: {length(all_studies)}
-      - num valid studies: {length(valid_studies)}
-      - valid ids preview:
-        {paste(head(valid_studies_id, 10), collapse = ', ')}
-    "))
+    loginfo(glue("Num valid studies: {length(valid_studies_id)}"))
+    loginfo(glue("Num invalid studies: {length(invalid_studies_id)}"))
 
     loginfo("Process meta_metrics")
     meta_metrics <- list(
