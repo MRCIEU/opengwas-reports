@@ -1,5 +1,5 @@
 # Bins
-declare -a bins=('conda' 'plink' 'bcftools')
+declare -a bins=('conda' 'plink' 'bcftools' 'msrsync')
 # Patterns to grep in $(conda env list)
 declare -a conda_env_patterns=('mrbase-report' 'ldsc ')
 # Dependent paths
