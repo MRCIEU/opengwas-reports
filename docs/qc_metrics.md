@@ -31,7 +31,7 @@
   $\texttt{mean_diff} = \sum_{j} \frac{\widehat{\beta_j^{std}} - \beta_j}{\texttt{n_snps}}$,
   mean difference between the standardised beta, predicted from P-values,
   and the observed beta. The difference should be very close to zero if trait has a variance of 1.
-    - $\widehat{\beta_j^{std}} = \sqrt{\frac{{z}_j^2 / ({z}_j^2 + n -2)}{2 \times {MAF}_j \times {1 - {MAF}_j}}} \times sign({z}_j)$,
+    - $\widehat{\beta_j^{std}} = \sqrt{\frac{{z}_j^2 / ({z}_j^2 + n -2)}{2 \times {MAF}_j \times (1 - {MAF}_j)}} \times sign({z}_j)$,
     - ${z}_j = \frac{\beta_j}{{se}_j}$,
     - and $\beta_j$ is the reported effect size.
 - `ratio_diff`:
