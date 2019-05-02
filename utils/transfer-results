@@ -8,10 +8,14 @@
 #
 # NOTE: you need to have a ssh alias called epi-franklin
 
-orig_dir=$1
-target_dir=/projects/MRC-IEU/research/projects/ieu2/p4/013/working/data/qc-report-results
+# SETUP OPTIONS
+export SRCDIR=$1
+export DESTPATH=$2
+export THREADS="8"
+export RSYNC_ARGS="-avz --timeout=240"
 
 for i in {1..5}; do
-  rsync -avz --timeout=30 --progress \
-    ${orig_dir} epi-franklin:${target_dir}/
+  rsync -zr -f"+ */" -f"- *" -e 'ssh -c arcfour' $SRCDIR/ $DESTPATH/ \
+      && \
+  cd $SRCDIR  &&  find . ! -type d -print0 | xargs -0 -n1 -P$THREADS -I% rsync ${RSYNC_ARGS} -e 'ssh -c arcfour' % $DESTPATH/%
 done
