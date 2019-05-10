@@ -119,10 +119,6 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   input_parent_base <- path_file(path_dir(input))
   if (is.null(output_dir)) {
     output_dir <- path_dir(input)
-  } else {
-    # When `--output_dir` is specified, append the parent directory
-    # of input to it
-    output_dir <- path(output_dir, input_parent_base)
   }
   # Setup logging
   basicConfig()
