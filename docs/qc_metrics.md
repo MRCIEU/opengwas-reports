@@ -107,7 +107,8 @@
 - `inflation_factor`: `inflation_factor` > 1.2.
 - `n`: `n` (max reported sample size) < 10000.
 - `is_snpid_non_unique`: NOT `is_snpid_unique`.
-- `mean_EFFECT`: `abs(mean(EFFECT))` > 0.5.
+- `mean_EFFECT_05`: `abs(mean(EFFECT))` > 0.5.
+- `mean_EFFECT_01`: `abs(mean(EFFECT))` > 0.1.
 - `mean_chisq`: `ldsc_mean_chisq` > 1.3 or `ldsc_mean_chisq` < 0.7.
 - `n_p_sig`: `n_p_sig` > 1000.
 - `miss_<*>`: `n_miss_<*>` / `n_snps` > 0.01.

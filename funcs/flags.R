@@ -5,7 +5,8 @@ process_flags <- function(qc_metrics) {
     inflation_factor = flags__lambda(qc_metrics),
     n = flags__n(qc_metrics),
     is_snpid_non_unique = flags__is_snpid_non_unique(qc_metrics),
-    mean_EFFECT = flags__mean_beta(qc_metrics),
+    mean_EFFECT_05 = flags__mean_beta_05(qc_metrics),
+    mean_EFFECT_01 = flags__mean_beta_01(qc_metrics),
     mean_chisq = flags__mean_chisq(qc_metrics),
     n_p_sig = flags__n_p_sig(qc_metrics),
     miss_EFFECT = flags__miss_beta(qc_metrics),
@@ -45,8 +46,12 @@ flags__miss_pval <- function(qc_metrics) {
   (qc_metrics$n_miss_PVAL / qc_metrics$n_snps) > 0.01
 }
 
-flags__mean_beta <- function(qc_metrics) {
+flags__mean_beta_05 <- function(qc_metrics) {
   abs(qc_metrics$mean_EFFECT) > 0.5
+}
+
+flags__mean_beta_01 <- function(qc_metrics) {
+  abs(qc_metrics$mean_EFFECT) > 0.1
 }
 
 flags__mean_chisq <- function(qc_metrics) {
@@ -81,8 +86,11 @@ flags_definitions <- function() {
     is_snpid_non_unique = glue(
       "NOT `is_snpid_unique`"
     ),
-    mean_EFFECT = glue(
+    mean_EFFECT_05 = glue(
       "`abs(mean(EFFECT))` > 0.5"
+    ),
+    mean_EFFECT_01 = glue(
+      "`abs(mean(EFFECT))` > 0.1"
     ),
     mean_chisq = glue(
       "`ldsc_mean_chisq` > 1.3 or `ldsc_mean_chisq` < 0.7"
@@ -138,9 +146,15 @@ flags_display_funcs <- function() {
         select(ID, trait, is_snpid_unique) %>%
         arrange(desc(is_snpid_unique)),
 
-    mean_EFFECT = function(qc_metrics)
+    mean_EFFECT_05 = function(qc_metrics)
       qc_metrics %>%
-        filter(flags__mean_beta(.)) %>%
+        filter(flags__mean_beta_05(.)) %>%
+        select(ID, trait, mean_EFFECT) %>%
+        arrange(desc(abs(mean_EFFECT))),
+
+    mean_EFFECT_01 = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__mean_beta_01(.)) %>%
         select(ID, trait, mean_EFFECT) %>%
         arrange(desc(abs(mean_EFFECT))),
 
