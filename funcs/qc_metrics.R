@@ -197,8 +197,8 @@ qc__ldsc <- function(ldsc_file) {
       ldsc_intercept_beta = NA_real_,
       ldsc_intercept_se = NA_real_,
       ldsc_lambda_gc = NA_real_,
-      ldsc_mean_chisq = NA_real_
-      ldsc_ratio = NA_real_,
+      ldsc_mean_chisq = NA_real_,
+      ldsc_ratio = NA_real_
     )
   }
 
