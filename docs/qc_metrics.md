@@ -115,6 +115,7 @@
 - `ldsc_ratio`: `ldsc_ratio` > 0.5
 - `ldsc_intercept_beta`: `ldsc_intercept_beta` > 1.5
 - `n_clumped_hits`: `n_clumped_hits` > 1000
+- `r2_sum<*>`: `r2_sum<*>` > 0.5
 
 **Plots**
 

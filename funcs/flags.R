@@ -14,7 +14,11 @@ process_flags <- function(qc_metrics) {
     miss_PVAL = flags__miss_pval(qc_metrics),
     ldsc_ratio = flags__ldsc_ratio(qc_metrics),
     ldsc_intercept_beta = flags__ldsc_intercept_beta(qc_metrics),
-    n_clumped_hits = flags__n_clumped_hits(qc_metrics)
+    n_clumped_hits = flags__n_clumped_hits(qc_metrics),
+    r2_sum1 = flags__r2_sum1(qc_metrics),
+    r2_sum2 = flags__r2_sum2(qc_metrics),
+    r2_sum3 = flags__r2_sum3(qc_metrics),
+    r2_sum4 = flags__r2_sum4(qc_metrics)
   )
   res
 }
@@ -76,6 +80,22 @@ flags__n_clumped_hits <- function(qc_metrics) {
   qc_metrics$n_clumped_hits > 1000
 }
 
+flags__r2_sum1 <- function(qc_metrics) {
+  qc_metrics$r2_sum1 > 0.5
+}
+
+flags__r2_sum2 <- function(qc_metrics) {
+  qc_metrics$r2_sum2 > 0.5
+}
+
+flags__r2_sum3 <- function(qc_metrics) {
+  qc_metrics$r2_sum3 > 0.5
+}
+
+flags__r2_sum4 <- function(qc_metrics) {
+  qc_metrics$r2_sum4 > 0.5
+}
+
 flags_definitions <- function() {
   # Generate definitions for flags
   defn <- list(
@@ -120,6 +140,18 @@ flags_definitions <- function() {
     ),
     n_clumped_hits = glue(
       "`n_clumped_hits` > 1000"
+    ),
+    r2_sum1 = glue(
+      "`r2_sum1` > 0.5"
+    ),
+    r2_sum2 = glue(
+      "`r2_sum2` > 0.5"
+    ),
+    r2_sum3 = glue(
+      "`r2_sum3` > 0.5"
+    ),
+    r2_sum4 = glue(
+      "`r2_sum4` > 0.5"
     )
   )
   defn
@@ -213,7 +245,31 @@ flags_display_funcs <- function() {
       qc_metrics %>%
         filter(flags__n_clumped_hits(.)) %>%
         select(ID, trait, n_clumped_hits) %>%
-        arrange(desc(n_clumped_hits))
+        arrange(desc(n_clumped_hits)),
+
+    r2_sum1 = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__r2_sum1(.)) %>%
+        select(ID, trait, r2_sum1) %>%
+        arrange(desc(r2_sum1)),
+
+    r2_sum2 = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__r2_sum2(.)) %>%
+        select(ID, trait, r2_sum2) %>%
+        arrange(desc(r2_sum2)),
+
+    r2_sum3 = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__r2_sum3(.)) %>%
+        select(ID, trait, r2_sum3) %>%
+        arrange(desc(r2_sum3)),
+
+    r2_sum4 = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__r2_sum4(.)) %>%
+        select(ID, trait, r2_sum4) %>%
+        arrange(desc(r2_sum4))
   )
   funcs
 }
