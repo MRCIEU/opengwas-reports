@@ -114,6 +114,7 @@
 - `miss_<*>`: `n_miss_<*>` / `n_snps` > 0.01.
 - `ldsc_ratio`: `ldsc_ratio` > 0.5
 - `ldsc_intercept_beta`: `ldsc_intercept_beta` > 1.5
+- `n_clumped_hits`: `n_clumped_hits` > 1000
 
 **Plots**
 

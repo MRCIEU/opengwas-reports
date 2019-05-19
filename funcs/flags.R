@@ -13,7 +13,8 @@ process_flags <- function(qc_metrics) {
     miss_SE = flags__miss_se(qc_metrics),
     miss_PVAL = flags__miss_pval(qc_metrics),
     ldsc_ratio = flags__ldsc_ratio(qc_metrics),
-    ldsc_intercept_beta = flags__ldsc_intercept_beta(qc_metrics)
+    ldsc_intercept_beta = flags__ldsc_intercept_beta(qc_metrics),
+    n_clumped_hits = flags__n_clumped_hits(qc_metrics)
   )
   res
 }
@@ -71,6 +72,10 @@ flags__ldsc_intercept_beta <- function(qc_metrics) {
   qc_metrics$ldsc_intercept_beta > 1.5
 }
 
+flags__n_clumped_hits <- function(qc_metrics) {
+  qc_metrics$n_clumped_hits > 1000
+}
+
 flags_definitions <- function() {
   # Generate definitions for flags
   defn <- list(
@@ -112,6 +117,9 @@ flags_definitions <- function() {
     ),
     ldsc_intercept_beta = glue(
       "`ldsc_intercept_beta` > 1.5"
+    ),
+    n_clumped_hits = glue(
+      "`n_clumped_hits` > 1000"
     )
   )
   defn
@@ -199,7 +207,13 @@ flags_display_funcs <- function() {
       qc_metrics %>%
         filter(flags__ldsc_intercept_beta(.)) %>%
         select(ID, trait, ldsc_intercept_beta) %>%
-        arrange(desc(ldsc_intercept_beta))
+        arrange(desc(ldsc_intercept_beta)),
+
+    n_clumped_hits = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__n_clumped_hits(.)) %>%
+        select(ID, trait, n_clumped_hits) %>%
+        arrange(desc(n_clumped_hits))
   )
   funcs
 }
