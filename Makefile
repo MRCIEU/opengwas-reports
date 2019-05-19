@@ -21,7 +21,18 @@ check-health:
 
 ## Format code
 fmt:
-	Rscript -e "styler::style_dir(filetype = c('.R', '.Rmd'))"
+	@files=$$(find . -iname "*.R" -not -path "./ldsc/*"); \
+	echo $${files}; \
+	for file in $${files}; do \
+	  echo "    - $${file}"; \
+	  Rscript -e "styler::style_file(\"$${file}\")"; \
+	done
+	@files=$$(find . -iname "*.Rmd" -not -path "./ldsc/*"); \
+	echo $${files}; \
+	for file in $${files}; do \
+	  echo "    - $${file}"; \
+	  Rscript -e "styler::style_file(\"$${file}\")"; \
+	done
 
 ## Unit tests
 test:
