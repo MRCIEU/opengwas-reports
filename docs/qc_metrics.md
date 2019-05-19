@@ -90,6 +90,13 @@
   Lambda GC statistics.
 - `ldsc_mean_chisq`:
   Mean $\chi^2$ statistics.
+- `ldsc_ratio`:
+  $\frac{\texttt{ldsc_intercept_beta} - 1}{\texttt{ldsc_mean_chisq} - 1}$,
+  the proportion of the inflation in the mean $\chi^2$ that the LD Score regression intercepts
+  ascribes to causes other than polygenic heritability.
+  The value of ratio should be close to zero, though in practice values of 0.1-0.2 are not
+  uncommon, probably due to sample/reference LD Score mismatch or model misspecification
+  (e.g., low LD variants have slightly higher $h^2$ per SNP).
 
 **Flags**
 
@@ -102,7 +109,8 @@
 - `mean_EFFECT`: `abs(mean(EFFECT))` > 0.5.
 - `mean_chisq`: `ldsc_mean_chisq` > 1.3 or `ldsc_mean_chisq` < 0.7.
 - `n_p_sig`: `n_p_sig` > 1000.
-- `miss_<*>` `n_miss_<*>` / `n_snps` > 0.01.
+- `miss_<*>`: `n_miss_<*>` / `n_snps` > 0.01.
+- `ldsc_ratio`: `ldsc_ratio` > 0.5
 
 **Plots**
 

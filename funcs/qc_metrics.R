@@ -198,6 +198,7 @@ qc__ldsc <- function(ldsc_file) {
       ldsc_intercept_se = NA_real_,
       ldsc_lambda_gc = NA_real_,
       ldsc_mean_chisq = NA_real_
+      ldsc_ratio = NA_real_,
     )
   }
 
@@ -233,6 +234,7 @@ qc__ldsc_extract <- function(ldsc) {
     str_match("Mean Chi\\^2: ([\\d.]*)") %>%
     nth(2) %>%
     as.double()
+  ldsc_ratio <- (ldsc_intercept_beta - 1) / (ldsc_mean_chisq - 1)
 
   list(
     ldsc_nsnp_merge_refpanel_ld = ldsc_nsnp_merge_refpanel_ld,
@@ -242,7 +244,8 @@ qc__ldsc_extract <- function(ldsc) {
     ldsc_intercept_beta = ldsc_intercept_beta,
     ldsc_intercept_se = ldsc_intercept_se,
     ldsc_lambda_gc = ldsc_lambda_gc,
-    ldsc_mean_chisq = ldsc_mean_chisq
+    ldsc_mean_chisq = ldsc_mean_chisq,
+    ldsc_ratio = ldsc_ratio
   )
 }
 

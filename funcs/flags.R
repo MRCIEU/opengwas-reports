@@ -10,7 +10,8 @@ process_flags <- function(qc_metrics) {
     n_p_sig = flags__n_p_sig(qc_metrics),
     miss_EFFECT = flags__miss_beta(qc_metrics),
     miss_SE = flags__miss_se(qc_metrics),
-    miss_PVAL = flags__miss_pval(qc_metrics)
+    miss_PVAL = flags__miss_pval(qc_metrics),
+    ldsc_ratio = flags__ldsc_ratio(qc_metrics)
   )
   res
 }
@@ -56,6 +57,10 @@ flags__n_p_sig <- function(qc_metrics) {
   qc_metrics$n_p_sig > 1000
 }
 
+flags__ldsc_ratio <- function(qc_metrics) {
+  qc_metrics$ldsc_ratio > 0.5
+}
+
 flags_definitions <- function() {
   # Generate definitions for flags
   defn <- list(
@@ -88,6 +93,9 @@ flags_definitions <- function() {
     ),
     miss_PVAL = glue(
       "`n_miss_PVAL` / `n_snps` > 0.01"
+    ),
+    ldsc_ratio = glue(
+      "`ldsc_ratio` > 0.5"
     )
   )
   defn
@@ -157,7 +165,13 @@ flags_display_funcs <- function() {
       qc_metrics %>%
         filter(flags__miss_pval(.)) %>%
         select(ID, trait, n_miss_PVAL) %>%
-        arrange(desc(n_miss_PVAL))
+        arrange(desc(n_miss_PVAL)),
+
+    ldsc_ratio = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__ldsc_ratio(.)) %>%
+        select(ID, trait, ldsc_ratio) %>%
+        arrange(desc(ldsc_ratio))
   )
   funcs
 }
