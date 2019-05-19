@@ -86,6 +86,7 @@
   Coefficient value and SE for total observed scale h2.
 - `ldsc_intercept_{beta,se}`:
   Coefficient value and SE for intercept.
+  Intercept is expected to be 1.
 - `ldsc_lambda_gc`:
   Lambda GC statistics.
 - `ldsc_mean_chisq`:
@@ -111,6 +112,7 @@
 - `n_p_sig`: `n_p_sig` > 1000.
 - `miss_<*>`: `n_miss_<*>` / `n_snps` > 0.01.
 - `ldsc_ratio`: `ldsc_ratio` > 0.5
+- `ldsc_intercept_beta`: `ldsc_intercept_beta` > 1.5
 
 **Plots**
 

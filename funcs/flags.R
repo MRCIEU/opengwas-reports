@@ -11,7 +11,8 @@ process_flags <- function(qc_metrics) {
     miss_EFFECT = flags__miss_beta(qc_metrics),
     miss_SE = flags__miss_se(qc_metrics),
     miss_PVAL = flags__miss_pval(qc_metrics),
-    ldsc_ratio = flags__ldsc_ratio(qc_metrics)
+    ldsc_ratio = flags__ldsc_ratio(qc_metrics),
+    ldsc_intercept_beta = flags__ldsc_intercept_beta(qc_metrics)
   )
   res
 }
@@ -61,6 +62,10 @@ flags__ldsc_ratio <- function(qc_metrics) {
   qc_metrics$ldsc_ratio > 0.5
 }
 
+flags__ldsc_intercept_beta <- function(qc_metrics) {
+  qc_metrics$ldsc_intercept_beta > 1.5
+}
+
 flags_definitions <- function() {
   # Generate definitions for flags
   defn <- list(
@@ -96,6 +101,9 @@ flags_definitions <- function() {
     ),
     ldsc_ratio = glue(
       "`ldsc_ratio` > 0.5"
+    ),
+    ldsc_intercept_beta = glue(
+      "`ldsc_intercept_beta` > 1.5"
     )
   )
   defn
@@ -171,7 +179,13 @@ flags_display_funcs <- function() {
       qc_metrics %>%
         filter(flags__ldsc_ratio(.)) %>%
         select(ID, trait, ldsc_ratio) %>%
-        arrange(desc(ldsc_ratio))
+        arrange(desc(ldsc_ratio)),
+
+    ldsc_intercept_beta = function(qc_metrics)
+      qc_metrics %>%
+        filter(flags__ldsc_intercept_beta(.)) %>%
+        select(ID, trait, ldsc_intercept_beta) %>%
+        arrange(desc(ldsc_intercept_beta))
   )
   funcs
 }
