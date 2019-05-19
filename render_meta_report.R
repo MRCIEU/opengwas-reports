@@ -169,7 +169,8 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2, whitelist = NULL,
       mclapply(
         X = .,
         FUN = possibly(jsonlite::read_json, otherwise = NULL),
-        mc.cores = n_cores) %>%
+        mc.cores = n_cores
+      ) %>%
       purrr::transpose() %>%
       as_tibble() %>%
       mutate_all(simplify2array) %>%
@@ -193,14 +194,14 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2, whitelist = NULL,
       mclapply(
         X = .,
         FUN = possibly(jsonlite::read_json, otherwise = NULL),
-        mc.cores = n_cores) %>%
+        mc.cores = n_cores
+      ) %>%
       purrr::transpose() %>%
       as_tibble() %>%
       mutate_all(simplify2array) %>%
       mutate(ID = valid_studies_id)
     qc_metrics %>% glimpse()
     qc_metrics %>% write_csv(qc_metrics_file)
-
   }
   meta_metrics <- jsonlite::read_json(meta_metrics_file)
   metadata <- read_csv(metadata_file)
