@@ -59,7 +59,7 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
-    "--no_reuse",
+    "--no-reuse",
     action = "store_true", default = FALSE,
     help = paste0(
       "If True, do not reuse any intermediate files",

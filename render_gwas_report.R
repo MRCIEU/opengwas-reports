@@ -62,7 +62,7 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
-    "--no_reuse",
+    "--no-reuse",
     action = "store_true", default = FALSE,
     help = paste0(
       "If True, do not reuse processed files",
@@ -70,7 +70,7 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
-    "--no_render",
+    "--no-render",
     action = "store_true", default = FALSE,
     help = paste0(
       "If True, only do processing and not rmarkdown report",
