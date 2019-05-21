@@ -80,6 +80,12 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
+    "--processing",
+    action = "store_true", default = FALSE,
+    help = paste0("If True, force invoking processing (ldsc, etc); ",
+                  "will always process files if those files are not present.")
+  )
+  parser$add_argument(
     "-n", "--dryrun",
     action = "store_true", default = FALSE,
     help = paste0("If True, dryrun")
@@ -89,7 +95,8 @@ get_args <- function(doc) {
 }
 
 perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
-                       reuse = FALSE, render_report = FALSE) {
+                       reuse = FALSE, render_report = FALSE,
+                       processing = FALSE) {
   bcf_file <- path(gwas_dir, "data.bcf")
   ldsc_file <- path(gwas_dir, "ldsc.txt")
   ldsc_log <- glue("{ldsc_file}.log")
@@ -98,12 +105,12 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
   qc_file <- path(gwas_dir, "qc_metrics.json")
 
   # ldsc
-  if (!file_exists(ldsc_log) || !reuse) {
+  if (!file_exists(ldsc_log) || processing) {
     loginfo(glue("ldsc: {ldsc_file}"))
     ldsc(bcf = bcf_file, out = ldsc_file)
   }
   # clump
-  if (!file_exists(clump_file) || !reuse) {
+  if (!file_exists(clump_file) || processing) {
     loginfo(glue("clump: {bcf_file}"))
     clump(bcf = bcf_file, out = clump_file)
   }
@@ -174,7 +181,7 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
 }
 
 main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
-                 render_report = FALSE,
+                 render_report = FALSE, processing = FALSE,
                  reuse = FALSE, dryrun = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
@@ -192,6 +199,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     - render_report: {render_report}
     - reuse: {reuse}
     - dryrun: {dryrun}
+    - processing: {processing}
   "))
 
   # Get a list of input dir containing data.bcf, and data.bcf.csi
@@ -217,6 +225,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
       X = candidate_dirs,
       FUN = purrr::safely(perform_qc, otherwise = FALSE, quiet = FALSE),
       no_reuse = !reuse, render_report = render_report,
+      processing = processing,
       mc.cores = n_cores
     )
     res %>%
