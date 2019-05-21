@@ -72,10 +72,10 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
-    "--no-reuse",
+    "--reuse",
     action = "store_true", default = FALSE,
     help = paste0(
-      "If True, do not reuse processed files",
+      "If True, reuse processed files",
       " [default: %(default)s]"
     )
   )
@@ -89,7 +89,7 @@ get_args <- function(doc) {
 }
 
 perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
-                       no_reuse = FALSE, render_report = FALSE) {
+                       reuse = FALSE, render_report = FALSE) {
   bcf_file <- path(gwas_dir, "data.bcf")
   ldsc_file <- path(gwas_dir, "ldsc.txt")
   ldsc_log <- glue("{ldsc_file}.log")
@@ -98,22 +98,22 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
   qc_file <- path(gwas_dir, "qc_metrics.json")
 
   # ldsc
-  if (!file_exists(ldsc_log) || no_reuse) {
+  if (!file_exists(ldsc_log) || !reuse) {
     loginfo(glue("ldsc: {ldsc_file}"))
     ldsc(bcf = bcf_file, out = ldsc_file)
   }
   # clump
-  if (!file_exists(clump_file) || no_reuse) {
+  if (!file_exists(clump_file) || !reuse) {
     loginfo(glue("clump: {bcf_file}"))
     clump(bcf = bcf_file, out = clump_file)
   }
   # metadata
-  if (!file_exists(metadata_file) || no_reuse) {
+  if (!file_exists(metadata_file) || !reuse) {
     loginfo(glue("metadata: {metadata_file}"))
     process_metadata(bcf_file = bcf_file, output_file = metadata_file)
   }
   # qc metrics
-  if (!file_exists(qc_file) || no_reuse) {
+  if (!file_exists(qc_file) || !reuse) {
     loginfo(glue("main_df: {bcf_file}"))
     main_df <- read_bcf_file(bcf_file = bcf_file, ref_file = refdata)
     loginfo(glue("qc_metrics: {qc_file}"))
@@ -138,7 +138,7 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
       X = deploy_plotting(
         main_df = main_df,
         output_dir = intermediates_dir,
-        no_reuse = no_reuse
+        no_reuse = !reuse
       ),
       FUN = function(x) do.call(what = x$what, args = x$args)
     )
@@ -175,7 +175,7 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
 
 main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
                  render_report = FALSE,
-                 no_reuse = FALSE, dryrun = FALSE) {
+                 reuse = FALSE, dryrun = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
   conda_dir <- path_abs("~/miniconda3")
@@ -190,7 +190,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     - n_chunks: {ifelse(is.null(n_chunks), NA, n_chunks)}
     - idx_chunks: {ifelse(is.null(idx_chunks), NA, idx_chunks)}
     - render_report: {render_report}
-    - no_reuse: {no_reuse}
+    - reuse: {reuse}
     - dryrun: {dryrun}
   "))
 
@@ -216,7 +216,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     res <- mclapply(
       X = candidate_dirs,
       FUN = purrr::safely(perform_qc, otherwise = FALSE, quiet = FALSE),
-      no_reuse = no_reuse, render_report = render_report,
+      no_reuse = !reuse, render_report = render_report,
       mc.cores = n_cores
     )
     res %>%

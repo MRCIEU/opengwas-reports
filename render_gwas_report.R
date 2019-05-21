@@ -62,10 +62,10 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
-    "--no-reuse",
+    "--reuse",
     action = "store_true", default = FALSE,
     help = paste0(
-      "If True, do not reuse processed files",
+      "If True, reuse processed files",
       " [default: %(default)s]"
     )
   )
@@ -82,7 +82,7 @@ get_args <- function(doc) {
 }
 
 main <- function(input, refdata = NULL, output_dir = NULL,
-                 show = FALSE, no_render = FALSE, no_reuse = FALSE,
+                 show = FALSE, no_render = FALSE, reuse = FALSE,
                  n_cores = NULL) {
   # Config
   if (is.null(refdata)) {
@@ -126,6 +126,8 @@ main <- function(input, refdata = NULL, output_dir = NULL,
     intermediates_dir: {intermediates_dir}
     rmd_intermediates_dir: {rmd_intermediates_dir}
     n_cores: {n_cores}
+    no_render: {no_render}
+    reuse: {reuse}
   "))
 
   # Verify structure
@@ -161,7 +163,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
       X = deploy_plotting(
         main_df = main_df,
         output_dir = intermediates_dir,
-        no_reuse = no_reuse
+        no_reuse = !reuse
       ),
       FUN = function(x) do.call(what = x$what, args = x$args),
       mc.cores = n_cores

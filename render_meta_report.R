@@ -59,7 +59,7 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
-    "--no-reuse",
+    "--reuse",
     action = "store_true", default = FALSE,
     help = paste0(
       "If True, do not reuse any intermediate files",
@@ -71,7 +71,7 @@ get_args <- function(doc) {
 }
 
 main <- function(input_dir, output_dir = NULL, n_cores = 2, whitelist = NULL,
-                 show = FALSE, no_reuse = FALSE) {
+                 show = FALSE, reuse = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
   # output paths:
@@ -102,6 +102,7 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2, whitelist = NULL,
   loginfo(glue("Config:
     - input_dir: {input_dir}
     - output_dir: {output_dir}
+    - reuse: {reuse}
   "))
 
   # Verify structure
@@ -111,7 +112,7 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2, whitelist = NULL,
   c(output_dir, intermediates_dir) %>% walk(dir_create)
 
   # Process metadata and qc_metrics
-  if (no_reuse ||
+  if (!reuse ||
     c(metadata_file, qc_metrics_file, meta_metrics_file) %>%
       map(negate(file_exists)) %>%
       reduce(`||`)) {
