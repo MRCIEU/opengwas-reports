@@ -86,6 +86,11 @@ get_args <- function(doc) {
                   "will always process files if those files are not present.")
   )
   parser$add_argument(
+    "--render_meta_report",
+    action = "store_true", default = FALSE,
+    help = paste0("If True, render meta report as well.")
+  )
+  parser$add_argument(
     "-n", "--dryrun",
     action = "store_true", default = FALSE,
     help = paste0("If True, dryrun")
@@ -180,8 +185,24 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
   TRUE
 }
 
+meta_report <- function(input_dir, n_cores = 4,
+                        conda_dir = fs:path("~/miniconda3")) {
+  #' Wrapper for render_meta_report.R
+  cmd <- glue(paste("render_meta_report.R",
+                    "-j {n_cores}",
+                    "{input_dir}",
+                    set = " "))
+  bash_cmd <- glue("bash -c '
+    source {conda_dir}/bin/activate mrbase-report;
+    Rscript {cmd}
+  '")
+  system(bash_cmd)
+  invisible()
+}
+
 main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
                  render_report = FALSE, processing = FALSE,
+                 render_meta_report = FALSE,
                  reuse = FALSE, dryrun = FALSE) {
   # Sanitise paths
   input_dir <- path_abs(input_dir)
@@ -200,6 +221,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     - reuse: {reuse}
     - dryrun: {dryrun}
     - processing: {processing}
+    - render_meta_report: {render_meta_report}
   "))
 
   # Get a list of input dir containing data.bcf, and data.bcf.csi
@@ -224,13 +246,17 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     res <- mclapply(
       X = candidate_dirs,
       FUN = purrr::safely(perform_qc, otherwise = FALSE, quiet = FALSE),
-      no_reuse = !reuse, render_report = render_report,
+      reuse = reuse, render_report = render_report,
       processing = processing,
       mc.cores = n_cores
     )
     res %>%
       purrr::transpose() %>%
       write_rds(glue("logs/deploy_qc_metrics_{Sys.Date()}.rds"))
+    # meta report
+    if (render_meta_report)
+      meta_report(input_dir = input_dir,
+                  n_cores = n_cores, conda_dir = conda_dir)
   }
 }
 
