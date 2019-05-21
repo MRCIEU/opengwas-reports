@@ -82,8 +82,10 @@ get_args <- function(doc) {
   parser$add_argument(
     "--processing",
     action = "store_true", default = FALSE,
-    help = paste0("If True, force invoking processing (ldsc, etc); ",
-                  "will always process files if those files are not present.")
+    help = paste0(
+      "If True, force invoking processing (ldsc, etc); ",
+      "will always process files if those files are not present."
+    )
   )
   parser$add_argument(
     "--render_meta_report",
@@ -189,9 +191,10 @@ meta_report <- function(input_dir, n_cores = 4,
                         conda_dir = fs:path("~/miniconda3")) {
   #' Wrapper for render_meta_report.R
   cmd <- glue(paste("render_meta_report.R",
-                    "-j {n_cores}",
-                    "{input_dir}",
-                    set = " "))
+    "-j {n_cores}",
+    "{input_dir}",
+    set = " "
+  ))
   bash_cmd <- glue("bash -c '
     source {conda_dir}/bin/activate mrbase-report;
     Rscript {cmd}
@@ -254,9 +257,12 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
       purrr::transpose() %>%
       write_rds(glue("logs/deploy_qc_metrics_{Sys.Date()}.rds"))
     # meta report
-    if (render_meta_report)
-      meta_report(input_dir = input_dir,
-                  n_cores = n_cores, conda_dir = conda_dir)
+    if (render_meta_report) {
+      meta_report(
+        input_dir = input_dir,
+        n_cores = n_cores, conda_dir = conda_dir
+      )
+    }
   }
 }
 
