@@ -90,7 +90,10 @@ get_args <- function(doc) {
   parser$add_argument(
     "--render_meta_report",
     action = "store_true", default = FALSE,
-    help = paste0("If True, render meta report as well.")
+    help = paste0(
+      "If True, render meta report as well. ",
+      "NOTE: this is disabled when chunks are specified."
+    )
   )
   parser$add_argument(
     "-n", "--dryrun",
