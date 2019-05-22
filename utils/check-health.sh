@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Bins
 declare -a bins=('conda' 'plink' 'bcftools' 'msrsync')
 # Patterns to grep in $(conda env list)
