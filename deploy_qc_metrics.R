@@ -54,6 +54,15 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
+    "--retry",
+    type = "integer",
+    default = 0,
+    help = paste0(
+      "Number of times to retry failed tasks",
+      " [default: %(default)s]"
+    )
+  )
+  parser$add_argument(
     "--idx_chunks",
     type = "integer",
     default = NULL,
@@ -207,6 +216,7 @@ meta_report <- function(input_dir, n_cores = 4,
 }
 
 main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
+                 retry = 0,
                  render_report = FALSE, processing = FALSE,
                  render_meta_report = FALSE,
                  reuse = FALSE, dryrun = FALSE) {
@@ -228,6 +238,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     - dryrun: {dryrun}
     - processing: {processing}
     - render_meta_report: {render_meta_report}
+    - retry: {retry}
   "))
 
   # Get a list of input dir containing data.bcf, and data.bcf.csi
@@ -259,6 +270,44 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     res %>%
       purrr::transpose() %>%
       write_rds(glue("logs/deploy_qc_metrics_{Sys.Date()}.rds"))
+    failed_tasks <- res %>%
+      purrr::transpose() %>%
+      pluck("result") %>%
+      keep(~ !.x) %>%
+      names()
+    if (length(failed_tasks) > 0)
+      loginfo(glue("Failed tasks: {paste(failed_tasks, collapse = '\t')}"))
+    # retry failed tasks
+    if (retry >= 1) {
+      for (retry_idx in 1:retry) {
+        # get the tasks failed at the main attempt
+        retry_dirs <- res %>%
+          purrr::transpose() %>%
+          pluck("result") %>%
+          keep(~ !.x) %>%
+          names()
+        loginfo(glue("Retry # {retry_idx}"))
+        if (length(retry_dirs) > 0) {
+          loginfo(glue("retry_dirs: {paste(retry_dirs, collapse='\t')}"))
+          res <- mclapply(
+            X = retry_dirs,
+            FUN = purrr::safely(perform_qc, otherwise = FALSE, quiet = FALSE),
+            reuse = reuse, render_report = render_report,
+            processing = processing,
+            mc.cores = n_cores
+          )
+        } else {
+          loginfo("No failed tasks to retry.")
+        }
+      }
+      failed_tasks <- res %>%
+        purrr::transpose() %>%
+        pluck("result") %>%
+        keep(~ !.x) %>%
+        names()
+      if (length(failed_tasks) > 0)
+        loginfo(glue("Failed tasks: {paste(failed_tasks, collapse = '\t')}"))
+    }
     # meta report
     if (render_meta_report) {
       meta_report(
