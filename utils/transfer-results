@@ -70,9 +70,13 @@ if ! $dryrun; then
   fi
 
   for i in {1..5}; do
-    rsync -zr -f"+ */" -f"- *" -e 'ssh -c arcfour' $SRCDIR/ $DESTPATH/ && \
+    # rsync -zr -f"+ */" -f"- *" -e 'ssh -c arcfour' $SRCDIR/ $DESTPATH/ && \
+    #     cd $SRCDIR  &&  \
+    #     find . ! -type d -print0 | xargs -0 -n1 -P$THREADS -I% \
+    #     rsync ${RSYNC_ARGS} -e 'ssh -c arcfour' % $DESTPATH/%
+    rsync -zr -f"+ */" -f"- *" -e 'ssh' $SRCDIR/ $DESTPATH/ && \
         cd $SRCDIR  &&  \
         find . ! -type d -print0 | xargs -0 -n1 -P$THREADS -I% \
-        rsync ${RSYNC_ARGS} -e 'ssh -c arcfour' % $DESTPATH/%
+        rsync ${RSYNC_ARGS} -e 'ssh' % $DESTPATH/%
   done
 fi
