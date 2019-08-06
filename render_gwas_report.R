@@ -31,8 +31,8 @@ get_args <- function(doc) {
   required$add_argument(
     "input",
     nargs = 1,
-    type = "character", default = "gwas-files/2/data.bcf",
-    help = "Input bcf file, path/to/file [default: %(default)s]"
+    type = "character",
+    help = "Input bcf file, path/to/file [e.g. gwas-files/2/data.bcf]"
   )
   # Config args
   config <- parser$add_argument_group("Override config.yml")
@@ -70,7 +70,7 @@ get_args <- function(doc) {
     )
   )
   parser$add_argument(
-    "--no-render",
+    "--no-report",
     action = "store_true", default = FALSE,
     help = paste0(
       "If True, only do processing and not rmarkdown report",
@@ -82,7 +82,7 @@ get_args <- function(doc) {
 }
 
 main <- function(input, refdata = NULL, output_dir = NULL,
-                 show = FALSE, no_render = FALSE, reuse = FALSE,
+                 show = FALSE, no_report = FALSE, reuse = FALSE,
                  n_cores = NULL) {
   # Config
   if (is.null(refdata)) {
@@ -126,7 +126,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
     intermediates_dir: {intermediates_dir}
     rmd_intermediates_dir: {rmd_intermediates_dir}
     n_cores: {n_cores}
-    no_render: {no_render}
+    no_report: {no_report}
     reuse: {reuse}
   "))
 
@@ -157,7 +157,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   )
 
   # Render Rmarkdown
-  if (!no_render) {
+  if (!no_report) {
     loginfo("Start rendering plots...")
     plot_files <- mclapply(
       X = deploy_plotting(
