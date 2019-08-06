@@ -5,7 +5,10 @@ process_qc_metrics <- function(df, output_file, output_dir) {
   ldsc_file <- path(output_dir, config::get("ldsc_file"))
   clump_file <- path(output_dir, "clump.txt")
   metadata_file <- path(output_dir, "metadata.json")
-  qc_metrics <- df %>% qc__calc_qc(ldsc_file, metadata_file, clump_file, output_dir)
+  qc_metrics <- df %>% qc__calc_qc(
+    ldsc_file, metadata_file,
+    clump_file, output_dir
+  )
   loginfo(glue("Write qc_metics to {output_file}"))
   qc_metrics %>%
     jsonlite::write_json(output_file, auto_unbox = TRUE)
@@ -103,7 +106,7 @@ qc__n_ns <- function(df) {
 qc__n_miss <- function(df) {
   df %>%
     select(EFFECT, SE, PVAL, AF, AF_reference) %>%
-    summarise_all(~ sum(is.na(.x))) %>%
+    summarise_all(~sum(is.na(.x))) %>%
     (function(df) {
       names_df <- df %>% names() %>% sprintf("n_miss_%s", .)
       names(df) <- names_df

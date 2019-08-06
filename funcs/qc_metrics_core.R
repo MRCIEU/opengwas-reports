@@ -11,9 +11,10 @@ mac <- function(n, maf) {
 b_std <- function(z, maf, n) {
   # standardised beta
   (
-    sqrt(((z^2) / (z^2 + n - 2)) /
-      (2 * maf * (1 - maf)))
-    * sign(z)
+    sqrt(
+      ((z^2) / (z^2 + n - 2)) /
+        (2 * maf * (1 - maf))
+    ) * sign(z)
   )
 }
 

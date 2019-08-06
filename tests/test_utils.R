@@ -26,7 +26,7 @@ test_that("unlog, -log10", {
 test_that("unlog, -log2", {
   val <- 1000
   neg_log2_val <- -log2(val)
-  unlog_val <- unlog(neg_log2_val, TRUE, function(x) 2^(-x))
+  unlog_val <- unlog(neg_log2_val, TRUE, function(x) 2^-x)
   expect_equal(val, unlog_val)
 })
 

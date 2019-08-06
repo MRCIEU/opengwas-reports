@@ -89,8 +89,8 @@ plot_qq_log <- function(df, pval) {
     observed = -log10(sort(pseries, decreasing = FALSE)),
     expected = -log10(ppoints(length(pseries)))
   )
-  xlab <- expression(Expected ~ ~ -log[10](italic(p)))
-  ylab <- expression(Observed ~ ~ -log[10](italic(p)))
+  xlab <- expression(Expected ~ ~-log[10](italic(p)))
+  ylab <- expression(Observed ~ ~-log[10](italic(p)))
 
   plot_df %>% {
     ggplot(., aes(x = expected, y = observed)) +
@@ -139,7 +139,7 @@ plot_manhattan <- function(df, chr, bp, snp, p,
     group_by(!!chr) %>%
     summarise(center = (max(Chromosome) + min(Chromosome)) / 2)
   xlab <- expression(Chromosome)
-  ylab <- expression(~ -log[10](italic(p)))
+  ylab <- expression(~-log[10](italic(p)))
 
   df_manhattan %>% {
     ggplot(., aes(x = Chromosome, y = pval)) +
@@ -220,8 +220,8 @@ plot_pz <- function(df, beta, se, pval, pval_ztest) {
       is.finite(neg_log_10_p_ztest)
     )
 
-  xlab <- expression(~ -log[10](P_ztest))
-  ylab <- expression(~ -log[10](P))
+  xlab <- expression(~-log[10](P_ztest))
+  ylab <- expression(~-log[10](P))
 
   df %>% {
     ggplot(.) +

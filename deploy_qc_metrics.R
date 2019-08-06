@@ -273,10 +273,11 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     failed_tasks <- res %>%
       purrr::transpose() %>%
       pluck("result") %>%
-      keep(~ !.x) %>%
+      keep(~!.x) %>%
       names()
-    if (length(failed_tasks) > 0)
+    if (length(failed_tasks) > 0) {
       loginfo(glue("Failed tasks: {paste(failed_tasks, collapse = '\t')}"))
+    }
     # retry failed tasks
     if (retry >= 1) {
       for (retry_idx in 1:retry) {
@@ -284,7 +285,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
         retry_dirs <- res %>%
           purrr::transpose() %>%
           pluck("result") %>%
-          keep(~ !.x) %>%
+          keep(~!.x) %>%
           names()
         loginfo(glue("Retry # {retry_idx}"))
         if (length(retry_dirs) > 0) {
@@ -303,10 +304,11 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
       failed_tasks <- res %>%
         purrr::transpose() %>%
         pluck("result") %>%
-        keep(~ !.x) %>%
+        keep(~!.x) %>%
         names()
-      if (length(failed_tasks) > 0)
+      if (length(failed_tasks) > 0) {
         loginfo(glue("Failed tasks: {paste(failed_tasks, collapse = '\t')}"))
+      }
     }
     # meta report
     if (render_meta_report) {

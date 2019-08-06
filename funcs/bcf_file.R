@@ -27,7 +27,7 @@ read_bcf_file <- function(bcf_file, ref_file) {
     set_names(col_names) %>%
     mutate_at(vars(CHROM, ID), as.character) %>%
     mutate_at(vars(CHROM), translate_chrom_to_int) %>%
-    mutate_at(vars(PVAL), function(x) 10^(-x)) %>%
+    mutate_at(vars(PVAL), function(x) 10^-x) %>%
     bcf_post_proc()
   df %>% as_tibble()
 }

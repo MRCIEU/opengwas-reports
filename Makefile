@@ -19,20 +19,13 @@ __utils__:
 check-health:
 	utils/check-health.sh
 
-## Format code
+## Format code (styler)
 fmt:
-	@files=$$(find . -iname "*.R" -not -path "./ldsc/*"); \
-	echo $${files}; \
-	for file in $${files}; do \
-	  echo "    - $${file}"; \
-	  Rscript -e "styler::style_file(\"$${file}\")"; \
-	done
-	@files=$$(find . -iname "*.Rmd" -not -path "./ldsc/*"); \
-	echo $${files}; \
-	for file in $${files}; do \
-	  echo "    - $${file}"; \
-	  Rscript -e "styler::style_file(\"$${file}\")"; \
-	done
+	Rscript -e "styler::style_dir(path = '.')"
+
+## Lint code (lintr)
+lint:
+	Rscript utils/lint_project.R
 
 ## Unit tests
 test:

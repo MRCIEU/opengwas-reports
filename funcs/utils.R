@@ -41,8 +41,10 @@ split_by_chunk <- function(vec, n_chunks, chunk_idx) {
     1:n_chunks %>%
       map(function(idx, vec, chunk_size) {
         vec[(1 + (idx - 1) * chunk_size):
-        min(((idx - 1) * chunk_size + chunk_size), length(vec))]
-      }, vec = vec, chunk_size = chunk_size)
+        min((idx - 1) * chunk_size + chunk_size, length(vec))]
+      },
+      vec = vec, chunk_size = chunk_size
+      )
   }
   vec_split <- chunks(vec, n_chunks)
   vec_idx <- vec_split[[chunk_idx]]
@@ -61,7 +63,7 @@ neg_log10 <- function(pval, is_neg_log10 = FALSE) {
 }
 
 unlog <- function(val, is_log = FALSE,
-                  func = function(x) 10^(-x)) {
+                  func = function(x) 10^-x) {
   #' If `is_log`, restore from log transformed value, by `func`
   if (is_log) {
     val <- func(val)

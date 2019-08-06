@@ -73,6 +73,8 @@ clump <- function(bcf, out,
         if (fs::file_exists(file)) {
           fs::file_delete(file)
         }
-      }, out = out)
+      },
+      out = out
+      )
   }
 }
