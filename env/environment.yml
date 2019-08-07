@@ -17,7 +17,6 @@ dependencies:
   - r-glue
   - r-fs
   - r-skimr
-  - r-highcharter
   - r-argparse=2.0.1
   - r-styler
   - r-lintr
