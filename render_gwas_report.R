@@ -147,7 +147,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
 
   # Verify structure
   list(list(path = bcf_file, how = "fail"),
-       list(path = sprintf("%s.csi", bcf_file), how = "fail"),
+       list(path = sprintf("%s.tbi", bcf_file), how = "fail"),
        list(path = refdata, how = "fail")) %>% purrr::transpose() %>%
     pwalk(verify_path)
   # Create intermediates_dir
@@ -155,6 +155,7 @@ main <- function(input, refdata = NULL, output_dir = NULL,
 
   # bcf data
   main_df <- read_bcf_file(bcf_file = input, ref_file = refdata)
+  print(head(main_df))
 
   # Process metadata
   process_metadata(bcf_file = bcf_file, output_file = metadata_file)

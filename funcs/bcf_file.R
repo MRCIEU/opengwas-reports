@@ -1,17 +1,19 @@
 read_bcf_file <- function(bcf_file, ref_file) {
   ref_header <- paste("CHROM", "POS", "ID", "AF_REF:=AF",
                       sep = ",")
-  bcf_header <- paste("%CHROM", "%POS", "%ID",
-                      "%INFO/EFFECT", "%INFO/SE", "%INFO/L10PVAL",
-                      "%INFO/AF", "%INFO/N", "%INFO/AF_REF",
-                      sep = "\t")
-  col_names <- c("CHROM", "POS", "ID",
+
+  bcf_header <- paste("%CHROM", "%POS", "%ID", "%INFO/AF_REF", sep = "\t")
+
+  gwas_fields <- paste("%ES", "%SE", "%LP", "%AF", "%SS", sep="\t")
+
+
+  col_names <- c("CHROM", "POS", "ID", "AF_reference", 
                  "EFFECT", "SE", "L10PVAL",
-                 "AF", "N", "AF_reference")
+                 "AF", "N")
   cmd <- glue(
     "bcftools annotate -a {ref_file} -c '{ref_header}' {bcf_file} | ",
     "bcftools norm -m- | ",
-    "bcftools query -f '{bcf_header}\n'"
+    "bcftools query -f '{bcf_header}\t[{gwas_fields}]\n'"
   )
   df <- data.table::fread(cmd = cmd, header = FALSE, sep = "\t",
                           na.strings = c("", "NA", "."),
@@ -36,9 +38,9 @@ process_bcf_file <- function(bcf_file, intermediates_dir, ref_db, tsv_file) {
   #'                               of the various stages
 
   stage1_bcf_header <- paste("%CHROM", "%POS", "%ID",
-                             "%INFO/EFFECT", "%INFO/SE",
-                             "%INFO/L10PVAL", "%INFO/AF",
-                             "%INFO/N",
+                             "[%ES", "%SE",
+                             "%LP", "%AF",
+                             "%SS]",
                              sep = "\t")
   stage1_tsv_header <- c("CHROM", "POS", "ID",
                          "EFFECT", "SE",

@@ -38,7 +38,6 @@ plot_manhattan <- function(df, chr, bp, snp, p,
   #' - `bp`: name (tidy symbol) of the base-pair column
   #' - `snp`: name (tidy symbol) of the SNP column
   #' - `p`: name (tidy symbol) of the p-value column
-
   # tidy eval
   chr <- enquo(chr)
   bp <- enquo(bp)
@@ -107,6 +106,15 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
   af_ref <- enquo(af_ref)
   title <- glue("AF plot with difference above {cut}")
 
+  check <- df %>% summarise(all(is.na(!!af_main))) %>% unlist
+
+  if(check)
+  {
+    return(
+      ggplot() + annotate("text", x=1,y=1, size=8, label="No allele frequency information") + theme(axis.text=element_blank(), axis.ticks=element_blank(), axis.title=element_blank())
+    )
+  }
+
   df %>%
     # Filter out either missing
     filter(!is.na(!!af_main), !is.na(!!af_ref)) %>%
@@ -134,7 +142,6 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
 
 plot_pz <- function(df, beta, se, pval, pval_ztest,
                     is_neg_log10 = FALSE) {
-
   beta <- enquo(beta)
   se <- enquo(se)
   pval <- enquo(pval)
