@@ -1,5 +1,5 @@
 ---
-title: "MR-Base GWAS Pipeline Report"
+title: "IEU GWAS QC Report"
 output:
   flexdashboard::flex_dashboard:
     orientation: rows
@@ -33,13 +33,13 @@ qc_metrics <- jsonlite::read_json(params$qc_file)
 plot_sample <- config::get("plot_sample")
 n_sample <- min(
   config::get("plot_max_snps"),
-  config::get("plot_max_frac") * nrow(main_df))
+  config::get("plot_max_frac") * nrow(main_df)
+)
 ```
 
-Sidebar {data-width=450 .sidebar}
-=======================================================================
+# Sidebar {data-width=450 .sidebar}
 
-### MR-Base trait information
+## IEU GWAS information
 
 Trait: **`r trait_name`**.
 
@@ -49,7 +49,7 @@ if (!is.null(api_data)) {
 }
 ```
 
-### Report information
+## Report information
 
 ```{r render-info}
 info <- tribble(
@@ -66,11 +66,9 @@ info <- tribble(
 info %>% knitr::kable()
 ```
 
-Summary
-=====
+# Summary
 
-Summary {data-width=650} {.tabset .tabset-fade}
------------------------------------------------------------------------
+## Summary {data-width=650} {.tabset .tabset-fade}
 
 ### Manhattan plot
 
@@ -88,6 +86,10 @@ Summary {data-width=650} {.tabset .tabset-fade}
 
 ![pz_plot](`r params$plot_files$pz_plot`)
 
+### beta_std plot
+
+![beta_std_plot](`r params$plot_files$beta_std_plot`)
+
 ### Metadata
 
 <span class=".flowing-content-shim">
@@ -100,12 +102,15 @@ metadata_file %>% read_file() %>% jsonlite::prettify()
 
 <span class=".flowing-content-shim">
 ```{r display-ldsc}
-display_ldsc(output_dir)
+display_ldsc(params$output_dir)
 ```
 </span>
 
-QC metrics
-====
+# QC metrics
+
+## Metrics {.tabset .tabset-fade}
+
+### Metrics
 
 <span class=".flowing-content-shim">
 ```{r render-qc-metrics}
@@ -113,11 +118,29 @@ qc_file %>% read_file() %>% jsonlite::prettify()
 ```
 </span>
 
-Diagnostics
-=====
+### Flags
 
-Details {.tabset .tabset-fade}
--------------------------------------------------
+<span class=".flowing-content-shim">
+```{r render-flags}
+qc_metrics %>%
+  process_flags() %>%
+  enframe() %>%
+  mutate_at(vars(value), flatten_lgl) %>%
+  knitr::kable()
+```
+</span>
+
+### Definitions
+
+<span class=".flowing-content-shim">
+```{r qc_metrics, child = here::here('docs/qc_metrics.md')}
+
+```
+</span>
+
+# Diagnostics
+
+## Details {.tabset .tabset-fade}
 
 ### Summary stats
 
@@ -130,19 +153,21 @@ main_df %>% skimr::skim() %>% skimr::kable()
 ### Head and tail
 
 ```{r df-head}
-main_df %>% head(n=10) %>% knitr::kable()
+main_df %>% head(n = 10) %>% knitr::kable()
 ```
 
 ```{r df-tail}
-main_df %>% tail(n=10) %>% knitr::kable()
+main_df %>% tail(n = 10) %>% knitr::kable()
 ```
 
 ### bcf preview
 
 <span class=".flowing-content-shim">
 ```{r bcf-preview}
-preview <- system(glue("bcftools view -H {bcf_file} | head -n 50"),
-                  intern = TRUE)
+preview <- system(
+  glue("bcftools view -H {bcf_file} | head -n 50"),
+  intern = TRUE
+)
 cat(preview, sep = "\n")
 ```
 </span>

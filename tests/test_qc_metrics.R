@@ -52,7 +52,8 @@ test_that("Parse ldsc_file", {
     ldsc_intercept_beta = 0.7043,
     ldsc_intercept_se = 0.0069,
     ldsc_lambda_gc = 1.1154,
-    ldsc_mean_chisq = 1.3113
+    ldsc_mean_chisq = 1.3113,
+    ldsc_ratio = (0.7043 - 1) / (1.3113 - 1)
   )
   res <- qc__ldsc_extract(ldsc)
   expect_equal(expected_res, res)

@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Transfer results to target directories on a remote machine via ssh
+# retry 5 times.
+#
+# Usage
+# ./transfer-results <orig_dir>
+#
+options=$(getopt \
+  -o j:,n,L \
+  --long orig_dir:,target_dir:,n_procs:,copy_links,dryrun \
+  -- "$@")
+eval set -- "$options"
+
+dryrun=false
+copy_links=false
+n_procs=8
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --orig_dir)
+      orig_dir=$2
+      shift 2
+      ;;
+    --target_dir)
+      target_dir=$2
+      shift 2
+      ;;
+    -j|--n_procs)
+      n_procs=$2
+      shift 2
+      ;;
+    -L|--copy_links)
+      copy_links=true
+      shift
+      ;;
+    -n|--dryrun)
+      dryrun=true
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+echo "Args: "
+echo "- orig_dir: ${orig_dir}"
+echo "- target_dir: ${target_dir}"
+echo "- n_procs: ${n_procs}"
+echo "- copy_links: ${copy_links}"
+echo "- dryrun: ${dryrun}"
+
+if $copy_links; then
+  echo "flag: COPYLINKS"
+fi
+
+if ! $dryrun; then
+  echo "flag: NOT DRYRUN"
+fi
+
+if ! $dryrun; then
+  # SETUP OPTIONS to processes
+  export SRCDIR=$orig_dir
+  export DESTPATH=$target_dir
+  export THREADS=$n_procs
+  if ! $copy_links; then
+    export RSYNC_ARGS="-avz --timeout=240"
+  else
+    export RSYNC_ARGS="-avLz --timeout=240"
+  fi
+
+  for i in {1..5}; do
+    # rsync -zr -f"+ */" -f"- *" -e 'ssh -c arcfour' $SRCDIR/ $DESTPATH/ && \
+    #     cd $SRCDIR  &&  \
+    #     find . ! -type d -print0 | xargs -0 -n1 -P$THREADS -I% \
+    #     rsync ${RSYNC_ARGS} -e 'ssh -c arcfour' % $DESTPATH/%
+    rsync -zr -f"+ */" -f"- *" -e 'ssh' $SRCDIR/ $DESTPATH/ && \
+        cd $SRCDIR  &&  \
+        find . ! -type d -print0 | xargs -0 -n1 -P$THREADS -I% \
+        rsync ${RSYNC_ARGS} -e 'ssh' % $DESTPATH/%
+  done
+fi

@@ -1,13 +1,14 @@
 ---
-title: "MR-Base GWAS Meta Report"
+title: "IEU GWAS MetaQC Report"
 output:
   flexdashboard::flex_dashboard:
-    theme: flatly
+    theme: yeti
     orientation: rows
     vertical_scroll: scroll
 params:
   meta_metrics: meta_metrics
   qc_metrics: qc_metrics
+  meta_flags: meta_flags
   metadata: metadata
   input_dir: input_dir
   output_dir: output_dir
@@ -18,22 +19,31 @@ params:
 
 ```{r setup, include=FALSE, message=FALSE}
 options(width = 100)
+
+metric_names <- params$qc_metrics %>%
+  names() %>%
+  setdiff(c("ID", "sample_size", "trait"))
+meta_flags <- params$meta_flags
+flag_names <- meta_flags %>%
+  names() %>%
+  setdiff(c("ID", "trait"))
+flag_defn <- flags_definitions()
 ```
 
-Sidebar {data-width=450 .sidebar}
-=======================================================================
+# Sidebar {data-width=450 .sidebar}
 
-### Meta metrics
+## Meta metrics
 
 ```{r meta-metrics}
 meta_metrics <- params$meta_metrics %>%
-  `[[`("metrics") %>% enframe() %>%
+  `[[`("metrics") %>%
+  enframe() %>%
   mutate_at(vars(value), flatten_dbl)
 
 meta_metrics %>% knitr::kable()
 ```
 
-### Report information
+## Report information
 
 ```{r render-info}
 info <- tribble(
@@ -50,57 +60,133 @@ info <- tribble(
 info %>% knitr::kable()
 ```
 
-QC metrics
-====
+# Scatter plot
 
-QC metrics {.tabset .tabset-fade}
--------------------------------------------------
+## Plots {.tabset .tabset-fade}
 
-### Allele frequency correlation
-
-```{r plot_af_corr}
-params$qc_metrics %>% plot_scatter(x = sample_size, y = af_correlation)
+```{r meta_scatter, results="asis"}
+metric_names %>%
+  walk(function(metric_name) {
+    cat(glue("\n\n### `{metric_name}`\n\n"))
+    # Plot other metrics against `n` (sample plot)
+    # but plot `n` against `ID`
+    if (metric_name != "n") {
+      p <- params$qc_metrics %>%
+        mutate_at(vars(n), as.numeric) %>%
+        plot_scatter(
+          x = n, y = !!rlang::sym(metric_name),
+          hide_x_ticks = FALSE
+        )
+    } else {
+      p <- params$qc_metrics %>%
+        plot_scatter(x = ID, y = !!rlang::sym(metric_name))
+    }
+    print(p)
+    cat("\n\n\n\n")
+  })
 ```
 
-### Inflation factor
+# Histogram
 
-```{r plot_inflation_factor}
-params$qc_metrics %>% plot_scatter(x = sample_size, y = inflation_factor)
+## Plots {.tabset .tabset-fade}
+
+```{r meta_hist, results="asis"}
+metric_names %>%
+  walk(function(metric_name) {
+    cat(glue("\n\n### `{metric_name}`\n\n"))
+    p <- params$qc_metrics %>%
+      plot_hist(x = !!rlang::sym(metric_name))
+    print(p)
+    cat("\n\n\n\n")
+  })
 ```
 
-Flags
-====
+# Head and tails
 
-QC metrics {.tabset .tabset-fade}
--------------------------------------------------
+## Tables {.tabset .tabset-fade}
 
-### Allele frequency correlation
+```{r meta_tails, results="asis"}
+metric_names %>%
+  walk(function(metric_name) {
+    cat(glue("\n\n### `{metric_name}`\n\n"))
+    df <- params$qc_metrics %>%
+      arrange(!!rlang::sym(metric_name)) %>%
+      select(ID, trait, !!rlang::sym(metric_name))
+    head <- df %>% head(n = 10) %>% knitr::kable()
+    tail <- df %>% tail(n = 10) %>% knitr::kable()
+    cat("**Head**")
+    print(head)
+    cat("\n\n\n\n")
+    cat("**Tail**")
+    print(tail)
+    cat("\n\n\n\n")
+  })
+```
 
-Studies with `abs(af_correlation) < 0.7`
+# Invalid
 
-```{r flag_af_corr}
-params$qc_metrics %>% select(ID, af_correlation) %>%
-  filter(abs(af_correlation) < 0.7) %>%
-  arrange(af_correlation) %>%
+## Tables {.tabset .tabset-fade}
+
+```{r meta_invalid, results="asis"}
+metric_names %>%
+  walk(function(metric_name) {
+    cat(glue("\n\n### `{metric_name}`\n\n"))
+    df <- params$qc_metrics %>%
+      filter(!is.finite(!!rlang::sym(metric_name))) %>%
+      select(ID, trait, !!rlang::sym(metric_name))
+    cat("Studies whose metric are `NaN`, `NA`, `Inf`, etc...\n\n")
+    table <- df %>% knitr::kable()
+    print(table)
+    cat("\n\n\n\n")
+  })
+```
+
+# Flags
+
+## QC metrics {.tabset .tabset-fade}
+
+### Ranking
+
+Sort studies (top 100) with most flags on top.
+
+```{r n_flags}
+meta_flags %>%
+  mutate(n_flags = calc_n_flags(.)) %>%
+  arrange(desc(n_flags)) %>%
+  left_join(params$qc_metrics %>% select(ID, trait)) %>%
+  select(ID, trait, everything()) %>%
+  head(100) %>%
   knitr::kable()
 ```
 
-### Inflation factor
-
-Studies with `inflation_factor > 1.2`
-
-```{r flag_inflation_factor}
-params$qc_metrics %>% select(ID, inflation_factor) %>%
-  filter(inflation_factor > 1.2) %>%
-  arrange(desc(inflation_factor)) %>%
-  knitr::kable()
+```{r flagged_studies, results="asis"}
+flag_names %>%
+  walk(function(flag_name) {
+    cat(glue("\n\n### `{flag_name}`\n\n"))
+    defn <- flags_definitions() %>%
+      pluck(flag_name)
+    func <- flags_display_funcs() %>%
+      pluck(flag_name)
+    # description
+    cat(glue("\n\n{defn}\n\n"))
+    # table
+    func(qc_metrics = params$qc_metrics) %>%
+      knitr::kable() %>%
+      print()
+  })
 ```
 
-Diagnostics
-=====
+# Definitions
 
-Diagnostics {.tabset .tabset-fade}
--------------------------------------------------
+<span class=".flowing-content-shim">
+```{r qc_metrics, child = here::here('docs/qc_metrics.md')}
+
+```
+</span>
+
+# Diagnostics
+
+## Diagnostics {.tabset .tabset-fade}
 
 ### Metadata: glimpse
 
@@ -121,11 +207,11 @@ params$metadata %>% skimr::skim() %>% skimr::kable()
 ### Metadata: head and tails
 
 ```{r head-metadata}
-params$metadata %>% head(n=10) %>% knitr::kable()
+params$metadata %>% head(n = 10) %>% knitr::kable()
 ```
 
 ```{r tail-metadata}
-params$metadata %>% tail(n=10) %>% knitr::kable()
+params$metadata %>% tail(n = 10) %>% knitr::kable()
 ```
 
 ### QC metrics: glimpse
@@ -147,9 +233,9 @@ params$qc_metrics %>% skimr::skim() %>% skimr::kable()
 ### QC metrics: head and tails
 
 ```{r head-qc-metrics}
-params$qc_metrics %>% head(n=10) %>% knitr::kable()
+params$qc_metrics %>% head(n = 10) %>% knitr::kable()
 ```
 
 ```{r tail-qc-metrics}
-params$qc_metrics %>% tail(n=10) %>% knitr::kable()
+params$qc_metrics %>% tail(n = 10) %>% knitr::kable()
 ```

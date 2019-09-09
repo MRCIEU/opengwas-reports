@@ -1,5 +1,7 @@
 *.html
 packrat/lib*/
 /TODO*
+Rplots.pdf
 
 # pipeline structure
+gwas-files-meta

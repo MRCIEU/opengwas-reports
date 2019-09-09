@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Transfer results to target directories on epi-franlin
+# retry 5 times.
+# This version transfer symlink files as well.
+#
+# Usage
+# ./transfer-results <orig_dir>
+#
+# NOTE: you need to have a ssh alias called epi-franklin
+
+# SETUP OPTIONS
+export SRCDIR=$1
+export DESTPATH=$2
+export THREADS="8"
+export RSYNC_ARGS="-aLvz --timeout=240"
+
+for i in {1..5}; do
+  rsync -zr -f"+ */" -f"- *" -e 'ssh -c arcfour' $SRCDIR/ $DESTPATH/ \
+      && \
+  cd $SRCDIR  &&  find . ! -type d -print0 | xargs -0 -n1 -P$THREADS -I% rsync ${RSYNC_ARGS} -e 'ssh -c arcfour' % $DESTPATH/%
+done

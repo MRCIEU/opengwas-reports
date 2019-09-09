@@ -1,4 +1,4 @@
-# Report module for MR-Base
+# Report module for IEU GWAS
 
 Pipeline report, metrics, and plots.
 
@@ -11,7 +11,7 @@ A report example is available via RDSF: smb://rdsfcifs.acrc.bris.ac.uk/MRC-IEU-r
 
 **Table of Contents**
 
-- [Report module for MR-Base](#report-module-for-mr-base)
+- [Report module for IEU GWAS](#report-module-for-ieu-gwas)
 - [Local usage](#local-usage)
     - [Setting up environment](#setting-up-environment)
     - [GWAS report](#gwas-report)

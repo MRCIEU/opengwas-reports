@@ -1,0 +1,25 @@
+name: mrbase-report
+channels:
+  - bioconda
+  - r
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6.5
+  - r-base=3.5.1
+  - r-tidyverse=1.2.1
+  - r-data.table=1.12.2
+  - r-markdown
+  - r-flexdashboard
+  - r-config
+  - r-here
+  - r-logging
+  - r-glue
+  - r-fs
+  - r-skimr
+  - r-argparse=2.0.1
+  - r-styler
+  - r-lintr
+  - pandoc
+  - bcftools=1.9
+  - plink=1.90b4
