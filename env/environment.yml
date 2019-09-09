@@ -1,4 +1,4 @@
-name: mrbase-report
+name: ieu-gwas-report
 channels:
   - bioconda
   - r
@@ -9,6 +9,8 @@ dependencies:
   - r-base=3.5.1
   - r-tidyverse=1.2.1
   - r-data.table=1.12.2
+  - r-devtools
+  - r-rlang>=0.3
   - r-markdown
   - r-flexdashboard
   - r-config
@@ -18,7 +20,7 @@ dependencies:
   - r-fs
   - r-skimr
   - r-argparse=2.0.1
-  - r-styler
+  - r-styler=1.1.1
   - r-lintr
   - pandoc
   - bcftools=1.9

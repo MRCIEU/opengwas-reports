@@ -6,7 +6,7 @@
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PROFILE = default
-PROJECT_NAME = mrbase-report-module
+PROJECT_NAME = ieu-gwas-report
 
 #################################################################################
 # Rules
@@ -16,8 +16,8 @@ PROJECT_NAME = mrbase-report-module
 __utils__:
 
 ## Check health
-check-health:
-	utils/check-health.sh
+checkhealth:
+	utils/checkhealth.sh
 
 ## Format code (styler)
 fmt:

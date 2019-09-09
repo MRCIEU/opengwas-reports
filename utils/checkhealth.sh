@@ -3,7 +3,7 @@
 # Bins
 declare -a bins=('conda' 'plink' 'bcftools')
 # Patterns to grep in $(conda env list)
-declare -a conda_env_patterns=('mrbase-report' 'ldsc ')
+declare -a conda_env_patterns=('ieu-gwas-report' 'ldsc ')
 # Dependent paths
 declare -a dependent_paths=(
   $(pwd)/ref_data

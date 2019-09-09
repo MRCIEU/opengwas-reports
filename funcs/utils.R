@@ -70,3 +70,13 @@ unlog <- function(val, is_log = FALSE,
   }
   val
 }
+
+parse_file_base <- function(file_path) {
+  # foobar.vcf.gz -> foobar
+  # foobar.bcf -> foobar
+  # foobar.1.2.txt -> foobar
+  file <- fs::path_file(file_path)
+  file %>%
+    str_match("^([^.]+?)\\.") %>%
+    `[`(1, 2)
+}

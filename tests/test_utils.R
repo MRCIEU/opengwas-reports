@@ -44,3 +44,13 @@ test_that("split_by_chunk", {
   )
   expect_equal(expected_results, results)
 })
+
+test_that("parse file name", {
+  file1 <- "path/to/something/data/IEU-a-1.vcf.gz"
+  file2 <- "path/to/something/data/IEU-a-1.bcf"
+  file3 <- "path/to/something/data/IEU-a-1.2.bcf"
+  expected_res <- "IEU-a-1"
+  expect_equal(expected_res, parse_file_base(file1))
+  expect_equal(expected_res, parse_file_base(file2))
+  expect_equal(expected_res, parse_file_base(file3))
+})

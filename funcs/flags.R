@@ -53,17 +53,23 @@ flags__miss_pval <- function(qc_metrics) {
 }
 
 flags__mean_beta_nonfinite <- function(qc_metrics) {
-  qc_metrics$mean_EFFECT %>% as.numeric() %>% purrr::negate(is.finite)()
+  qc_metrics$mean_EFFECT %>%
+    as.numeric() %>%
+    purrr::negate(is.finite)()
 }
 
 flags__mean_beta_05 <- function(qc_metrics) {
   # There are cases of mean_EFFECT being Inf and gets
   # recorded as "Inf" in json
-  qc_metrics$mean_EFFECT %>% as.numeric() %>% abs() > 0.5
+  qc_metrics$mean_EFFECT %>%
+    as.numeric() %>%
+    abs() > 0.5
 }
 
 flags__mean_beta_01 <- function(qc_metrics) {
-  qc_metrics$mean_EFFECT %>% as.numeric() %>% abs() > 0.1
+  qc_metrics$mean_EFFECT %>%
+    as.numeric() %>%
+    abs() > 0.1
 }
 
 flags__mean_chisq <- function(qc_metrics) {

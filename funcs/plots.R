@@ -89,8 +89,8 @@ plot_qq_log <- function(df, pval) {
     observed = -log10(sort(pseries, decreasing = FALSE)),
     expected = -log10(ppoints(length(pseries)))
   )
-  xlab <- expression(Expected ~ ~-log[10](italic(p)))
-  ylab <- expression(Observed ~ ~-log[10](italic(p)))
+  xlab <- expression(Expected ~ ~ -log[10](italic(p)))
+  ylab <- expression(Observed ~ ~ -log[10](italic(p)))
 
   plot_df %>% {
     ggplot(., aes(x = expected, y = observed)) +
@@ -138,7 +138,7 @@ plot_manhattan <- function(df, chr, bp, snp, p,
     group_by(!!chr) %>%
     summarise(center = (max(Chromosome) + min(Chromosome)) / 2)
   xlab <- expression(Chromosome)
-  ylab <- expression(~-log[10](italic(p)))
+  ylab <- expression(~ -log[10](italic(p)))
 
   df_manhattan %>% {
     ggplot(., aes(x = Chromosome, y = pval)) +
@@ -174,12 +174,13 @@ plot_af <- function(df, af_main, af_ref, cut = 0.2, maf_rarity = 0.01) {
   af_ref <- enquo(af_ref)
   title <- glue("AF plot with difference above {cut}")
 
-  check <- df %>% summarise(all(is.na(!!af_main))) %>% unlist
+  check <- df %>%
+    summarise(all(is.na(!!af_main))) %>%
+    unlist()
 
-  if(check)
-  {
+  if (check) {
     return(
-      ggplot() + annotate("text", x=1,y=1, size=8, label="No allele frequency information") + theme(axis.text=element_blank(), axis.ticks=element_blank(), axis.title=element_blank())
+      ggplot() + annotate("text", x = 1, y = 1, size = 8, label = "No allele frequency information") + theme(axis.text = element_blank(), axis.ticks = element_blank(), axis.title = element_blank())
     )
   }
 
@@ -228,8 +229,8 @@ plot_pz <- function(df, beta, se, pval, pval_ztest) {
       is.finite(neg_log_10_p_ztest)
     )
 
-  xlab <- expression(~-log[10](P_ztest))
-  ylab <- expression(~-log[10](P))
+  xlab <- expression(~ -log[10](P_ztest))
+  ylab <- expression(~ -log[10](P))
 
   df %>% {
     ggplot(.) +

@@ -18,8 +18,16 @@ process_metadata <- function(bcf_file, output_file) {
   invisible()
 }
 
-get_gwas_id <- function(metadata_file) {
-  metadata <- jsonlite::read_json(metadata_file)
-  gwas_id <- metadata[["gwas.id"]]
-  return(gwas_id)
+parse_harmonised_variants <- function(field) {
+  pattern <- "HarmonisedVariants=([0-9]+),"
+  str_match(field, pattern) %>%
+    `[`(1, 2) %>%
+    as.double()
 }
+
+# NOTE: deprecated
+# get_gwas_id <- function(metadata_file) {
+#   metadata <- jsonlite::read_json(metadata_file)
+#   gwas_id <- metadata[["gwas.id"]]
+#   return(gwas_id)
+# }

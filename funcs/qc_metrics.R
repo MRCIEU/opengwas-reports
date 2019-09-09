@@ -50,11 +50,16 @@ qc__lambda <- function(df) {
 }
 
 qc__mean_beta <- function(df) {
-  df %>% pull(EFFECT) %>% mean(na.rm = TRUE)
+  df %>%
+    pull(EFFECT) %>%
+    mean(na.rm = TRUE)
 }
 
 qc__get_n_max <- function(df) {
-  df %>% pull(N) %>% na.omit() %>% max()
+  df %>%
+    pull(N) %>%
+    na.omit() %>%
+    max()
 }
 
 qc__get_n_snps <- function(df, metadata_file) {
@@ -63,7 +68,8 @@ qc__get_n_snps <- function(df, metadata_file) {
   # for multiallelic snps
   if (fs::file_exists(metadata_file)) {
     metadata <- jsonlite::read_json(metadata_file)
-    n_snps <- metadata[["counts.total_variants"]] %>% as.integer()
+    n_snps <- metadata[["SAMPLE"]] %>%
+      parse_harmonised_variants()
   } else {
     n_snps <- df %>%
       select(POS, ID, REF) %>%
@@ -79,7 +85,9 @@ qc__n_p_sig <- function(df) {
     count_sig <- length(which(pval < threshold))
     return(count_sig)
   }
-  df %>% pull(PVAL) %>% count_p_sig()
+  df %>%
+    pull(PVAL) %>%
+    count_p_sig()
 }
 
 qc__n_mono <- function(df) {
@@ -88,7 +96,10 @@ qc__n_mono <- function(df) {
     count.mono <- sum(maf == 1 | maf == 0)
     return(count.mono)
   }
-  df %>% pull(AF) %>% na.omit() %>% count_mono()
+  df %>%
+    pull(AF) %>%
+    na.omit() %>%
+    count_mono()
 }
 
 qc__n_ns <- function(df) {
@@ -106,9 +117,11 @@ qc__n_ns <- function(df) {
 qc__n_miss <- function(df) {
   df %>%
     select(EFFECT, SE, PVAL, AF, AF_reference) %>%
-    summarise_all(~sum(is.na(.x))) %>%
+    summarise_all(~ sum(is.na(.x))) %>%
     (function(df) {
-      names_df <- df %>% names() %>% sprintf("n_miss_%s", .)
+      names_df <- df %>%
+        names() %>%
+        sprintf("n_miss_%s", .)
       names(df) <- names_df
       df
     }) %>%
@@ -190,7 +203,9 @@ qc__se_n_r2 <- function(df, clump_file) {
 
 qc__ldsc <- function(ldsc_file) {
   if (file_exists(ldsc_file)) {
-    res <- ldsc_file %>% read_file() %>% qc__ldsc_extract()
+    res <- ldsc_file %>%
+      read_file() %>%
+      qc__ldsc_extract()
   } else {
     res <- list(
       ldsc_nsnp_merge_refpanel_ld = NA_integer_,
@@ -227,8 +242,12 @@ qc__ldsc_extract <- function(ldsc) {
     as.double()
   ldsc_intercept <- ldsc %>%
     str_match("Intercept: ([\\d.]*) \\(([\\d.]*)\\)")
-  ldsc_intercept_beta <- ldsc_intercept %>% nth(2) %>% as.double()
-  ldsc_intercept_se <- ldsc_intercept %>% nth(3) %>% as.double()
+  ldsc_intercept_beta <- ldsc_intercept %>%
+    nth(2) %>%
+    as.double()
+  ldsc_intercept_se <- ldsc_intercept %>%
+    nth(3) %>%
+    as.double()
   ldsc_lambda_gc <- ldsc %>%
     str_match("Lambda GC: ([\\d.]*)") %>%
     nth(2) %>%

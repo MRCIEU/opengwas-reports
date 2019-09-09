@@ -17,7 +17,9 @@ process_api_info <- function(gwas_id) {
     function(api_url) jsonlite::read_json(api_url),
     otherwise = list()
   )
-  read_api(api_url) %>% first() %>% enframe()
+  read_api(api_url) %>%
+    first() %>%
+    enframe()
 }
 
 get_trait_name <- function(api_data) {

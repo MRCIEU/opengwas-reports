@@ -43,7 +43,9 @@ main <- function(input, output) {
 
   main_df <- read_bcf_file(bcf_file = input, ref_file = refdata)
 
-  output %>% fs::path_dir() %>% fs::dir_create()
+  output %>%
+    fs::path_dir() %>%
+    fs::dir_create()
   main_df %>% write_tsv(output)
 }
 

@@ -121,7 +121,7 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
   ldsc_log <- glue("{ldsc_file}.log")
   clump_file <- path(gwas_dir, "clump.txt")
   metadata_file <- path(gwas_dir, "metadata.json")
-  qc_file <- path(gwas_dir, "qc_metrics.json")
+  qc_metrics_file <- path(gwas_dir, "qc_metrics.json")
 
   # ldsc
   if (!file_exists(ldsc_log) || processing) {
@@ -139,12 +139,12 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
     process_metadata(bcf_file = bcf_file, output_file = metadata_file)
   }
   # qc metrics
-  if (!file_exists(qc_file) || !reuse) {
+  if (!file_exists(qc_metrics_file) || !reuse) {
     loginfo(glue("main_df: {bcf_file}"))
     main_df <- read_bcf_file(bcf_file = bcf_file, ref_file = refdata)
-    loginfo(glue("qc_metrics: {qc_file}"))
+    loginfo(glue("qc_metrics: {qc_metrics_file}"))
     process_qc_metrics(
-      df = main_df, output_file = qc_file,
+      df = main_df, output_file = qc_metrics_file,
       output_dir = gwas_dir
     )
   }
@@ -181,7 +181,7 @@ perform_qc <- function(gwas_dir, refdata = config::get("refdata"),
         output_dir = gwas_dir,
         bcf_file = bcf_file,
         main_df = main_df,
-        qc_file = qc_file,
+        qc_metrics_file = qc_metrics_file,
         metadata_file = metadata_file,
         refdata_file = refdata,
         plot_files = plot_files
@@ -208,7 +208,7 @@ meta_report <- function(input_dir, n_cores = 4,
     set = " "
   ))
   bash_cmd <- glue("bash -c '
-    source {conda_dir}/bin/activate mrbase-report;
+    source {conda_dir}/bin/activate ieu-gwas-report;
     Rscript {cmd}
   '")
   system(bash_cmd)
@@ -273,7 +273,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
     failed_tasks <- res %>%
       purrr::transpose() %>%
       pluck("result") %>%
-      keep(~!.x) %>%
+      keep(~ !.x) %>%
       names()
     if (length(failed_tasks) > 0) {
       loginfo(glue("Failed tasks: {paste(failed_tasks, collapse = '\t')}"))
@@ -285,7 +285,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
         retry_dirs <- res %>%
           purrr::transpose() %>%
           pluck("result") %>%
-          keep(~!.x) %>%
+          keep(~ !.x) %>%
           names()
         loginfo(glue("Retry # {retry_idx}"))
         if (length(retry_dirs) > 0) {
@@ -304,7 +304,7 @@ main <- function(input_dir, n_cores = 4, n_chunks = NULL, idx_chunks = NULL,
       failed_tasks <- res %>%
         purrr::transpose() %>%
         pluck("result") %>%
-        keep(~!.x) %>%
+        keep(~ !.x) %>%
         names()
       if (length(failed_tasks) > 0) {
         loginfo(glue("Failed tasks: {paste(failed_tasks, collapse = '\t')}"))

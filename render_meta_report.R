@@ -181,7 +181,7 @@ main <- function(input_dir, output_dir = NULL, n_cores = 2, whitelist = NULL,
       mutate(ID = valid_studies_id)
     # Remove list columns that could not be written as a tabular file
     non_list_cols <- metadata %>%
-      summarise_all(negate(~"list" %in% class(.))) %>%
+      summarise_all(negate(~ "list" %in% class(.))) %>%
       t() %>%
       t() %>%
       which() %>%

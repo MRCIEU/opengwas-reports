@@ -9,7 +9,7 @@ params:
   output_dir: output_dir
   bcf_file: bcf_file
   main_df: main_df
-  qc_file: qc_file
+  qc_metrics_file: qc_metrics_file
   metadata_file: metadata_file
   refdata_file: refdata_file
   plot_files: plot_files
@@ -21,14 +21,14 @@ set.seed(config::get("sample_seed"))
 
 ```{r load-data, include=FALSE}
 main_df <- params$main_df
-if (!is.null(gwas_id)) {
+if (!is.null(params$gwas_id)) {
   api_data <- params$gwas_id %>% process_api_info()
 } else {
   api_data <- NULL
 }
 trait_name <- get_trait_name(api_data)
 metadata <- jsonlite::read_json(params$metadata_file)
-qc_metrics <- jsonlite::read_json(params$qc_file)
+qc_metrics <- jsonlite::read_json(params$qc_metrics_file)
 
 plot_sample <- config::get("plot_sample")
 n_sample <- min(
@@ -56,7 +56,7 @@ info <- tribble(
   ~name, ~value,
   "gwas_id", params$gwas_id,
   "bcf_file", path_file(params$bcf_file),
-  "qc_file", path_file(params$qc_file),
+  "qc_metrics_file", path_file(params$qc_metrics_file),
   "metadata", path_file(params$metadata_file),
   "refdata", path_file(params$refdata_file),
   "compile_time", format(Sys.time(), "%Y-%m-%d %H:%M %Z"),
@@ -114,7 +114,7 @@ display_ldsc(params$output_dir)
 
 <span class=".flowing-content-shim">
 ```{r render-qc-metrics}
-qc_file %>% read_file() %>% jsonlite::prettify()
+qc_metrics_file %>% read_file() %>% jsonlite::prettify()
 ```
 </span>
 

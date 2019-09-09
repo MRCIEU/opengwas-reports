@@ -32,14 +32,14 @@ get_args <- function(doc) {
     "input",
     nargs = 1,
     type = "character",
-    help = "Input bcf file, path/to/file [e.g. gwas-files/2/data.bcf]"
+    help = "Input data file, path/to/file (e.g. gwas-files/IEU-a-2/IEU-a-2.vcf.gz)"
   )
   # Config args
   config <- parser$add_argument_group("Override config.yml")
   config$add_argument(
     "--refdata",
     type = "character",
-    help = "reference bcf data, supply filepath."
+    help = "reference data, path/to/file"
   )
   config$add_argument(
     "-j", "--n_cores",
@@ -48,6 +48,12 @@ get_args <- function(doc) {
     help = paste0("Number of cores to use for multiprocessing.")
   )
   # Optional args
+  config$add_argument(
+    "--id",
+    type = "character",
+    default = NULL,
+    help = "ID of the GWAS, by default is the base name of the input file."
+  )
   config$add_argument(
     "--output_dir",
     type = "character",
@@ -81,43 +87,42 @@ get_args <- function(doc) {
   return(args)
 }
 
-main <- function(input, refdata = NULL, output_dir = NULL,
+main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
                  show = FALSE, no_report = FALSE, reuse = FALSE,
                  n_cores = NULL) {
   # Config
   if (is.null(refdata)) {
     refdata <- config::get("refdata")
   }
-  # Sanitise paths
   input <- path_abs(input)
-  input_base <- path_ext_remove(path_file(input))
-  input_parent_base <- path_file(path_dir(input))
+  input_base <- parse_file_base(input)
+  if (is.null(id)) {
+    id <- input_base
+  }
   if (is.null(output_dir)) {
     output_dir <- path_dir(input)
   }
-  # Setup logging
   basicConfig()
-  glue("logs/render_gwas_report_{input_parent_base}_{Sys.Date()}.log") %>%
-    addHandler(writeToFile, file = .)
+  # glue("{log_dir}/render_gwas_report_{id}_{Sys.Date()}.log") %>%
+  #   addHandler(writeToFile, file = .)
   bcf_file <- input
-  report_file <- path(output_dir, "report.html")
+  report_file <- path(output_dir, glue("{input_base}_report.html"))
   metadata_file <- path(output_dir, "metadata.json")
-  qc_file <- path(output_dir, "qc_metrics.json")
+  qc_metrics_file <- path(output_dir, "qc_metrics.json")
   intermediates_dir <- path(output_dir, "intermediate")
   rmd_intermediates_dir <- path(intermediates_dir, "rmd_intermediate_files")
-  n_cores <- if (is.null(n_cores)) {
-    config::get("n_cores")
-  } else {
-    n_cores
+  if (is.null(n_cores)) {
+    n_cores <- config::get("n_cores")
   }
   loginfo("Config:")
   loginfo(glue("
     input: {input}
+    id: {id}
     output_dir: {output_dir}
     bcf_file: {bcf_file}
     refdata: {refdata}
     metadata_file: {metadata_file}
-    qc_file: {qc_file}
+    qc_metrics_file: {qc_metrics_file}
     report_file: {report_file}
     intermediates_dir: {intermediates_dir}
     rmd_intermediates_dir: {rmd_intermediates_dir}
@@ -127,9 +132,12 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   "))
 
   # Verify structure
-  list(list(path = bcf_file, how = "fail"),
-       list(path = sprintf("%s.tbi", bcf_file), how = "fail"),
-       list(path = refdata, how = "fail")) %>% purrr::transpose() %>%
+  list(
+    list(path = bcf_file, how = "fail"),
+    list(path = glue("{bcf_file}.tbi"), how = "fail"),
+    list(path = refdata, how = "fail")
+  ) %>%
+    purrr::transpose() %>%
     pwalk(verify_path)
   # Create intermediates_dir
   c(output_dir, intermediates_dir) %>% walk(dir_create)
@@ -141,12 +149,9 @@ main <- function(input, refdata = NULL, output_dir = NULL,
   # Process metadata
   process_metadata(bcf_file = bcf_file, output_file = metadata_file)
 
-  # Get gwas_id
-  gwas_id <- get_gwas_id(metadata_file)
-
   # Compute metrics
   process_qc_metrics(
-    df = main_df, output_file = qc_file,
+    df = main_df, output_file = qc_metrics_file,
     output_dir = output_dir
   )
 
@@ -171,11 +176,11 @@ main <- function(input, refdata = NULL, output_dir = NULL,
       output_dir = output_dir,
       intermediates_dir = rmd_intermediates_dir,
       params = list(
-        gwas_id = gwas_id,
+        gwas_id = id,
         output_dir = output_dir,
         bcf_file = bcf_file,
         main_df = main_df,
-        qc_file = qc_file,
+        qc_metrics_file = qc_metrics_file,
         metadata_file = metadata_file,
         refdata_file = refdata,
         plot_files = plot_files
