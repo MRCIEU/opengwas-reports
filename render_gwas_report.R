@@ -143,17 +143,23 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
   c(output_dir, intermediates_dir) %>% walk(dir_create)
 
   # bcf data
+  loginfo("Reading data...")
   main_df <- read_bcf_file(bcf_file = input, ref_file = refdata)
+  loginfo("Reading data done.")
   print(head(main_df))
 
   # Process metadata
+  loginfo("Processing metadata...")
   process_metadata(bcf_file = bcf_file, output_file = metadata_file)
+  loginfo("Processing metadata done.")
 
   # Compute metrics
+  loginfo("Processing qc metrics...")
   process_qc_metrics(
     df = main_df, output_file = qc_metrics_file,
     output_dir = output_dir
   )
+  loginfo("Processing qc metrics done.")
 
   # Render Rmarkdown
   if (!no_report) {
@@ -168,6 +174,8 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
       mc.cores = n_cores
     )
     loginfo(plot_files)
+    loginfo("Rendering plots done.")
+
     loginfo("Start rendering report...")
     rmarkdown::render(
       input = "template/template.Rmd",
@@ -186,6 +194,7 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
         plot_files = plot_files
       )
     )
+    loginfo("Rendering report done.")
 
     if (file_exists(report_file)) {
       if (!show) {

@@ -24,7 +24,7 @@ read_bcf_file <- function(bcf_file, ref_file) {
   df <- data.table::fread(
     cmd = cmd, header = FALSE, sep = "\t",
     na.strings = c("", "NA", "."),
-    showProgress = TRUE
+    showProgress = interactive()
   ) %>%
     set_names(col_names) %>%
     mutate_at(vars(CHROM, ID), as.character) %>%
