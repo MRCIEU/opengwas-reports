@@ -13,7 +13,6 @@ ENV PATH /opt/conda/envs/ieu-gwas-report/bin:$PATH
 # Codebase
 RUN mkdir -p /home/ieu-gwas-report
 WORKDIR /home/ieu-gwas-report
-COPY . /home/ieu-gwas-report/
 
 # Launch app
 CMD ["Rscript", "render_gwas_report.R"]

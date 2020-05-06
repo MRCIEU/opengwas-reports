@@ -42,10 +42,11 @@ docker build -t ieu-gwas-report -f env/Dockerfile .
 input_dir=/path/to/input_dir
 ref_dir=/path/to/ref_dir
 docker run --rm --name ieu-gwas-report \
-  -v ${gwas_dir}:/input_dir \
+  -v ${input_dir}:/input_dir \
   -v ${ref_dir}:/ref_data \
+  -v $(pwd):/home/ieu-gwas-report \
   ieu-gwas-report Rscript render_gwas_report.R \
-  --refdata /ref_data /input_dir/data.bcf
+  --refdata /ref_data /input_dir/data.vcg.gz
 ```
 
 # Usage
@@ -70,7 +71,8 @@ required arguments:
   input                 Input data file, path/to/file (e.g. gwas-files/IEU-a-2/IEU-a-2.vcf.gz)
 
 Override config.yml:
-  --refdata REFDATA     reference data, path/to/file
+  --refdata REFDATA     reference data e.g. 1000 genomes vcf/bcf annotation
+                        file, path/to/file
   -j N_CORES, --n_cores N_CORES
                         Number of cores to use for multiprocessing.
   --id ID               ID of the GWAS, by default is the base name of the input file.

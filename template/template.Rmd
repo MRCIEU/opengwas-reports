@@ -21,8 +21,9 @@ set.seed(config::get("sample_seed"))
 
 ```{r load-data, include=FALSE}
 main_df <- params$main_df
-if (!is.null(params$gwas_id)) {
-  api_data <- params$gwas_id %>% process_api_info()
+if (!is.null(params$gwas_id) & !is.null(params$output_dir)) {
+  # api_data <- params$gwas_id %>% process_api_info()
+  api_data <- path(params$output_dir, glue("{params$gwas_id}.json")) %>% jsonlite::read_json() %>% tibble::enframe()
 } else {
   api_data <- NULL
 }
@@ -60,7 +61,7 @@ info <- tribble(
   "metadata", path_file(params$metadata_file),
   "refdata", path_file(params$refdata_file),
   "compile_time", format(Sys.time(), "%Y-%m-%d %H:%M %Z"),
-  "build_version", get_build_version(),
+  "build_version", get_build_version() %>% as.character(),
 )
 
 info %>% knitr::kable()
@@ -146,7 +147,7 @@ qc_metrics %>%
 
 <span class=".flowing-content-shim">
 ```{r skimr, results="asis"}
-main_df %>% skimr::skim() %>% skimr::kable()
+main_df %>% skimr::skim() %>% knitr::kable()
 ```
 </span>
 
