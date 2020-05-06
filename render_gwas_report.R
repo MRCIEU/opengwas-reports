@@ -39,7 +39,7 @@ get_args <- function(doc) {
   config$add_argument(
     "--refdata",
     type = "character",
-    help = "reference data, path/to/file"
+    help = "reference data e.g. 1000 genomes vcf/bcf annotation file, path/to/file"
   )
   config$add_argument(
     "-j", "--n_cores",

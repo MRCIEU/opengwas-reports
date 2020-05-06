@@ -47,6 +47,7 @@ deploy_plotting <- function(main_df, output_dir, no_reuse) {
         filename <- path(output_dir, "pz_plot.png")
         if (!file_exists(filename) || no_reuse) {
           main_df %>%
+            sample_n(300000) %>%
             plot_pz(
               beta = EFFECT, se = SE,
               pval = PVAL, pval_ztest = PVAL_ztest
