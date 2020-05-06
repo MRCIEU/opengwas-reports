@@ -15,4 +15,4 @@ RUN mkdir -p /home/ieu-gwas-report
 WORKDIR /home/ieu-gwas-report
 
 # Launch app
-CMD ["Rscript", "render_gwas_report.R"]
+# CMD ["Rscript", "render_gwas_report.R"]
