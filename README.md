@@ -7,32 +7,17 @@ Pipeline report, metrics, and plots.
   <img src="assets/mrbase-meta-report.png" width="400" />
 </p>
 
-**Table of Contents**
+## Setting up
 
-- [Report module for IEU GWAS](#report-module-for-ieu-gwas)
-- [Local usage](#local-usage)
-    - [Setting up environment](#setting-up-environment)
-    - [GWAS report](#gwas-report)
-        - [Example](#example)
-    - [Meta report](#meta-report)
-        - [Example](#example-1)
-- [Deployment](#deployment)
-    - [Setting up environment](#setting-up-environment-1)
-    - [GWAS report](#gwas-report-1)
-
-
-# Setting up
-
-## Local conda
+Either use conda to create environment
 
 ```
 # Create conda environment
-$ conda env create -f env/environment.yml
-
-$ conda activate ieu-gwas-report
+conda env create -f env/environment.yml
+conda activate ieu-gwas-report
 ```
 
-## Docker
+or run inside a docker container
 
 ```
 # Build docker image
@@ -49,9 +34,9 @@ docker run --rm --name ieu-gwas-report \
   --refdata /ref_data /input_dir/data.vcg.gz
 ```
 
-# Usage
+## Usage
 
-## GWAS report
+### GWAS report
 
 ```
 $ Rscript render_gwas_report.R --help
@@ -80,7 +65,40 @@ Override config.yml:
                         Directory to store outputs, by default is the same to input.
 ```
 
-## Meta report
+### Meta report
+
+To do...
+
+
+## Generate reports for IGD data
+
+Generate the reports for a large number of existing datasets. First create `igd_config.json` file specifying working directories e.g.:
+
+```json
+{
+  "igd_dir": "/mnt/storage/private/mrcieu/research/scratch/IGD/data/public",
+  "out_dir": "/mnt/storage/private/mrcieu/research/scratch/IGD/data/dev/igd-reports",
+  "reference": "/mnt/storage/private/mrcieu/research/mr-eve/vcf-reference-datasets/1000g/1kg_v3_nomult.bcf"
+}
+```
+
+Use Snakemake to orchestrate the jobs. This will submit the jobs to the cluster. Ideally you would run this command from inside a `screen` session. 
 
 ```
+snakemake -prk \
+-j 200 \
+--use-conda \
+--cluster-config bc4-cluster.json \
+--cluster "sbatch \
+  --job-name={cluster.name} \
+  --partition={cluster.partition} \
+  --nodes={cluster.nodes} \
+  --ntasks-per-node={cluster.ntask} \
+  --cpus-per-task={cluster.ncpu} \
+  --time={cluster.time} \
+  --mem={cluster.mem} \
+  --output={cluster.output} \
+  --parsable" \
+--cluster-status ./slurm_status.py
 ```
+
