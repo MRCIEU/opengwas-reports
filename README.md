@@ -72,6 +72,14 @@ To do...
 
 ## Generate reports for IGD data
 
+First clone into the `run_igd` branch of the repository
+
+```
+git clone git@github.com:MRCIEU/mrbase-report-module.git
+cd mrbase-report-module
+git checkout run_igd
+```
+
 Generate the reports for a large number of existing datasets. First create `igd_config.json` file specifying working directories e.g.:
 
 ```json
