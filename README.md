@@ -44,9 +44,8 @@ ref_dir=/path/to/ref_dir
 docker run --rm --name ieu-gwas-report \
   -v ${input_dir}:/input_dir \
   -v ${ref_dir}:/ref_data \
-  -v $(pwd):/home/ieu-gwas-report \
   ieu-gwas-report Rscript render_gwas_report.R \
-  --refdata /ref_data /input_dir/data.vcg.gz
+  --refdata /ref_data/1kg_v3_nomult.bcf /input_dir/data.vcf.gz
 ```
 
 # Usage
