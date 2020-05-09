@@ -95,7 +95,6 @@ Use Snakemake to orchestrate the jobs. This will submit the jobs to the cluster.
 ```
 snakemake -prk \
 -j 200 \
---use-conda \
 --cluster-config bc4-cluster.json \
 --cluster "sbatch \
   --job-name={cluster.name} \
@@ -109,4 +108,6 @@ snakemake -prk \
   --parsable" \
 --cluster-status ./slurm_status.py
 ```
+
+**Note** that sometimes the conda environment messes things up. In that case just run without the `--use-conda` flag, making sure that all the required R packages as listed in `env/environemnt.yml` are installed.
 

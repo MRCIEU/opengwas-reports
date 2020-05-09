@@ -12,7 +12,7 @@ reference = config['reference']
 
 os.makedirs(out + '/job_reports', exist_ok=True)
 
-ID = [x.strip() for x in [y for y in os.listdir(igd)] if 'eqtl-a' not in x][1:10]
+ID = [x.strip() for x in [y for y in os.listdir(igd)] if 'eqtl-a' not in x]
 
 
 
@@ -31,8 +31,7 @@ mkdir -p {out}/{wildcards.id}
 cp {igd}/{wildcards.id}/clump.txt {out}/{wildcards.id}
 cp {igd}/{wildcards.id}/ldsc.txt.log {out}/{wildcards.id}
 cp {igd}/{wildcards.id}/{wildcards.id}.json {out}/{wildcards.id}
-cp {igd}/{wildcards.id}/{wildcards.id}_data.json {out}/{wildcards.id}
-Rscript render_gwas_report.R \
+/usr/bin/time -v Rscript render_gwas_report.R \
   --refdata {reference} \
   --output_dir {out}/{wildcards.id} \
   --n_cores 1 \
@@ -41,5 +40,4 @@ Rscript render_gwas_report.R \
 rm {out}/{wildcards.id}/clump.txt
 rm {out}/{wildcards.id}/ldsc.txt.log
 rm {out}/{wildcards.id}/{wildcards.id}.json
-rm {out}/{wildcards.id}/{wildcards.id}_data.json
 		"""
