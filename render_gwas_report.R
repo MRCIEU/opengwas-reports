@@ -184,7 +184,7 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
       output_format = "flexdashboard::flex_dashboard",
       output_file = report_file,
       output_dir = output_dir,
-      intermediates_dir = here(rmd_intermediates_dir),
+      intermediates_dir = rmd_intermediates_dir,
       params = list(
         gwas_id = id,
         input_dir = dirname(input),
