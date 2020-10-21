@@ -1,13 +1,13 @@
 source(here("funcs/qc_metrics_core.R"))
 
-process_qc_metrics <- function(df, output_file, output_dir) {
+process_qc_metrics <- function(df, input_dir, output_file, output_dir) {
   # Wrapper processing the qc metrics returned from `qc__calc_qc`.
-  ldsc_file <- path(output_dir, config::get("ldsc_file"))
-  clump_file <- path(output_dir, "clump.txt")
+  ldsc_file <- path(input_dir, config::get("ldsc_file"))
+  clump_file <- path(input_dir, "clump.txt")
   metadata_file <- path(output_dir, "metadata.json")
   qc_metrics <- df %>% qc__calc_qc(
     ldsc_file, metadata_file,
-    clump_file, output_dir
+    clump_file, input_dir, output_dir
   )
   loginfo(glue("Write qc_metics to {output_file}"))
   qc_metrics %>%
@@ -15,7 +15,7 @@ process_qc_metrics <- function(df, output_file, output_dir) {
   invisible()
 }
 
-qc__calc_qc <- function(df, ldsc_file, metadata_file, clump_file, output_dir) {
+qc__calc_qc <- function(df, ldsc_file, metadata_file, clump_file, input_dir, output_dir) {
   # The actual routine to calculate various qc metrics.
   list(
     af_correlation = qc__af_cor(df),
@@ -23,7 +23,7 @@ qc__calc_qc <- function(df, ldsc_file, metadata_file, clump_file, output_dir) {
     mean_EFFECT = qc__mean_beta(df),
     n = qc__get_n_max(df),
     n_snps = qc__get_n_snps(df, metadata_file),
-    n_clumped_hits = qc__clumped_hits(output_dir),
+    n_clumped_hits = qc__clumped_hits(input_dir),
     n_p_sig = qc__n_p_sig(df),
     n_mono = qc__n_mono(df),
     n_ns = qc__n_ns(df),

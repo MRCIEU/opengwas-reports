@@ -101,6 +101,8 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
   }
   if (is.null(output_dir)) {
     output_dir <- path_dir(input)
+  } else {
+    output_dir <- path_abs(output_dir)
   }
   basicConfig()
   # glue("{log_dir}/render_gwas_report_{id}_{Sys.Date()}.log") %>%
@@ -156,7 +158,7 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
   # Compute metrics
   loginfo("Processing qc metrics...")
   process_qc_metrics(
-    df = main_df, output_file = qc_metrics_file,
+    df = main_df, input_dir = dirname(input), output_file = qc_metrics_file,
     output_dir = output_dir
   )
   loginfo("Processing qc metrics done.")
@@ -182,9 +184,10 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
       output_format = "flexdashboard::flex_dashboard",
       output_file = report_file,
       output_dir = output_dir,
-      intermediates_dir = rmd_intermediates_dir,
+      intermediates_dir = here(rmd_intermediates_dir),
       params = list(
         gwas_id = id,
+        input_dir = dirname(input),
         output_dir = output_dir,
         bcf_file = bcf_file,
         main_df = main_df,
