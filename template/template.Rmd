@@ -6,6 +6,7 @@ output:
     vertical_scroll: scroll
 params:
   gwas_id: gwas_id
+  input_dir: input_dir
   output_dir: output_dir
   bcf_file: bcf_file
   main_df: main_df
@@ -23,7 +24,7 @@ set.seed(config::get("sample_seed"))
 main_df <- params$main_df
 if (!is.null(params$gwas_id) & !is.null(params$output_dir)) {
   # api_data <- params$gwas_id %>% process_api_info()
-  api_data <- path(params$output_dir, glue("{params$gwas_id}.json")) %>% jsonlite::read_json() %>% tibble::enframe()
+  api_data <- path(params$input_dir, glue("{params$gwas_id}.json")) %>% jsonlite::read_json() %>% tibble::enframe()
 } else {
   api_data <- NULL
 }
@@ -103,7 +104,7 @@ metadata_file %>% read_file() %>% jsonlite::prettify()
 
 <span class=".flowing-content-shim">
 ```{r display-ldsc}
-display_ldsc(params$output_dir)
+display_ldsc(params$input_dir)
 ```
 </span>
 

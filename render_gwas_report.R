@@ -213,5 +213,8 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
     }
   }
 }
-
+# arg <- get_args(DOC)
+# input <- arg$input
+# refdata <- arg$refdata
+# output_dir <- arg$output_dir
 do.call(main, get_args(DOC))
