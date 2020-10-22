@@ -6,7 +6,6 @@ output:
     vertical_scroll: scroll
 params:
   gwas_id: gwas_id
-  input_dir: input_dir
   output_dir: output_dir
   bcf_file: bcf_file
   main_df: main_df
@@ -22,15 +21,15 @@ set.seed(config::get("sample_seed"))
 
 ```{r load-data, include=FALSE}
 main_df <- params$main_df
-if (!is.null(params$gwas_id) & !is.null(params$input_dir)) {
+if (!is.null(params$gwas_id) & !is.null(params$output_dir)) {
   # api_data <- params$gwas_id %>% process_api_info()
-  api_data <- path(params$input_dir, glue("{params$gwas_id}.json")) %>% jsonlite::read_json() %>% tibble::enframe()
+  api_data <- path(params$output_dir, glue("{params$gwas_id}.json")) %>% jsonlite::read_json() %>% tibble::enframe()
 } else {
   api_data <- NULL
 }
 trait_name <- get_trait_name(api_data)
 metadata <- jsonlite::read_json(params$metadata_file)
-qc_metrics <- jsonlite::read_json(params$qc_metrics_file)
+qc_metrics <- jsonlite::read_json(params$qc_metrics_file) %>% lapply(., function(x) if(x %in% c("NA", "NaN")) NA else x)
 
 plot_sample <- config::get("plot_sample")
 n_sample <- min(
@@ -104,7 +103,7 @@ metadata_file %>% read_file() %>% jsonlite::prettify()
 
 <span class=".flowing-content-shim">
 ```{r display-ldsc}
-display_ldsc(params$input_dir)
+display_ldsc(params$output_dir)
 ```
 </span>
 
