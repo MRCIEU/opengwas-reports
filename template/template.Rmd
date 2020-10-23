@@ -30,7 +30,7 @@ if (!is.null(params$gwas_id) & !is.null(params$input_dir)) {
 }
 trait_name <- get_trait_name(api_data)
 metadata <- jsonlite::read_json(params$metadata_file)
-qc_metrics <- jsonlite::read_json(params$qc_metrics_file)
+qc_metrics <- jsonlite::read_json(params$qc_metrics_file) %>% lapply(., function(x) {if(x %in% c("NA", "NaN")) NA else x})
 
 plot_sample <- config::get("plot_sample")
 n_sample <- min(
