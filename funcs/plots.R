@@ -127,7 +127,9 @@ plot_manhattan <- function(df, chr, bp, snp, p,
     summarise(chr_len = max(!!bp)) %>%
     ungroup() %>%
     # Calculate cumulative position of each chromosome
-    mutate(tot = cumsum(chr_len) - chr_len) %>%
+    # PATCH: cumsum cannot handle a really large integer in
+    #        this version of R
+    mutate(tot = cumsum(as.numeric(chr_len)) - chr_len) %>%
     select(-chr_len) %>%
     # Add this info to the initial dataset
     left_join(df, ., by = quo_name(chr)) %>%
