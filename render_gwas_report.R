@@ -83,13 +83,21 @@ get_args <- function(doc) {
       " [default: %(default)s]"
     )
   )
+  parser$add_argument(
+    "--debug",
+    action = "store_true", default = FALSE,
+    help = paste0(
+      "If True, export intermediate files for the purpose of debugging, output path /tmp/ieu-gwas-report-debug",
+      " [default: %(default)s]"
+    )
+  )
   args <- parser$parse_args()
   return(args)
 }
 
 main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
                  show = FALSE, no_report = FALSE, reuse = FALSE,
-                 n_cores = NULL) {
+                 n_cores = NULL, debug = FALSE) {
   # Config
   if (is.null(refdata)) {
     refdata <- config::get("refdata")
@@ -131,6 +139,7 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
     n_cores: {n_cores}
     no_report: {no_report}
     reuse: {reuse}
+    debug: {debug}
   "))
 
   # Verify structure
@@ -149,6 +158,10 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
   main_df <- read_bcf_file(bcf_file = input, ref_file = refdata)
   loginfo("Reading data done.")
   print(head(main_df))
+  if (debug) {
+    fs::dir_create("/tmp/ieu-gwas-report-debug")
+    main_df %>% write_csv("/tmp/ieu-gwas-report-debug/main_df.csv")
+  }
 
   # Process metadata
   loginfo("Processing metadata...")
@@ -170,7 +183,8 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
       X = deploy_plotting(
         main_df = main_df,
         output_dir = intermediates_dir,
-        no_reuse = !reuse
+        no_reuse = !reuse,
+        debug = debug
       ),
       FUN = function(x) do.call(what = x$what, args = x$args),
       mc.cores = n_cores

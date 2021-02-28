@@ -1,4 +1,4 @@
-deploy_plotting <- function(main_df, output_dir, no_reuse) {
+deploy_plotting <- function(main_df, output_dir, no_reuse, debug = FALSE) {
   #' Deploy rendering of plots, returning a list of (funcs, args)
   width <- 10
   height <- 6
@@ -10,7 +10,8 @@ deploy_plotting <- function(main_df, output_dir, no_reuse) {
           main_df %>%
             plot_manhattan(
               chr = CHROM, bp = POS, snp = ID, p = PVAL,
-              p_threshold = config::get("p_threshold")
+              p_threshold = config::get("p_threshold"),
+              debug = debug
             ) %>%
             ggsave(filename = filename, width = width, height = height)
         }
@@ -106,7 +107,8 @@ plot_qq_log <- function(df, pval) {
 plot_manhattan <- function(df, chr, bp, snp, p,
                            p_threshold = 0.1,
                            red_line = -log10(5e-08),
-                           blue_line = -log10(5e-05)) {
+                           blue_line = -log10(5e-05),
+                           debug = FALSE) {
   #' Manhattan plot
   #'
   #' - `chr`: name (tidy symbol) of the chromosome column
@@ -140,6 +142,11 @@ plot_manhattan <- function(df, chr, bp, snp, p,
     summarise(center = (max(Chromosome) + min(Chromosome)) / 2)
   xlab <- expression(Chromosome)
   ylab <- expression(~ -log[10](italic(p)))
+
+  if (debug) {
+    df_manhattan %>% write_csv("/tmp/ieu-gwas-report-debug/df_manhattan.csv")
+    axis_df %>% write_csv("/tmp/ieu-gwas-report-debug/axis-df.csv")
+  }
 
   df_manhattan %>% {
     ggplot(., aes(x = Chromosome, y = pval)) +
