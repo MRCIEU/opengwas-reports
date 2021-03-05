@@ -78,8 +78,3 @@ Override config.yml:
   --output_dir OUTPUT_DIR
                         Directory to store outputs, by default is the same to input.
 ```
-
-## Meta report
-
-```
-```
