@@ -22,7 +22,7 @@ set.seed(config::get("sample_seed"))
 
 ```{r load-data, include=FALSE}
 main_df <- params$main_df
-if (!is.null(params$gwas_id) & !is.null(params$output_dir)) {
+if (!is.null(params$gwas_id) & !is.null(params$input_dir)) {
   # api_data <- params$gwas_id %>% process_api_info()
   api_data <- path(params$input_dir, glue("{params$gwas_id}.json")) %>% jsonlite::read_json() %>% tibble::enframe()
 } else {
@@ -30,7 +30,7 @@ if (!is.null(params$gwas_id) & !is.null(params$output_dir)) {
 }
 trait_name <- get_trait_name(api_data)
 metadata <- jsonlite::read_json(params$metadata_file)
-qc_metrics <- jsonlite::read_json(params$qc_metrics_file) %>% lapply(., function(x) if(x %in% c("NA", "NaN")) NA else x)
+qc_metrics <- jsonlite::read_json(params$qc_metrics_file) %>% lapply(., function(x) {if(x %in% c("NA", "NaN")) NA else x})
 
 plot_sample <- config::get("plot_sample")
 n_sample <- min(
