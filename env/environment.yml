@@ -5,10 +5,10 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.6.5
-  - r-base=3.5.1
-  - r-tidyverse=1.2.1
-  - r-data.table=1.12.2
+  - python=3.8
+  - r-base=4.0.2
+  - r-tidyverse
+  - r-data.table
   - r-devtools
   - r-rlang>=0.3
   - r-markdown
@@ -19,8 +19,8 @@ dependencies:
   - r-glue
   - r-fs
   - r-skimr
-  - r-argparse=2.0.1
-  - r-styler=1.1.1
+  - r-argparse
+  - r-styler
   - r-lintr
   - pandoc
   - bcftools=1.9
