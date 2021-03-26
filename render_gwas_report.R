@@ -189,7 +189,6 @@ main <- function(input, refdata = NULL, id = NULL, output_dir = NULL,
       FUN = function(x) do.call(what = x$what, args = x$args),
       mc.cores = n_cores
     )
-    loginfo(plot_files)
     loginfo("Rendering plots done.")
 
     loginfo("Start rendering report...")
